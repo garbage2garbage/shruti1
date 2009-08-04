@@ -1,0 +1,513 @@
+// Copyright 2009 Olivier Gillet (ol.gillet@gmail.com). All rights reserved
+//
+// Main program for debugging.
+
+#ifdef __TEST__
+
+#include "shruti.h"
+
+#include <iostream>
+
+#include "pin.h"
+#include "display.h"
+#include "editor.h"
+#include "output_array.h"
+#include "midi.h"
+#include "note_stack.h"
+#include "patch_memory.h"
+#include "shift_register.h"
+#include "synthesis_engine.h"
+#include "utils.h"
+
+using namespace hardware_common;
+
+namespace hardware_shruti {
+
+Display display;
+Editor editor;
+
+struct MidiDebugger : public MidiDevice {
+  static void NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+    LOG(INFO) << "Note on " << (channel + 1) << " " << int(note)
+              << " " << int(velocity); 
+  }
+  static void NoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+    LOG(INFO) << "Note off " << (channel + 1) << " " << int(note)
+              << " " << int(velocity);
+  }
+  static void Aftertouch(uint8_t channel, uint8_t note, uint8_t velocity) {
+    LOG(INFO) << "Aftertouch " << (channel + 1) << " " << int(note) << " "
+              << int(velocity);
+  }
+  static void Aftertouch(uint8_t channel, uint8_t velocity) {
+    LOG(INFO) << "Aftertouch " << (channel + 1) << " " << int(velocity)
+             ;
+  }
+  static void ControlChange(uint8_t channel, uint8_t controller,
+                     uint8_t value) {
+    LOG(INFO) << "CC " << (channel + 1) << " " << int(controller) << " "
+              << int(value); 
+  }
+  static void ProgramChange(uint8_t channel, uint8_t program) {
+    LOG(INFO) << "Program Change " << (channel + 1) << " " << int(program)
+             ; 
+  }
+  static void PitchBend(uint8_t channel, uint16_t pitch_bend) {
+    LOG(INFO) << "Pitch bend " << (channel + 1) << " " << int(pitch_bend)
+             ; 
+  }
+  static void AllSoundOff(uint8_t channel) {
+    LOG(INFO) << "All sound off " << (channel + 1);
+  }
+  static void ResetAllControllers(uint8_t channel) {
+    LOG(INFO) << "Reset all controllers " << (channel + 1);
+  }
+  static void LocalControl(uint8_t channel, uint8_t state) {
+    LOG(INFO) << "LocalControl " << (channel + 1) << " state " << int(state)
+             ;
+  }
+  static void AllNotesOff(uint8_t channel) {
+    LOG(INFO) << "All notes off " << (channel + 1);
+  }
+  static void OmniModeOff(uint8_t channel) {
+    LOG(INFO) << "Omni off " << (channel + 1);
+  }
+  static void OmniModeOn(uint8_t channel) {
+    LOG(INFO) << "Omni on " << (channel + 1);
+  }
+  static void MonoModeOn(uint8_t channel, uint8_t num_channels) {
+    LOG(INFO) << "Mono on " << (channel + 1) << " "
+              << int(num_channels);
+  }
+  static void PolyModeOn(uint8_t channel) {
+    LOG(INFO) << "Poly on " << (channel + 1);
+  }
+  static void SysExStart() {
+    LOG(INFO) << "<sysex>";
+  }
+  static void SysExByte(uint8_t sysex_byte) {
+    LOG(INFO) << int(sysex_byte) << " ";
+  }
+  static void SysExEnd() {
+    LOG(INFO) << "</sysex>";
+  }
+  static void BozoByte(uint8_t bozo_byte) {
+    LOG(INFO) << "BOZOBYTE " << int(bozo_byte);
+  }
+  static void Clock() {
+    LOG(INFO) << "Tick";
+  }
+  static void Start() {
+    LOG(INFO) << "Start";
+  }
+  static void Continue() {
+    LOG(INFO) << "Continue";
+  }
+  static void Stop() {
+    LOG(INFO) << "Stop";
+  }
+  static void ActiveSensing() {
+    LOG(INFO) << "Ping";
+  }
+  static void Reset() {
+    LOG(INFO) << "Panic!";
+  }
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MidiDebugger);
+};
+
+void DisplayTest() {
+  editor.ResetPatch();
+  uint8_t groups[] = {GROUP_OSC, GROUP_FILTER, GROUP_MOD, GROUP_PLAY};
+  for (uint8_t i = 0; i < 4; ++i) {
+    for (uint8_t j = 0; j < 4; ++j) {
+      editor.ToggleGroup(groups[i]);
+      editor.DisplaySummary();
+      for (uint8_t k = 0; k < 4; ++k) {
+        for (uint16_t l = 0; l < 1023; l+=511) {
+          editor.HandleInput(k, l);
+          editor.DisplayDetails();
+        }
+      }
+      editor.DisplaySummary();
+    }
+  }
+}
+
+void StackDump(const NoteStack& stack) {
+  LOG(INFO) << int(stack.size()) << " notes"
+       << "   top: (" << int(stack.most_recent_note().note) << ", "
+       << int(stack.most_recent_note().velocity) << ") "
+       << " sorted:";
+  for (int i = 0; i < stack.size(); ++i) {
+    LOG(INFO) << " " << int(stack.sorted_note(i).note);
+  }
+  LOG(INFO);
+}
+
+void NoteStackTest() {
+  NoteStack stack;
+  for (int i = 0; i < 200; ++i) {
+    LOG(INFO);
+    stack.NoteOn((rand() & 0x0f) + 60, 1);
+    stack.NoteOff((rand() & 0x0f) + 60);
+    StackDump(stack);
+  }
+  while (stack.size()) {
+    stack.NoteOff(stack.sorted_note(stack.size() / 2).note);
+    StackDump(stack);
+  }
+}
+
+void RenderingTest() {
+  editor.ResetPatch();
+  Engine::SetParameter(PRM_OSC_ALGORITHM_1, WAVEFORM_ANALOG_WAVETABLE);
+  Engine::SetParameter(PRM_OSC_ALGORITHM_2, WAVEFORM_SQUARE);
+  Engine::SetParameter(PRM_OSC_OPTION_1, ON);
+  
+  Engine::SetParameter(PRM_OSC_RANGE_1, 128);
+  Engine::SetParameter(PRM_OSC_RANGE_2, 128);
+  Engine::SetParameter(PRM_OSC_PARAMETER_1, 0);
+  Engine::SetParameter(PRM_MIX_BALANCE, 0);
+  Engine::SetParameter(PRM_MIX_SUB_OSC, 0);
+  Engine::SetParameter(PRM_KBD_RAGA, 0);
+  Engine::SetParameter(PRM_ENV_ATTACK, 20);
+  Engine::SetParameter(PRM_ENV_DECAY, 40);
+  Engine::SetParameter(PRM_LFO_WAVE_1, LFO_WAVEFORM_TRIANGLE);
+  Engine::SetParameter(PRM_LFO_RATE_1, 90);
+  Engine::SetParameter(PRM_ENV_SUSTAIN, 0);
+  Engine::SetParameter(PRM_ENV_RELEASE, 40);
+  Engine::SetParameter(PRM_FILTER_CUTOFF, 60);
+  Engine::SetParameter(PRM_MOD_SOURCE, MOD_SRC_NOTE);
+  Engine::SetParameter(PRM_MOD_DESTINATION, MOD_DST_FILTER_CUTOFF);
+  Engine::SetParameter(PRM_MOD_AMOUNT, 63);
+  Engine::SetParameter(PRM_ARP_PATTERN, 0);
+  Engine::SetParameter(PRM_ARP_TEMPO, 0);
+  Engine::SetParameter(PRM_ARP_OCTAVES, 4);
+  Engine::set_sequence_step(0, 255);
+  Engine::set_sequence_step(1, 0);
+  Engine::set_sequence_step(2, 0);
+  Engine::set_sequence_step(3, 128);
+  Engine::set_sequence_step(4, 0);
+  Engine::set_sequence_step(5, 0);
+  Engine::set_sequence_step(6, 255);
+  Engine::set_sequence_step(7, 0);
+  Engine::set_sequence_step(8, 0);
+  Engine::set_sequence_step(9, 128);
+  Engine::set_sequence_step(10, 0);
+  Engine::set_sequence_step(11, 32);
+  Engine::set_sequence_step(12, 64);
+  Engine::set_sequence_step(13, 96);
+  Engine::set_sequence_step(14, 128);
+  Engine::set_sequence_step(15, 160);
+  Engine::NoteOn(0, 64, 120);
+  for (int i = 0; i < 31250*4; ++i) {
+    LOG(INFO) << "audio" << "\tsignal\t" << int(Engine::vcf());
+    Engine::Audio();
+    if ((i % 16) == 0) Engine::Control();
+    if ((i % 256) == 0) {
+      Engine::Clock();
+    }
+    if (i == 14000) {
+      Engine::NoteOff(0, 64, 0);
+    }
+    if (i == 22000) {
+      Engine::ControlChange(0, kModulationWheelMsb, 0);
+    }
+    if (i == 24000) {
+      Engine::ControlChange(0, kModulationWheelMsb, 127);
+    }
+    if (i == 26000) {
+      Engine::ControlChange(0, kModulationWheelMsb, 64);
+    }
+    if (i == 20000) {
+      Engine::NoteOn(0, 40, 70);
+      
+    }
+    if (i == 100000) {
+      Engine::NoteOff(0, 40, 0);
+    }
+  }
+}
+
+char hex[] = "0123456789abcdef";
+
+void MidiTest() {
+  MidiStreamParser<MidiDebugger> stream;
+  stream.PushByte(0x80);
+  stream.PushByte(1);
+  stream.PushByte(0x80);
+  stream.PushByte(2);
+  stream.PushByte(4);
+}
+
+
+void WaveTest() {
+  // WAVEFORM_IMPULSE_TRAIN,
+  // WAVEFORM_SQUARE,
+  // WAVEFORM_SAW,
+  // WAVEFORM_CZ,
+  // WAVEFORM_FM,
+  // WAVEFORM_WAVE,
+  // WAVEFORM_SPEECH,
+  // WAVEFORM_WAVETABLE_SWEEP
+  editor.ResetPatch();
+  Engine::SetParameter(PRM_OSC_ALGORITHM_1, WAVEFORM_ANALOG_WAVETABLE);
+  Engine::SetParameter(PRM_OSC_PARAMETER_1, 0);
+  Engine::SetParameter(PRM_OSC_OPTION_1, 0);
+  Engine::SetParameter(PRM_MIX_BALANCE, 0);
+  Engine::SetParameter(PRM_ARP_PATTERN, 16);
+  Engine::SetParameter(PRM_ARP_OCTAVES, 0);
+  Engine::SetParameter(PRM_ARP_TEMPO, 90);
+  Engine::SetParameter(PRM_LFO_RATE_2, 16);
+  Engine::SetParameter(PRM_LFO_WAVE_2, LFO_WAVEFORM_TRIANGLE);
+  Engine::SetParameter(PRM_FILTER_CUTOFF, 0);
+  Engine::SetParameter(PRM_MOD_SOURCE, MOD_SRC_ENV);
+  Engine::SetParameter(PRM_MOD_DESTINATION, MOD_DST_PWM_1);
+  Engine::SetParameter(PRM_MOD_AMOUNT, 127);
+  Engine::SetParameter(PRM_ENV_ATTACK, 0);
+  Engine::SetParameter(PRM_ENV_DECAY, 105);
+  Engine::SetParameter(PRM_ENV_SUSTAIN, 0);
+  Engine::SetParameter(PRM_KBD_PORTAMENTO, 0);
+  
+  Engine::NoteOn(0, 50, 127);
+  for (int i = 0; i < 31250*4; ++i) {
+    LOG(INFO) << "vco\tvalue\t" << int(Engine::signal());
+    if ((i % 16) == 0) Engine::Control();
+    Engine::Audio();
+  }
+}
+
+void NoiseTest() {
+  editor.ResetPatch();
+  Engine::SetParameter(PRM_OSC_ALGORITHM_1, WAVEFORM_SQUARE);
+  Engine::SetParameter(PRM_OSC_PARAMETER_1, 0);
+  Engine::SetParameter(PRM_OSC_OPTION_1, 0);
+  Engine::SetParameter(PRM_MIX_BALANCE, 0);
+  Engine::SetParameter(PRM_MIX_NOISE, 127);
+  
+  Engine::NoteOn(0, 50, 127);
+  for (int i = 0; i < 31250*4; ++i) {
+    LOG(INFO) << "vco\tvalue\t" << int(Engine::signal());
+    if ((i % 16) == 0) Engine::Control();
+    Engine::Audio();
+  }
+}
+
+void ArpeggioTest() {
+  editor.ResetPatch();
+  Engine::SetParameter(PRM_ARP_TEMPO, 140);
+  Engine::SetParameter(PRM_ARP_OCTAVES, 2);
+  Engine::SetParameter(PRM_ARP_PATTERN, 0);
+  Engine::SetParameter(PRM_ARP_SWING, 0);
+  Engine::NoteOn(0, 60, 80);
+  Engine::NoteOn(0, 64, 80);
+  Engine::NoteOn(0, 67, 80);
+  for (int i = 0; i < 31250*4; ++i) {
+    LOG(INFO) << "vco\tvalue\t" << int(Engine::signal());
+    Engine::Audio();
+    if ((i % 16) == 0) Engine::Control();
+  }
+}
+
+void PortaTest() {
+  editor.ResetPatch();
+  Engine::SetParameter(PRM_OSC_ALGORITHM_1, WAVEFORM_CZ);
+  Engine::SetParameter(PRM_OSC_PARAMETER_1, 30);
+  Engine::SetParameter(PRM_MIX_BALANCE, 0);
+  Engine::SetParameter(PRM_OSC_PARAMETER_1, 30);
+  Engine::SetParameter(PRM_KBD_PORTAMENTO, 60);
+  for (int i = 0; i < 31250*4; ++i) {
+    LOG(INFO) << "vco\tvalue\t" << int(Engine::signal());
+    if ((i % 6000) == 0) {
+      Engine::NoteOn(0, Random::Byte() / 4 + 50, 90);
+    }
+    Engine::Audio();
+    if ((i % 16) == 0) Engine::Control();
+  }
+}
+
+void PackingTest() {
+  editor.ResetPatch();
+  hardware_shruti::Patch patch = Engine::patch();
+  uint8_t* original_patch_data = (uint8_t*)(&Engine::patch());
+  uint8_t* decoded_patch_data = (uint8_t*)(&patch);
+  for (int iter = 0; iter < 1000; ++iter) {
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 4; ++j) {
+        editor.ToggleGroup(i);
+        for (int k = 0; k < 4; ++k) {
+          editor.HandleInput(k, hardware_shruti::Random::Byte() * 4);
+        }
+      }
+    }
+    for (int i = 0; i < 8; ++i) {
+      Engine::mutable_patch()->name[i] = hardware_shruti::Random::Byte();
+    }
+    uint8_t buffer[80];
+    Engine::patch().Pack(buffer);
+    uint8_t slot = hardware_shruti::Random::Byte() % kPatchMemorySize;
+    PatchMemory::Write(slot, buffer);
+    memset(buffer, 0, 80);
+    PatchMemory::Read(slot, buffer);
+    patch.Unpack(buffer);
+    for (int i = 0; i < sizeof(patch); ++i) {
+      if (original_patch_data[i] != decoded_patch_data[i]) {
+        LOG(INFO) << "Error at byte " << int(i);
+      }
+    }
+  }
+}
+
+void LoadSaveTest() {
+  editor.ResetPatch();
+  editor.ToggleGroup(GROUP_LOAD_SAVE);
+  editor.DisplaySummary();
+  editor.DisplayDetails();
+  editor.HandleInput(2, 40);
+  editor.HandleInput(1, 800);
+  editor.HandleInput(3, 1023);
+  editor.HandleInput(1, 0);
+  editor.HandleInput(2, 100);
+  editor.HandleInput(1, 1023);
+  editor.HandleInput(2, 600);
+  editor.DisplayDetails();
+  editor.HandleInput(3, 500);
+  editor.ToggleGroup(GROUP_LOAD_SAVE);
+  for (int i = 0; i < 31250; ++i) {
+    display.Tick();
+    display.Update();
+    if (i == 10000) {
+      display.Print(0, "load/wave");
+      display.Print(1, " 1 raccoon  save");
+    }
+  }
+}
+
+void ShiftRegisterTest() {
+  typedef ShiftRegister<Pin<0>, Pin<1>, Pin<2>, 8> Register1;
+  Register1::Init();
+  Register1::Write(3);
+}
+
+void ArrayTest() {
+  OutputArray<Pin<0>, Pin<1>, Pin<2>, 5, 1> array;
+  array.Init();
+  array.set(0, 0);
+  array.set(1, 0);
+  array.set(2, 1);
+  array.set(3, 0);
+  array.set(4, 1);
+  CHECK_EQ(array.get(4), 1);
+  CHECK_EQ(array.get(3), 0);
+  CHECK_EQ(array.get(2), 1);
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.set(0, 1);
+  array.set(1, 1);
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+  array.Out();
+}
+
+void VoiceTest() {
+  editor.ResetPatch();
+  Engine::SetParameter(PRM_OSC_ALGORITHM_1, WAVEFORM_SPEECH);
+  Engine::SetParameter(PRM_OSC_PARAMETER_1, 63);
+  Engine::SetParameter(PRM_MIX_BALANCE, 0);
+  Engine::SetParameter(PRM_LFO_RATE_2, 80);
+  Engine::SetParameter(PRM_LFO_WAVE_2, LFO_WAVEFORM_S_H);
+  Engine::SetParameter(PRM_MOD_SOURCE, MOD_SRC_LFO_2);
+  Engine::SetParameter(PRM_MOD_DESTINATION, MOD_DST_PWM_1);
+  Engine::SetParameter(PRM_MOD_AMOUNT, 63);
+  Engine::SetParameter(PRM_ARP_OCTAVES, 2);
+  Engine::SetParameter(PRM_ARP_PATTERN, 20);
+  Engine::SetParameter(PRM_ARP_TEMPO, 140);
+  Engine::NoteOn(0, 40, 120);
+  for (int i = 0; i < 31250 * 2; ++i) {
+    LOG(INFO) << "audio" << "\tsignal\t" << int(Engine::signal());
+    Engine::Audio();
+    if ((i % 16) == 0) Engine::Control();
+  }
+}
+
+void WavetableTest() {
+  editor.ResetPatch();
+  Engine::SetParameter(PRM_OSC_ALGORITHM_1, WAVEFORM_WAVETABLE);
+  Engine::SetParameter(PRM_OSC_PARAMETER_1, 100);
+  Engine::SetParameter(PRM_MIX_BALANCE, 0);
+  Engine::SetParameter(PRM_MIX_SUB_OSC, 40);
+  Engine::SetParameter(PRM_LFO_RATE_2, 60);
+  Engine::SetParameter(PRM_LFO_WAVE_2, LFO_WAVEFORM_TRIANGLE);
+  Engine::SetParameter(PRM_MOD_SOURCE, MOD_SRC_LFO_2);
+  Engine::SetParameter(PRM_MOD_DESTINATION, MOD_DST_PWM_1);
+  Engine::SetParameter(PRM_MOD_AMOUNT, 8);
+  Engine::SetParameter(PRM_ARP_OCTAVES, 2);
+  Engine::SetParameter(PRM_ARP_PATTERN, 16);
+  Engine::SetParameter(PRM_ARP_TEMPO, 60);
+  Engine::NoteOn(0, 41, 120);
+  Engine::NoteOn(0, 48, 120);
+  Engine::NoteOn(0, 53, 120);
+  for (int i = 0; i < 31250 * 16; ++i) {
+    LOG(INFO) << "audio" << "\tsignal\t" << int(Engine::signal());
+    Engine::Audio();
+    if ((i % 16) == 0) Engine::Control();
+  }
+}
+
+void StepSequencerTest() {
+  editor.ResetPatch();
+  Engine::mutable_patch()->set_sequence_step(0, 0);
+  Engine::mutable_patch()->set_sequence_step(1, 16);
+  Engine::mutable_patch()->set_sequence_step(4, 255);
+  Engine::mutable_patch()->set_sequence_step(14, 0);
+  Engine::mutable_patch()->set_sequence_step(15, 128);
+  editor.ToggleGroup(GROUP_PLAY);
+  editor.ToggleGroup(GROUP_PLAY);
+  editor.DisplaySummary();
+  editor.HandleInput(0, 0);
+  editor.HandleInput(2, 1023);
+  editor.HandleInput(0, 1023);
+  editor.HandleInput(2, 0);
+  editor.HandleInput(0, 512);
+  editor.HandleInput(2, 0);
+  editor.DisplaySummary();
+}
+
+void AssignableTest() {
+  editor.ResetPatch();
+  Engine::SetParameter(PRM_MOD_SOURCE, MOD_SRC_ASSIGNABLE_2);
+  Engine::SetParameter(PRM_MOD_DESTINATION, MOD_DST_FILTER_CUTOFF);
+  Engine::SetParameter(PRM_MOD_AMOUNT, 127);
+  Engine::SetParameter(PRM_FILTER_CUTOFF, 0);
+  Engine::NoteOn(0, 64, 120);
+  Engine::Audio();
+  Engine::Control();
+  LOG(INFO) << "audio" << "\tvcf\t" << int(Engine::vcf());
+  Engine::set_assignable_controller(1, 255);
+  Engine::Audio();
+  Engine::Control();
+  LOG(INFO) << "audio" << "\tvcf\t" << int(Engine::vcf());
+}
+
+}  // namespace hardware_shruti
+
+int main(int argc, char** argv) {
+  hardware_shruti::display.Init();
+  hardware_shruti::editor.Init(&hardware_shruti::display);
+  hardware_shruti::Engine::Init();
+  hardware_shruti::WavetableTest();
+}
+
+#endif  // __TEST__
