@@ -193,7 +193,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static void UpdateOscillatorAlgorithms();
 
   // Computes the increment for a given envelope stage.
-  static int16_t ScaleEnvelopeIncrement(uint8_t time, uint8_t scale);
+  static uint16_t ScaleEnvelopeIncrement(uint8_t time, uint8_t scale);
   
   DISALLOW_COPY_AND_ASSIGN(SynthesisEngine);
 };

@@ -200,10 +200,10 @@ void SynthesisEngine::UpdateOscillatorAlgorithms() {
 }
 
 /* static */
-int16_t SynthesisEngine::ScaleEnvelopeIncrement(uint8_t time, uint8_t scale) {
-  int32_t increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
+uint16_t SynthesisEngine::ScaleEnvelopeIncrement(uint8_t time, uint8_t scale) {
+  uint16_t increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
       lut_res_env_portamento_increments, time);
-  increment = (increment * scale) >> 8;
+  increment = (uint32_t(increment) * scale) >> 8;
   if (increment == 0) {
     increment = 1;
   }
@@ -213,13 +213,13 @@ int16_t SynthesisEngine::ScaleEnvelopeIncrement(uint8_t time, uint8_t scale) {
 /* static */
 void SynthesisEngine::RecomputeModulationIncrements() {
   // Update the LFO increments.
-  uint16_t increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
-      lut_res_lfo_increments, patch_.lfo_rate[0]);
-  Lfo<1>::Update(patch_.lfo_wave[0], increment);
-
-  increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
-      lut_res_lfo_increments, patch_.lfo_rate[1]);
-  Lfo<2>::Update(patch_.lfo_wave[1], increment);
+  uint16_t increments[2];
+  for (uint8_t i = 0; i < 2; ++i) {
+    increments[i] = ResourcesManager::Lookup<uint16_t, uint8_t>(
+        lut_res_lfo_increments, patch_.lfo_rate[i]);
+  }
+  Lfo<1>::Update(patch_.lfo_wave[0], increments[0]);
+  Lfo<2>::Update(patch_.lfo_wave[1], increments[1]);
     
   // Update the envelope increments and targets.
   envelope_increment_[ATTACK] = ScaleEnvelopeIncrement(
