@@ -82,7 +82,7 @@ class Voice {
   static uint8_t envelope_stage_;
   static int16_t envelope_value_;
   static int16_t envelope_increment_;
-  static uint16_t envelope_target_;
+  static int16_t envelope_target_;
 
   // Counters/phases for the pitch envelope generator (portamento).
   // Pitches are stored on 14 bits, the 7 highest bits are the MIDI note value,
@@ -109,6 +109,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   friend class Voice;
 
  public:
+  SynthesisEngine() { };
   static void Init();
 
   // Forwarded to the controller.
@@ -166,7 +167,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static inline uint8_t resonance() { return voice_.resonance(); }
   static inline uint8_t signal() { return voice_.signal(); }
   static inline uint8_t modulation_source(uint8_t i) {
-    if (i <= MOD_SRC_ENV) {
+    if (i < MOD_SRC_ENV) {
       return modulation_sources_[i];
     } else {
       return voice_.modulation_source(i);
@@ -197,7 +198,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   DISALLOW_COPY_AND_ASSIGN(SynthesisEngine);
 };
 
-typedef SynthesisEngine Engine;
+extern SynthesisEngine engine;
 
 }  // namespace hardware_shruti
 

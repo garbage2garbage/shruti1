@@ -23,6 +23,7 @@ template<typename OutputPort,
          UnderrunPolicy underrun_policy = HOLD_SAMPLE>
 class AudioOutput {
  public:
+   AudioOutput() { };
 	enum {
 		buffer_size = buffer_size_,
 		data_size = OutputPort::data_size,

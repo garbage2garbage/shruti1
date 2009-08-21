@@ -18,6 +18,7 @@
 
 using hardware_io::Display;
 using hardware_io::kLcdWidth;
+using hardware_io::kLcdLines;
 using hardware_io::kLcdNoCursor;
 
 namespace hardware_shruti {
@@ -112,7 +113,6 @@ class Editor {
   Editor();
   void Init(Display* display);
   void ToggleGroup(ParameterGroup group);
-  void CyclePage();
 
   void HandleInput(uint8_t controller_index, uint16_t value);
   void DisplaySummary();
@@ -140,7 +140,7 @@ class Editor {
   uint8_t current_controller_;
   uint8_t parameter_definition_offset_[kNumPages][kNumControllers];
 
-  char line_buffer_[kLcdWidth + 1];
+  char line_buffer_[(kLcdWidth + 1) * kLcdLines];
   
   void PrettyPrintParameterValue(const ParameterDefinition& parameter,
                                  char* buffer, uint8_t width);

@@ -26,8 +26,11 @@ Display::Display() {
 void Display::Init() {
   // Assume that the display is wrongly set to 9600, and send a command to
   // switch it to 2400 bps.
-  DisplayPanicSerialOutput::Write(124);
-  DisplayPanicSerialOutput::Write(11);
+  // TODO(oliviergillet): add commands for other rates.
+  if (kLcdBaudRate == 2400) {
+    DisplayPanicSerialOutput::Write(124);
+    DisplayPanicSerialOutput::Write(11);
+  }
   DisplaySerialOutput::Init();
 }
 
@@ -89,6 +92,8 @@ void Display::Update() {
   if (DisplaySerialOutput::writable() < 3) {
     return;
   }
+  // It is now safe that all write of 3 bytes to the display buffer will not
+  // block.
 
   blink_clock_ = (blink_clock_ + 1) & kLcdCursorBlinkRate;
   if (blink_clock_ == 0) {
@@ -98,8 +103,8 @@ void Display::Update() {
   
   uint8_t character = 0;
   // Determine which character to show at the current position.
-  // If the scan position is the cursor and it is shown (blinking), draw a
-  // _
+  // If the scan position is the cursor and it is shown (blinking), draw the
+  // cursor.
   if (scan_position_ == cursor_position_ && blink_) {
     character = kLcdCursor;
   } else {
@@ -113,6 +118,8 @@ void Display::Update() {
       character = local_[scan_position_];
     }
   }
+  // TODO(oliviergillet): check if we can get rid of the
+  // scan_position_ == cursor_position_ condition (dead code?).
   if (character != remote_[scan_position_] ||
       scan_position_ == cursor_position_) {
     // There is a character to transmit!

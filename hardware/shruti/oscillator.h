@@ -21,6 +21,8 @@ using hardware_utils::Random;
 
 namespace hardware_shruti {
 
+const uint8_t kSpeechControlRateDecimation = 4;
+
 struct BandLimitedOscillatorData {
   int8_t square;
   uint16_t shift;
@@ -54,6 +56,7 @@ struct SpeechSynthesizerData {
   uint16_t formant_phase[3];
   uint8_t formant_amplitude[3];
   uint8_t noise_modulation;
+  uint8_t update;  // Update only every kSpeechControlRateDecimation-th call.
 };
 
 union OscillatorData {
@@ -204,7 +207,7 @@ class Oscillator {
     data_.bl.pulse_tbl = waveform_table[WAV_RES_BANDLIMITED_PULSE_0];
   }
   static void UpdateBandLimited() {
-    uint8_t note = (note_ - 24) >> 4;
+    uint8_t note = Signal::Shift4(note_ - 24);
     if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
       // TODO(oliviergillet) : find better formula for leaky integrator constant.
       data_.bl.leak = 255 - ((note_ - 24) >> 3);
@@ -243,7 +246,7 @@ class Oscillator {
     data_.wv.wave_b = waveform_table[WAV_RES_BANDLIMITED_SAW_0];
   }
   static void UpdateHqWave() {
-    uint8_t note = (note_ - 24) >> 4;
+    uint8_t note = Signal::Shift4(note_ - 24);
     switch (algorithm_) {
       case WAVEFORM_SAW:
         data_.wv.wave_a = waveform_table[WAV_RES_BANDLIMITED_SAW_0 + note];
@@ -349,72 +352,73 @@ class Oscillator {
   
   // ------- Speech -----------------------------------------------------------.
   static void UpdateSpeech() {
-    uint8_t offset_1 = (parameter_ >> 4) * 5;
+    data_.sp.update++;
+    if (data_.sp.update == kSpeechControlRateDecimation) {
+      data_.sp.update = 0;
+    }
+    
+    if (data_.sp.update != 1) {
+      return;
+    }
+    
+    uint8_t offset_1 = Signal::Shift4(parameter_);
+    offset_1 = (offset_1 << 2) + offset_1;  // offset_1 * 5
     uint8_t offset_2 = offset_1 + 5;
     uint8_t mix = parameter_ & 15;
     for (uint8_t i = 0; i < 3; ++i) {
-      data_.sp.formant_increment[i] =
+      data_.sp.formant_increment[i] = Signal::UnscaledMix4(
           ResourcesManager::Lookup<uint8_t, uint8_t>(
-              waveform_table[WAV_RES_SPEECH_DATA],
-              offset_1 + i) * (15 - mix);
-      data_.sp.formant_increment[i] +=
+              waveform_table[WAV_RES_SPEECH_DATA], offset_1 + i),
           ResourcesManager::Lookup<uint8_t, uint8_t>(
-              waveform_table[WAV_RES_SPEECH_DATA],
-              offset_2 + i) * mix; 
-      data_.sp.formant_increment[i] *= 3;
+              waveform_table[WAV_RES_SPEECH_DATA], offset_2 + i),
+          mix);
+      data_.sp.formant_increment[i] <<= 2;
     }
-    uint8_t amplitude_1a = ResourcesManager::Lookup<uint8_t, uint8_t>(
+    for (uint8_t i = 0; i < 2; ++i) {
+      uint8_t amplitude_a = ResourcesManager::Lookup<uint8_t, uint8_t>(
           waveform_table[WAV_RES_SPEECH_DATA],
-          offset_1 + 3);
-    uint8_t amplitude_2a = ResourcesManager::Lookup<uint8_t, uint8_t>(
+          offset_1 + 3 + i);
+      uint8_t amplitude_b = ResourcesManager::Lookup<uint8_t, uint8_t>(
           waveform_table[WAV_RES_SPEECH_DATA],
-          offset_1 + 4);
-    uint8_t amplitude_1b = ResourcesManager::Lookup<uint8_t, uint8_t>(
-          waveform_table[WAV_RES_SPEECH_DATA],
-          offset_2 + 3);
-    uint8_t amplitude_2b = ResourcesManager::Lookup<uint8_t, uint8_t>(
-          waveform_table[WAV_RES_SPEECH_DATA],
-          offset_2 + 4);
-    data_.sp.formant_amplitude[0] = (amplitude_1a * (15 - mix) +
-        amplitude_1b * mix) >> 8;
-    data_.sp.formant_amplitude[1] = ((amplitude_1a & 0xf) * (15 - mix) +
-        (amplitude_1b & 0xf) * mix) >> 4;
-    data_.sp.formant_amplitude[2] = (amplitude_2a * (15 - mix) +
-          amplitude_2b * mix) >> 8;
-    data_.sp.noise_modulation = ((amplitude_2a & 0xf) * (15 - mix) +
-          (amplitude_2b & 0xf) * mix) >> 4;
+          offset_2 + 3 + i);
+
+      data_.sp.formant_amplitude[2 * i + 1] = Signal::Mix4(
+          amplitude_a & 0xf,
+          amplitude_b & 0xf, mix);
+      amplitude_a = Signal::Shift4(amplitude_a);
+      amplitude_b = Signal::Shift4(amplitude_b);
+      data_.sp.formant_amplitude[2 * i] = Signal::Mix4(
+          amplitude_a,
+          amplitude_b, mix);
+    }
   }
   static uint8_t RenderSpeech() {
-    uint16_t phase[3];
-	  phase[0] = data_.sp.formant_phase[0];
-	  phase[1] = data_.sp.formant_phase[1];
-	  phase[2] = data_.sp.formant_phase[2];
+	  data_.sp.formant_phase[0] += data_.sp.formant_increment[0];
+	  data_.sp.formant_phase[1] += data_.sp.formant_increment[1];
+	  data_.sp.formant_phase[2] += data_.sp.formant_increment[2];
 
-	  phase[0] += data_.sp.formant_increment[0];
-	  phase[1] += data_.sp.formant_increment[1];
-	  phase[2] += data_.sp.formant_increment[2];
-	  int16_t phase_noise = Random::Byte() * data_.sp.noise_modulation;
+    int16_t phase_noise = 0;
+	  if (data_.sp.noise_modulation) {
+	    phase_noise = Random::Byte() * data_.sp.noise_modulation;
+	  }
 
 	  int8_t result = 0;
 	  result += ResourcesManager::Lookup<uint8_t, uint8_t>(
 	      waveform_table[WAV_RES_FORMANT_SINE],
-	      ((phase[0] >> 8) & 0xf0) | data_.sp.formant_amplitude[0]);
+	      ((data_.sp.formant_phase[0] >> 8) & 0xf0) | data_.sp.formant_amplitude[0]);
 	  result += ResourcesManager::Lookup<uint8_t, uint8_t>(
 	      waveform_table[WAV_RES_FORMANT_SINE],
-	      ((phase[1] >> 8) & 0xf0) | data_.sp.formant_amplitude[1]);
+	      ((data_.sp.formant_phase[1] >> 8) & 0xf0) | data_.sp.formant_amplitude[1]);
 	  result += ResourcesManager::Lookup<uint8_t, uint8_t>(
 	      waveform_table[WAV_RES_FORMANT_SQUARE],
-	      ((phase[2] >> 8) & 0xf0) | data_.sp.formant_amplitude[2]);
+	      ((data_.sp.formant_phase[2] >> 8) & 0xf0) | data_.sp.formant_amplitude[2]);
     result = Signal::SignedMulScale8(result, 255 - (phase_ >> 8));
     phase_ += phase_increment_;
 	  if ((phase_ + phase_noise) < phase_increment_) {
-	    phase[0] = 0;
-	    phase[1] = 0;
-	    phase[2] = 0;
+      data_.sp.formant_phase[0] = 0;
+      data_.sp.formant_phase[1] = 0;
+      data_.sp.formant_phase[2] = 0;
 	  }
-    data_.sp.formant_phase[0] = phase[0];
-	  data_.sp.formant_phase[1] = phase[1];
-	  data_.sp.formant_phase[2] = phase[2];
 	  return result + 128;
   }
   

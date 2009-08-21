@@ -28,34 +28,37 @@ using namespace hardware_shruti;
 
 // Serial object used for debugging.
 typedef Serial<SerialPort0, 38400, DISABLED, POLLED> DebugOutput;
+DebugOutput debug_output;
 PrettyPrinter<DebugOutput> debug;
 
 // Midi input.
-typedef Serial<SerialPort0, 31250, BUFFERED, DISABLED> MidiInput;
+Serial<SerialPort0, 31250, BUFFERED, DISABLED> midi_input;
 
 // Input event handlers.
 typedef InputArray<AnalogInput<kPinAnalogInput>, 4, 8> Pots;
-typedef InputArray<DigitalInput<kPinDigitalInput>, 1> Switches;
+typedef InputArray<DigitalInput<kPinDigitalInput>, 5> Switches;
+Pots pots;
+Switches switches;
 
 // Shift register for input multiplexer.
-typedef ShiftRegister<
+ShiftRegister<
     Pin<kPinInputLatch>,
     Pin<kPinClk>,
-    Pin<kPinData>, 8, MSB_FIRST> InputMux;
+    Pin<kPinData>, 8, MSB_FIRST> input_mux;
 
 // LED array.
-typedef OutputArray<
+OutputArray<
     Pin<kPinOutputLatch>, 
     Pin<kPinClk>,
-    Pin<kPinData>, 11, 4, LSB_FIRST, false> Leds;
+    Pin<kPinData>, 11, 4, LSB_FIRST, false> leds;
 
 // Audio output on pin 3.
-typedef AudioOutput<PwmOutput<3>, kAudioBufferSize, kAudioBlockSize> Audio;
+AudioOutput<PwmOutput<3>, kAudioBufferSize, kAudioBlockSize> audio;
 uint32_t rendered_blocks = 0;
 
 Display display;
 Editor editor;
-MidiStreamParser<Engine> midi_parser;
+MidiStreamParser<SynthesisEngine> midi_parser;
 
 void OutputTask() {
 TASK_BEGIN_NEAR
@@ -69,8 +72,8 @@ TASK_BEGIN_NEAR
       uint8_t value = 0;
       if (i == editor.current_page()) {
         if (i == PAGE_MOD_MATRIX) {
-          uint8_t current_modulation_source_value = Engine::modulation_source(
-              Engine::patch().modulation_matrix.modulation[
+          uint8_t current_modulation_source_value = engine.modulation_source(
+              engine.patch().modulation_matrix.modulation[
                   editor.cursor()].source);
           value = current_modulation_source_value >> 4;
         } else {
@@ -79,14 +82,14 @@ TASK_BEGIN_NEAR
       } else {
         value = 0;
       }
-      Leds::set_value(i, value);
+      leds.set_value(i, value);
     }
-    Leds::Out();
-    YIELD_VOID;
+    leds.Out();
+    TASK_SWITCH;
     
     // Send a character to the LCD display if available.
     display.Update();
-    YIELD_VOID;
+    TASK_SWITCH;
   }
 TASK_END
 }
@@ -94,40 +97,44 @@ TASK_END
 void InputTask() {
   Switches::Event switch_event;
   Pots::Event pot_event;
+  static uint8_t id;
 TASK_BEGIN_NEAR
   while (1) {
     // Read the switches.
-    switch_event = Switches::Read();
+    switch_event = switches.Read();
     
     // Update the editor.
-    if (switch_event.event == EVENT_LOWERED && switch_event.time > 100) {
-      YIELD_VOID;
-      editor.CyclePage();
-      YIELD_VOID;
+    if (switch_event.event == EVENT_RAISED && switch_event.time > 100) {
+      id = switch_event.id;
+      TASK_SWITCH;
+      editor.ToggleGroup(id);
+      TASK_SWITCH;
       editor.DisplaySummary();
     }
-    YIELD_VOID;
+    TASK_SWITCH;
     
-    // Select which analog/digital inputs we want to read by a write on the
+    // Select which analog/digital inputs we want to read by a write to the
     // multiplexer register.
-    InputMux::Write((Pots::active_input() << 3) | Switches::active_input());
-    YIELD_VOID;
+    input_mux.Write((pots.active_input() << 3) | switches.active_input());
+    TASK_SWITCH;
     
     // Read the potentiometers.
-    pot_event = Pots::Read();
+    pot_event = pots.Read();
     
     // Update the editor if something happened.
     if (pot_event.event == EVENT_NONE) {
+      // Nothing happened. If nothing happened for a long time, display the
+      // summary page instead of the details.
       if (pot_event.time > 1500) {
-        YIELD_VOID;
+        TASK_SWITCH;
         editor.DisplaySummary();
       }
     } else {
       editor.HandleInput(pot_event.id, pot_event.value);
-      YIELD_VOID;
+      TASK_SWITCH;
       editor.DisplayDetails();
     }
-    YIELD_VOID;
+    TASK_SWITCH;
     // TODO(oliviergillet): write VCF control signals to the PWM output.
   }
 TASK_END
@@ -137,11 +144,11 @@ void MidiTask() {
 TASK_BEGIN_NEAR
   while (1) {
     for (uint8_t i = 0; i < 4; ++i) {
-      if (MidiInput::readable()) {
-        midi_parser.PushByte(MidiInput::ImmediateRead());
+      if (midi_input.readable()) {
+        midi_parser.PushByte(midi_input.ImmediateRead());
       }
     }
-    YIELD_VOID;
+    TASK_SWITCH;
   }
 TASK_END
 }
@@ -149,15 +156,15 @@ TASK_END
 void AudioRenderingTask() {
 TASK_BEGIN_NEAR
   while (1) {
-    if (Audio::writable_block()) {
+    if (audio.writable_block()) {
       rendered_blocks++;
-      Engine::Control();
+      engine.Control();
       for (uint8_t i = 0; i < kAudioBlockSize; ++i) {
-        Engine::Audio();
-        Audio::Overwrite(Engine::signal());
+        engine.Audio();
+        audio.Overwrite(engine.signal());
       }
     }
-    YIELD_VOID;
+    TASK_SWITCH;
   }
 TASK_END
 }
@@ -168,9 +175,9 @@ TASK_BEGIN_NEAR
   while (1) {
     heartbeat_counter++;
     if ((heartbeat_counter & 1023) == 0) {
-      debug << Audio::num_glitches() << endl;
+      debug << audio.num_glitches() << endl;
     }
-    YIELD_VOID;
+    TASK_SWITCH;
   }
 TASK_END
 }
@@ -191,7 +198,7 @@ void ScheduleTasks() {
 
 TIMER_2_TICK {
   display.Tick();
-  Audio::EmitSample();
+  audio.EmitSample();
 }
 
 void Setup() {
@@ -201,50 +208,25 @@ void Setup() {
   Timer<2>::set_prescaler(1);
   Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
   Timer<2>::Start();
-  Audio::Init();
+  audio.Init();
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  
-  MidiInput::Init();
-  DebugOutput::Init();
-  Pots::Init();
-  Switches::Init();
-  InputMux::Init();
-  Leds::Init();  
-  
-  Engine::Init();
-  
   editor.Init(&display);
-  // editor.DisplaySplashScreen();
+  editor.DisplaySplashScreen();
   
-  /*Engine::SetParameter(PRM_OSC_ALGORITHM_1, WAVEFORM_CZ);
-  Engine::SetParameter(PRM_OSC_PARAMETER_1, 63);
-  Engine::SetParameter(PRM_OSC_OPTION_1, 0);
-  Engine::SetParameter(PRM_OSC_RANGE_2, 128);
-  Engine::SetParameter(PRM_MIX_BALANCE, 0);
-  Engine::SetParameter(PRM_MIX_SUB_OSC, 0);
-  Engine::SetParameter(PRM_MIX_NOISE, 1);
-
-  Engine::SetParameter(PRM_LFO_RATE_2, 20);
-  Engine::SetParameter(PRM_LFO_WAVE_2, LFO_WAVEFORM_TRIANGLE);
-  Engine::SetParameter(PRM_MOD_SOURCE, MOD_SRC_LFO_2);
-  Engine::SetParameter(PRM_MOD_DESTINATION, MOD_DST_PWM_1);
-  Engine::SetParameter(PRM_MOD_AMOUNT, 120);
-  Engine::SetParameter(PRM_ARP_OCTAVES, 2);
-  Engine::SetParameter(PRM_ARP_PATTERN, 1);
-  Engine::SetParameter(PRM_ARP_TEMPO, 120);
-  Engine::SetParameter(PRM_ARP_SWING, 0);
-  Engine::SetParameter(PRM_KBD_PORTAMENTO, 20);
-
-  for (uint8_t i = 0; i < 4; ++i) {
-    Engine::mutable_patch()->sequence[2 * i] = hardware_utils::Random::Byte();
-    Engine::mutable_patch()->sequence[2 * i + 1] = Engine::mutable_patch()->sequence[2 * i];
-  }
-  Engine::NoteOn(0, 36, 120);
-  Engine::NoteOn(0, 48, 120);
-  Engine::NoteOn(0, 55, 120);*/
-  Engine::NoteOn(0, 60, 120);
+  midi_input.Init();
+  debug_output.Init();
+  pots.Init();
+  switches.Init();
+  // Set the digital input to high to enable the pull-up resistor.
+  Pin<kPinDigitalInput>::High();
+  input_mux.Init();
+  leds.Init();  
+  
+  engine.Init();
+  
+  engine.NoteOn(0, 48, 120);
 }
 
 int main(void)

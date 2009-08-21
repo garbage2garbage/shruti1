@@ -45,7 +45,7 @@ static const uint8_t kPinOutputLatch = 8;
 static const uint8_t kPinInputLatch = 10;
 static const uint8_t kPinAnalogInput = 0;
 
-static const uint8_t kPinDigitalInput = 12;
+static const uint8_t kPinDigitalInput = 11;
 static const uint8_t kPinDebugLed = 13;
 
 }  // namespace hardware_shruti

@@ -36,6 +36,7 @@ enum InputEvent {
 template<typename Input, uint8_t num_inputs, uint8_t threshold = 1>
 class InputArray {
  public:
+  InputArray() { };
   typedef typename DataTypeForSize<Input::data_size>::Type T;
   typedef struct {
     uint8_t id;

@@ -33,7 +33,8 @@ struct NoResourcesTables {
 };
 
 template<typename ResourceId = uint8_t, typename Tables = NoResourcesTables>
-struct ResourcesManager {
+class ResourcesManager {
+ public:
   static inline void LoadStringResource(ResourceId resource, char* buffer,
                                         uint8_t buffer_size) {
     if (!Tables::string_table()) {
@@ -91,15 +92,20 @@ struct ResourcesManager {
 
   template<typename T>
   static void Load(const prog_char* p, uint8_t i, T* destination) {
-    uint8_t* destination_ptr = (uint8_t*)destination;
+    UntypedLoad(p, i, (uint8_t*)destination, sizeof(T));
+  }
+
+ private:
+  static void UntypedLoad(const prog_char* p, uint8_t i, uint8_t* destination,
+                          uint8_t size) {
     const uint8_t* source = (const uint8_t*)p;
-    source += sizeof(T) * i;
-    for (int i = 0; i < sizeof(T); ++i) {
-#ifdef __TEST__
-      *destination_ptr++ = *source++;
-#else
-      *destination_ptr++ = pgm_read_byte(source++);
-#endif  // __TEST__
+    source += size * i;
+    for (int i = 0; i < size; ++i) {
+ #ifdef __TEST__
+      *destination++ = *source++;
+ #else
+      *destination++ = pgm_read_byte(source++);
+ #endif  // __TEST__
     }
   }
 };

@@ -134,7 +134,7 @@ gat
 lfo1
 lfo2
 stpseq
-pattrn
+ arp
 mwheel
 bender
 assgn1
@@ -156,12 +156,12 @@ sub
 res
 
 cutoff
-vcagain
-osc1prm
-osc2prm
+ vca
+pwm1
+pwm2
 osc1
 osc2
-oscbal
+ mix
 noise
 subosc
 reso
@@ -487,7 +487,7 @@ for zone in range(num_zones):
   f0 = 440.0 * 2.0 ** ((24 + 16 * (zone + 1) - 69) / 12.0)
   period = sample_rate / f0
   m = 2 * numpy.floor(period / 2) + 1.0
-  wrap = numpy.fmod(numpy.arange(256) + 128, 256)
+  wrap = numpy.fmod(numpy.arange(257) + 128, 256)
   i = wrap / 256.0
   pulse = numpy.sin(numpy.pi * i * m) / (m * numpy.sin(numpy.pi * i) + 1e-9)
   pulse[128] = 1.0

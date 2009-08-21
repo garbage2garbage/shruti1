@@ -29,6 +29,7 @@ template<typename Latch, typename Clock, typename Data,
          ShiftRegisterOrder order = LSB_FIRST, bool safe = true>
 class OutputArray {
  public:
+  OutputArray() { };
   typedef ShiftRegister<Latch, Clock, Data, size, order> Register;
   typedef typename DataTypeForSize<bit_depth>::Type Value;
   typedef typename DataTypeForSize<size>::Type Index;
@@ -94,6 +95,7 @@ class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
   typedef ShiftRegister<Latch, Clock, Data, size, order> Register;
   typedef typename DataTypeForSize<4>::Type Value;
   typedef typename DataTypeForSize<size>::Type Index;
+  OutputArray() { };
   static inline void Init() {
     if (safe) {
       memset(values_, 0, sizeof(values_));
@@ -176,6 +178,7 @@ class OutputArray<Latch, Clock, Data, size, 1, order, safe> {
   typedef ShiftRegister<Latch, Clock, Data, size, order> Register;
  public:
   typedef typename DataTypeForSize<size>::Type T;
+  OutputArray() { };
   static inline void Init() {
     if (safe) {
       touched_ = 1;

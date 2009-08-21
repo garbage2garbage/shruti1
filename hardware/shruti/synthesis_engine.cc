@@ -8,6 +8,7 @@
 
 #include <string.h>
 
+#include "hardware/resources/resources_manager.h"
 #include "hardware/shruti/lfo.h"
 #include "hardware/shruti/oscillator.h"
 #include "hardware/shruti/parameters.h"
@@ -17,6 +18,9 @@
 using hardware_utils::Signal;
 
 namespace hardware_shruti {
+
+/* extern */
+SynthesisEngine engine;
 
 typedef Oscillator<1> Osc1;
 typedef Oscillator<2, true> Osc2;
@@ -40,66 +44,33 @@ void SynthesisEngine::Init() {
   controller_.Init(&voice_, 1);  // "Monophonic shit" - Mr Oizo.
   ResetPatch();
   Reset();
-  Voice::Init();
+  voice_.Init();
 }
+
+static const prog_char empty_patch[] PROGMEM = {
+    99,
+    1, 1, 0, 0,
+    128, 128, 0, 0,
+    0, 0, 0, 3,
+    120, 0, 0, 0,
+    0, 40, 100, 40,
+    0, 0, 64, 16,
+    0, 4, 0,
+    0, 5, 0,
+    1, 2, 0,
+    1, 3, 0,
+    10, 0, 48,
+    8, 1, 127,
+    9, 1, 31,
+    1, 6, 0,
+    120, 0, 0, 0,
+    136, 136, 136, 136, 136, 136, 136, 136,
+    128, 0, 0, 1,
+    'n', 'e', 'w', ' ', ' ', ' ', ' ', ' '};
 
 /* static */
 void SynthesisEngine::ResetPatch() {
-  memset(&patch_, 0, sizeof(patch_));
-
-  patch_.osc_range[0] = patch_.osc_range[1] = 128;
-  patch_.osc_algorithm[0] = WAVEFORM_SQUARE;
-  patch_.osc_algorithm[1] = WAVEFORM_SAW;
-  patch_.mix_balance = 128;
-  patch_.mix_sub_osc_algorithm = WAVEFORM_TRIANGLE;
-  patch_.lfo_rate[0] = 40;
-  patch_.lfo_rate[1] = 20;
-  patch_.env_decay = 40;
-  patch_.env_release = 40;
-  patch_.env_sustain = 100;
-  patch_.filter_cutoff = 120;
-  patch_.modulation_matrix.modulation[0].source = MOD_SRC_LFO_1;
-  patch_.modulation_matrix.modulation[0].destination = MOD_DST_VCO_1;
-  patch_.modulation_matrix.modulation[0].amount = 0;
-
-  patch_.modulation_matrix.modulation[1].source = MOD_SRC_LFO_1;
-  patch_.modulation_matrix.modulation[1].destination = MOD_DST_VCO_2;
-  patch_.modulation_matrix.modulation[1].amount = 0;
-
-  patch_.modulation_matrix.modulation[2].source = MOD_SRC_LFO_2;
-  patch_.modulation_matrix.modulation[2].destination = MOD_DST_PWM_1;
-  patch_.modulation_matrix.modulation[2].amount = 0;
-
-  patch_.modulation_matrix.modulation[3].source = MOD_SRC_LFO_2;
-  patch_.modulation_matrix.modulation[3].destination = MOD_DST_PWM_2;
-  patch_.modulation_matrix.modulation[3].amount = 0;
-
-  patch_.modulation_matrix.modulation[4].source = MOD_SRC_NOTE;
-  patch_.modulation_matrix.modulation[4].destination = MOD_DST_FILTER_CUTOFF;
-  patch_.modulation_matrix.modulation[4].amount = 48;
-
-  patch_.modulation_matrix.modulation[5].source = MOD_SRC_ENV;
-  patch_.modulation_matrix.modulation[5].destination = MOD_DST_VCA;
-  patch_.modulation_matrix.modulation[5].amount = 127;
-
-  patch_.modulation_matrix.modulation[6].source = MOD_SRC_VELOCITY;
-  patch_.modulation_matrix.modulation[6].destination = MOD_DST_VCA;
-  patch_.modulation_matrix.modulation[6].amount = 31;
-
-  patch_.modulation_matrix.modulation[7].source = MOD_SRC_LFO_2;
-  patch_.modulation_matrix.modulation[7].destination = MOD_DST_MIX_BALANCE;
-  patch_.modulation_matrix.modulation[7].amount = 0;
-  patch_.kbd_midi_channel = 1;
-  patch_.kbd_octave = 128;
-  patch_.arp_tempo = 120;
-  
-  memset(patch_.name, ' ', kPatchNameSize);
-  patch_.name[0] = 'p';
-  patch_.name[1] = 'i';
-  patch_.name[2] = 'w';
-  patch_.name[3] = 'i';
-  patch_.name[4] = 'x';
-  memset(patch_.sequence, 0x88, 8);
+  ResourcesManager::Load(empty_patch, 0, &patch_);
   TouchPatch();
 }
 
@@ -289,7 +260,7 @@ void SynthesisEngine::Audio() {
 uint8_t Voice::envelope_stage_;
 int16_t Voice::envelope_value_;
 int16_t Voice::envelope_increment_;
-uint16_t Voice::envelope_target_;
+int16_t Voice::envelope_target_;
 int16_t Voice::pitch_increment_;
 int16_t Voice::pitch_target_;
 int16_t Voice::pitch_value_;
@@ -307,8 +278,8 @@ void Voice::Init() {
 /* static */
 void Voice::TriggerEnvelope(uint8_t stage) {
   envelope_stage_ = stage;
-  envelope_increment_ = Engine::envelope_increment_[stage];
-  envelope_target_ = Engine::envelope_target_[stage];
+  envelope_increment_ = engine.envelope_increment_[stage];
+  envelope_target_ = engine.envelope_target_[stage];
 }
 
 /* static */
@@ -321,9 +292,9 @@ void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
     modulation_sources_[MOD_SRC_VELOCITY - MOD_SRC_ENV] = velocity << 1;
   }
   pitch_target_ = uint16_t(note) << 7;
-  if (Engine::patch_.kbd_raga) {
+  if (engine.patch_.kbd_raga) {
     pitch_target_ += ResourcesManager::Lookup<int8_t, uint8_t>(
-        ResourceId(LUT_RES_SCALE_JUST + Engine::patch_.kbd_raga - 1),
+        ResourceId(LUT_RES_SCALE_JUST + engine.patch_.kbd_raga - 1),
         note % 12);
   }
   if (pitch_value_ == 0) {
@@ -332,7 +303,7 @@ void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
   int16_t delta = pitch_target_ - pitch_value_;
   int32_t increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
       lut_res_env_portamento_increments,
-      Engine::patch_.kbd_portamento);
+      engine.patch_.kbd_portamento);
   pitch_increment_ = (delta * increment) >> 15;
   if (pitch_increment_ == 0) {
     if (delta < 0) {
@@ -371,18 +342,18 @@ void Voice::Control() {
 
   // Prepare the work of the modulation matrix, by setting an initial / default
   // value to each modulated parameter.
-  dst[MOD_DST_FILTER_CUTOFF] =  Engine::patch_.filter_cutoff << 7;
+  dst[MOD_DST_FILTER_CUTOFF] =  engine.patch_.filter_cutoff << 7;
   dst[MOD_DST_VCA] = dead() ? 0 : 255;
-  dst[MOD_DST_PWM_1] = Engine::patch_.osc_parameter[0] << 7;
-  dst[MOD_DST_PWM_2] = Engine::patch_.osc_parameter[1] << 7;
+  dst[MOD_DST_PWM_1] = engine.patch_.osc_parameter[0] << 7;
+  dst[MOD_DST_PWM_2] = engine.patch_.osc_parameter[1] << 7;
   // The connection from the pitch-bend to the oscillators is hardcoded.
   dst[MOD_DST_VCO_1] = 8192 - 512 + (
-      Engine::modulation_sources_[MOD_SRC_PITCH_BEND] << 2);
+      engine.modulation_sources_[MOD_SRC_PITCH_BEND] << 2);
   dst[MOD_DST_VCO_2] = dst[MOD_DST_VCO_1];  
-  dst[MOD_DST_MIX_BALANCE] = Engine::patch_.mix_balance << 7;
-  dst[MOD_DST_MIX_NOISE] = Engine::patch_.mix_noise << 7;
-  dst[MOD_DST_MIX_SUB_OSC] = Engine::patch_.mix_sub_osc << 7;
-  dst[MOD_DST_FILTER_RESONANCE] = Engine::patch_.mix_sub_osc << 7;
+  dst[MOD_DST_MIX_BALANCE] = engine.patch_.mix_balance << 7;
+  dst[MOD_DST_MIX_NOISE] = engine.patch_.mix_noise << 7;
+  dst[MOD_DST_MIX_SUB_OSC] = engine.patch_.mix_sub_osc << 7;
+  dst[MOD_DST_FILTER_RESONANCE] = engine.patch_.mix_sub_osc << 7;
   
   // Apply the modulations in the modulation matrix + 2 hardcoded modulations
   // for the filter (envelope and LFO2).
@@ -392,9 +363,9 @@ void Voice::Control() {
     uint8_t amount;
     uint8_t is_relative;
     if (i < 8) {
-      source = Engine::patch_.modulation_matrix.modulation[i].source;
-      destination = Engine::patch_.modulation_matrix.modulation[i].destination;
-      amount = Engine::patch_.modulation_matrix.modulation[i].amount;
+      source = engine.patch_.modulation_matrix.modulation[i].source;
+      destination = engine.patch_.modulation_matrix.modulation[i].destination;
+      amount = engine.patch_.modulation_matrix.modulation[i].amount;
       // For those sources, use relative modulation.
       is_relative = (source <= MOD_SRC_LFO_2) ||
                     (source == MOD_SRC_PITCH_BEND) ||
@@ -402,20 +373,20 @@ void Voice::Control() {
     } else if (i == 8) {
       source = MOD_SRC_ENV;
       destination = MOD_DST_FILTER_CUTOFF;
-      amount = Engine::patch_.filter_env;
+      amount = engine.patch_.filter_env;
       is_relative = 0;
     } else if (i == 9) {
       source = MOD_SRC_LFO_2;
       destination = MOD_DST_FILTER_CUTOFF;
-      amount = Engine::patch_.filter_lfo;
+      amount = engine.patch_.filter_lfo;
       is_relative = 1;
     }
     if (amount == 0) {
       continue;
     }
     if (source <= MOD_SRC_ASSIGNABLE_2) {
-      // Global sources, read from the Engine::
-      source = Engine::modulation_sources_[source];
+      // Global sources, read from the engine.
+      source = engine.modulation_sources_[source];
     } else {
       // Voice specific sources, read from the voice.
       source = modulation_sources_[source - MOD_SRC_ENV];
@@ -457,16 +428,16 @@ void Voice::Control() {
   // Update the oscillator parameters.
   for (int i = 0; i < 2; ++i) {
     int16_t pitch = pitch_value_;
-    // -48 / +48 semitones by the range controller.
-    pitch += (int16_t(Engine::patch_.osc_range[i]) - 128) << 7;
+    // -24 / +24 semitones by the range controller.
+    pitch += (int16_t(engine.patch_.osc_range[i]) - 128) << 7;
     // -24 / +24 semitones by the main octave controller.
-    pitch += int16_t(Engine::patch_.kbd_octave - 128) * kOctave;
+    pitch += int16_t(engine.patch_.kbd_octave - 128) * kOctave;
     if (i == 1) {
       // 0 / +1 semitones by the detune option for oscillator 2.
-      pitch += Engine::patch_.osc_option[1];
+      pitch += engine.patch_.osc_option[1];
     }
-    // -32 / +32 semitones by the routed modulations.
-    pitch += (dst[MOD_DST_VCO_1 + i] - 8192) >> 1;
+    // -16 / +16 semitones by the routed modulations.
+    pitch += (dst[MOD_DST_VCO_1 + i] - 8192) >> 2;
 
     // Wrap pitch to a reasonable range.
     while (pitch <= kLowestNote) {
@@ -528,8 +499,7 @@ void Voice::Audio() {
   
   // If the phase of oscillator 1 has wrapped and if sync is enabled, reset the
   // phase of the second oscillator.
-  if ((Osc1::phase() < previous_phase) &&
-      Engine::patch_.osc_option[0]) {
+  if ((Osc1::phase() < previous_phase) && engine.patch_.osc_option[0]) {
     Osc2::ResetPhase();
   }
 }

@@ -35,7 +35,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_PRM, STR_RES_PARAMETER,
   
   PRM_OSC_RANGE_1,
-  128 - 48, 128 + 48,
+  128 - 12, 128 + 12,
   PAGE_OSC_OSC_1, UNIT_INT8,
   STR_RES_RNG, STR_RES_RANGE,
   
@@ -56,7 +56,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_PRM, STR_RES_PARAMETER,
   
   PRM_OSC_RANGE_2,
-  128 - 48, 128 + 48, 
+  128 - 24, 128 + 24, 
   PAGE_OSC_OSC_2, UNIT_INT8,
   STR_RES_RNG, STR_RES_RANGE,
   
@@ -147,7 +147,7 @@ static const prog_char raw_parameter_definition[
   PRM_LFO_RATE_2,
   0, 127,
   PAGE_MOD_LFO, UNIT_RAW_UINT8,
-  STR_RES_RT2, STR_RES_LFO1_RATE,
+  STR_RES_RT2, STR_RES_LFO2_RATE,
   
   // Modulation
   PRM_MOD_ROW,
@@ -279,24 +279,13 @@ void Editor::Init(Display* display) {
   display_ = display;
 }
 
-void Editor::CyclePage() {
-  current_page_++;
-  cursor_ = 0;
-  display_->set_cursor_position(kLcdNoCursor);
-  current_display_type_ = PAGE_TYPE_DETAILS;
-  if (current_page_ == kNumPages) {
-    current_page_ = 0;
-  }
-  if (current_page_ == PAGE_LOAD_SAVE) {
-    EnterLoadSaveMode();
-  }
-}
-
 void Editor::ToggleGroup(ParameterGroup group) {
   cursor_ = 0;
   display_->set_cursor_position(kLcdNoCursor);
+  current_display_type_ = PAGE_TYPE_DETAILS;
   // Special case for the load/save page.
   if (group == GROUP_LOAD_SAVE) {
+    current_page_ = PAGE_LOAD_SAVE;
     EnterLoadSaveMode();
   } else {
     uint8_t first_in_group = 255;
@@ -349,13 +338,13 @@ void Editor::EnterLoadSaveMode() {
     // The Load/save button has been pressed twice, we were in the load/save
     // mode, and the action was set to "save": all the conditions are met to
     // overwrite the patch.
-    Engine::patch().Pack(patch_buffer_);
+    engine.patch().Pack(patch_buffer_);
     PatchMemory::Write(current_patch_number_, patch_buffer_,
                        kSerializedPatchSize);
   }
   current_page_ = PAGE_LOAD_SAVE;
   previous_patch_number_ = current_patch_number_;
-  Engine::patch().Pack(patch_undo_buffer_);
+  engine.patch().Pack(patch_undo_buffer_);
   action_ = ACTION_EXIT;
 }
 
@@ -368,10 +357,10 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
         if (new_patch != current_patch_number_ && action_ == ACTION_LOAD) {
           PatchMemory::Read(new_patch, kSerializedPatchSize, patch_buffer_);
           if (Patch::Check(patch_buffer_)) {
-            Engine::mutable_patch()->Unpack(patch_buffer_);
-            Engine::TouchPatch();
+            engine.mutable_patch()->Unpack(patch_buffer_);
+            engine.TouchPatch();
           } else {
-            Engine::mutable_patch()->name[0] = '?';
+            engine.mutable_patch()->name[0] = '?';
           }
         }
         current_patch_number_ = new_patch;
@@ -385,7 +374,7 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
     case 2:
       if (action_ == ACTION_SAVE) {
         value += (value << 1);
-        Engine::mutable_patch()->name[cursor_] = 32 + (value >> 5);
+        engine.mutable_patch()->name[cursor_] = 32 + (value >> 5);
       }
       break;
     case 3:
@@ -395,8 +384,8 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
         // We are leaving the load mode - restore the previously saved patch.
         if (action_ == ACTION_LOAD) {
           current_patch_number_ = previous_patch_number_;
-          Engine::mutable_patch()->Unpack(patch_undo_buffer_);
-          Engine::TouchPatch();
+          engine.mutable_patch()->Unpack(patch_undo_buffer_);
+          engine.TouchPatch();
         }
         action_ = value >= 1008 ? ACTION_SAVE : ACTION_EXIT;
       }
@@ -418,7 +407,7 @@ void Editor::DisplayLoadSavePage() {
   Itoa<int16_t>(current_patch_number_ + 1, 2, line_buffer_);
   AlignRight(line_buffer_, 2);
   line_buffer_[2] = ' ';
-  memcpy(line_buffer_ + 3, Engine::patch().name, kPatchNameSize);
+  memcpy(line_buffer_ + 3, engine.patch().name, kPatchNameSize);
   line_buffer_[11] = ' ';
   if (action_ == ACTION_SAVE) {
     display_->set_cursor_position(kLcdWidth + 3 + cursor_);
@@ -443,7 +432,7 @@ void Editor::DisplayStepSequencerPage() {
   AlignLeft(line_buffer_, kLcdWidth);
   display_->Print(0, line_buffer_);
   for (uint8_t i = 0; i < 16; ++i) {
-    uint8_t value = Engine::patch().sequence_step(i) >> 4;
+    uint8_t value = engine.patch().sequence_step(i) >> 4;
     line_buffer_[i] = value < 10 ? value + 48 : value + 87;
   }
   display_->Print(1, line_buffer_);
@@ -458,7 +447,7 @@ void Editor::HandleStepSequencerInput(
       cursor_ = value >> 6;
       break;
     case 2:
-      Engine::mutable_patch()->set_sequence_step(cursor_, value >> 2);
+      engine.mutable_patch()->set_sequence_step(cursor_, value >> 2);
       break;
   }
 }
@@ -475,20 +464,15 @@ void Editor::DisplayEditSummaryPage() {
         line_buffer_ + i * kColumnWidth,
         kColumnWidth);
     AlignRight(line_buffer_ + i * kColumnWidth, kColumnWidth);
-  }
-  display_->Print(0, line_buffer_);
-  
-  for (uint8_t i = 0; i < kNumControllers; ++i) {
-    uint8_t index = parameter_definition_offset_[current_page_][i];
-    const ParameterDefinition& parameter = parameter_definition(index);
     PrettyPrintParameterValue(
         parameter,
-        line_buffer_ + i * kColumnWidth,
+        line_buffer_ + i * kColumnWidth + kLcdWidth + 1,
         kColumnWidth - 1);
-    line_buffer_[i * kColumnWidth + kColumnWidth - 1] = '\0';
-    AlignRight(line_buffer_ + i * kColumnWidth, kColumnWidth);
+    line_buffer_[i * kColumnWidth + kColumnWidth + kLcdWidth] = '\0';
+    AlignRight(line_buffer_ + i * kColumnWidth + kLcdWidth + 1, kColumnWidth);
   }
-  display_->Print(1, line_buffer_);
+  display_->Print(0, line_buffer_);
+  display_->Print(1, line_buffer_ + kLcdWidth + 1);
 }
 
 void Editor::DisplayEditDetailsPage() {  
@@ -548,10 +532,10 @@ void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
     if (parameter.id == PRM_MOD_ROW) {
       cursor_ = new_value;
     } else {
-      Engine::SetParameter(parameter.id + cursor_ * 3, new_value);
+      engine.SetParameter(parameter.id + cursor_ * 3, new_value);
     }
   } else {
-    Engine::SetParameter(parameter.id, new_value);
+    engine.SetParameter(parameter.id, new_value);
   }
   current_controller_ = controller_index;
 }
@@ -561,13 +545,13 @@ void Editor::DisplaySplashScreen() {
   //     mutable 
   //   instruments
   ResourcesManager::LoadStringResource(
-      STR_RES_MUTABLE,
+      STR_RES_____MUTABLE,
       line_buffer_,
       kLcdWidth);
   AlignLeft(line_buffer_, kLcdWidth);
   display_->Print(0, line_buffer_);
   ResourcesManager::LoadStringResource(
-      STR_RES_INSTRUMENTS,
+      STR_RES___INSTRUMENTS,
       line_buffer_,
       kLcdWidth);
   AlignLeft(line_buffer_, kLcdWidth);
@@ -582,10 +566,10 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
     if (parameter.id == PRM_MOD_ROW) {
       value = cursor_ + 1;
     } else {
-      value = Engine::GetParameter(parameter.id + cursor_ * 3);
+      value = engine.GetParameter(parameter.id + cursor_ * 3);
     }
   } else {
-    value = Engine::GetParameter(parameter.id);
+    value = engine.GetParameter(parameter.id);
   }
   ResourceId base = 0;
   switch (parameter.unit) {
@@ -626,7 +610,7 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
 }
 
 void Editor::ResetPatch() {
-  Engine::ResetPatch();
+  engine.ResetPatch();
 }
 
 const ParameterDefinition& Editor::parameter_definition(uint8_t index) {

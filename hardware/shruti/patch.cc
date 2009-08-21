@@ -66,7 +66,7 @@ void Patch::Pack(uint8_t* patch_buffer) const {
 
 /* static */
 uint8_t Patch::Check(const uint8_t* patch_buffer) {
-  for (uint8_t i = 0; i < 24; ++i) {
+  for (uint8_t i = 6; i < 48; ++i) {
     if (patch_buffer[i] > 128) {
       return 0;
     }

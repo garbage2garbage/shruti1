@@ -29,7 +29,7 @@ def Canonicalize(x):
       out_chr[i] = ord('_')
   table = string.maketrans(in_chr, ''.join(map(chr, out_chr)))
   bad_chars = '\t\n\r-:()[]"\',;'
-  return x.strip().translate(table, bad_chars)
+  return x.translate(table, bad_chars)
 
 
 def CheckDups(collection):

@@ -18,14 +18,14 @@ case 0:;
     switch(state) { \
 case 0:;
 
-#define YIELD_VALUE(value) \
+#define TASK_RETURN(value) \
     do { \
       state = __LINE__; \
       return (value); \
 case __LINE__:; \
     } while (0)
 
-#define YIELD_VOID \
+#define TASK_SWITCH \
     do { \
       state = __LINE__; \
       return; \

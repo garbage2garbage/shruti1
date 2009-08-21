@@ -14,6 +14,7 @@ namespace hardware_io {
 
 template<typename Latch, typename Clock, typename Data>
 struct BaseShiftRegister {
+  BaseShiftRegister() { };
   static void Init() {
     Clock::set_mode(DIGITAL_OUTPUT);
     Latch::set_mode(DIGITAL_OUTPUT);
@@ -31,6 +32,7 @@ template<typename Latch, typename Clock, typename Data,
          uint8_t size>
 struct ShiftRegister<Latch, Clock, Data, size, LSB_FIRST>
   : public BaseShiftRegister<Latch, Clock, Data> {
+  ShiftRegister() { };
   static void Write(typename DataTypeForSize<size>::Type data) {
     LOG(INFO) << "pin_" << Data::number() << "\tshift\t" << int(data);
     Latch::Low();
@@ -50,6 +52,7 @@ struct ShiftRegister<Latch, Clock, Data, size, LSB_FIRST>
 template<typename Latch, typename Clock, typename Data, uint8_t size>
 struct ShiftRegister<Latch, Clock, Data, size, MSB_FIRST>
   : public BaseShiftRegister<Latch, Clock, Data> {
+  ShiftRegister() { };
   typedef typename DataTypeForSize<size>::Type T;
   static void Write(T data) {
     LOG(INFO) << "pin_" << Data::number() << "\tshift\t" << int(data);
@@ -63,59 +66,6 @@ struct ShiftRegister<Latch, Clock, Data, size, MSB_FIRST>
       Clock::High();
       Data::Low();
     }
-    Clock::Low();
-    Latch::High();
-  }
-};
-
-template<typename Latch, typename Clock, typename Data>
-struct ShiftRegister<Latch, Clock, Data, 8, LSB_FIRST>
-  : public BaseShiftRegister<Latch, Clock, Data> {
-  static void Write(uint8_t data) {
-    LOG(INFO) << "pin_" << Data::number() << "\tshift\t" << int(data);
-    Latch::Low();
-    Data::Low();
-
-    Clock::Low();
-    Data::set_value(data & 1);
-    Clock::High();
-    Data::Low();
-
-    Clock::Low();
-    Data::set_value(data & 2);
-    Clock::High();
-    Data::Low();
-
-    Clock::Low();
-    Data::set_value(data & 4);
-    Clock::High();
-    Data::Low();
-
-    Clock::Low();
-    Data::set_value(data & 8);
-    Clock::High();
-    Data::Low();
-
-    Clock::Low();
-    Data::set_value(data & 16);
-    Clock::High();
-    Data::Low();
-
-    Clock::Low();
-    Data::set_value(data & 32);
-    Clock::High();
-    Data::Low();
-
-    Clock::Low();
-    Data::set_value(data & 64);
-    Clock::High();
-    Data::Low();
-
-    Clock::Low();
-    Data::set_value(data & 128);
-    Clock::High();
-    Data::Low();
-
     Clock::Low();
     Latch::High();
   }
