@@ -250,10 +250,32 @@ const PageDefinition Editor::page_definition_[] = {
     &Editor::HandleLoadSaveInput },
 };
 
-Editor::Editor()
-  : parameter_definition_index_(0xff),
-    current_page_(PAGE_FILTER_FILTER),
-    current_controller_(0) {
+/* <static> */
+ParameterDefinition Editor::parameter_definition_;
+uint8_t Editor::parameter_definition_index_;
+uint8_t Editor::current_display_type_;
+
+ParameterPage Editor::current_page_;
+ParameterPage Editor::last_visited_page_[kNumGroups];
+uint8_t Editor::current_controller_;
+uint8_t Editor::parameter_definition_offset_[kNumPages][kNumControllers];
+
+char Editor::line_buffer_[kLcdWidth * kLcdHeight + 1];
+
+uint16_t Editor::cursor_;
+uint8_t Editor::flip_;
+uint8_t Editor::action_;
+uint8_t Editor::current_patch_number_;
+uint8_t Editor::previous_patch_number_;
+uint8_t Editor::patch_buffer_[kSerializedPatchSize];
+uint8_t Editor::patch_undo_buffer_[kSerializedPatchSize];
+/* </static> */
+
+/* static */
+void Editor::Init() {
+  parameter_definition_index_ = 0xff;
+  current_page_ = PAGE_FILTER_FILTER;
+  current_controller_ = 0;
   last_visited_page_[GROUP_OSC] = PAGE_OSC_OSC_1;
   last_visited_page_[GROUP_FILTER] = PAGE_FILTER_FILTER;
   last_visited_page_[GROUP_MOD] = PAGE_MOD_ENV;
@@ -274,6 +296,7 @@ Editor::Editor()
   flip_ = 0;
 }
 
+/* static */
 void Editor::ToggleGroup(ParameterGroup group) {
   cursor_ = 0;
   display.set_cursor_position(kLcdNoCursor);
@@ -309,25 +332,30 @@ void Editor::ToggleGroup(ParameterGroup group) {
     last_visited_page_[group] = current_page_;
   }
 }
+
+/* static */
 void Editor::HandleInput(uint8_t controller_index, uint16_t value) {
-  (this->*page_definition_[current_page_].input_handler)(
+  (*page_definition_[current_page_].input_handler)(
       controller_index, value);
 }
 
+/* static */
 void Editor::DisplaySummary() {
   // No need to render the summary page twice.
   if (current_display_type_ == PAGE_TYPE_SUMMARY) {
     return;
   }
-  (this->*page_definition_[current_page_].summary_page)();
+  (*page_definition_[current_page_].summary_page)();
   current_display_type_ = PAGE_TYPE_SUMMARY;
 }
 
+/* static */
 void Editor::DisplayDetails() {
   current_display_type_ = PAGE_TYPE_DETAILS;
-  (this->*page_definition_[current_page_].details_page)();
+  (*page_definition_[current_page_].details_page)();
 }
 
+/* static */
 void Editor::EnterLoadSaveMode() {
   if (current_page_ == PAGE_LOAD_SAVE && action_ == ACTION_SAVE) {
     // The Load/save button has been pressed twice, we were in the load/save
@@ -343,6 +371,7 @@ void Editor::EnterLoadSaveMode() {
   action_ = ACTION_EXIT;
 }
 
+/* static */
 void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
   switch (controller_index) {
     case 0:
@@ -388,6 +417,7 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
   }  
 }
 
+/* static */
 void Editor::DisplayLoadSavePage() {
   // 0123456789abcdef
   // load/save patch
@@ -416,6 +446,7 @@ void Editor::DisplayLoadSavePage() {
   display.Print(1, line_buffer_);
 }
 
+/* static */
 void Editor::DisplayStepSequencerPage() {
   // 0123456789abcdef
   // step sequencer
@@ -434,6 +465,7 @@ void Editor::DisplayStepSequencerPage() {
   display.set_cursor_position(kLcdWidth + cursor_);
 }
 
+/* static */
 void Editor::HandleStepSequencerInput(
     uint8_t controller_index,
     uint16_t value) {
@@ -447,6 +479,7 @@ void Editor::HandleStepSequencerInput(
   }
 }
 
+/* static */
 void Editor::DisplayEditSummaryPage() {
   // 0123456789abcdef
   // foo bar baz bad
@@ -470,6 +503,7 @@ void Editor::DisplayEditSummaryPage() {
   display.Print(1, line_buffer_ + kLcdWidth + 1);
 }
 
+/* static */
 void Editor::DisplayEditDetailsPage() {  
   // 0123456789abcdef
   // filter
@@ -528,6 +562,7 @@ void Editor::DisplayEditDetailsPage() {
   display.Print(1, line_buffer_);
 }
 
+/* static */
 void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
   uint8_t new_value;
   uint8_t index = parameter_definition_offset_[current_page_][controller_index];
@@ -563,6 +598,7 @@ void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
   current_controller_ = controller_index;
 }
 
+/* static */
 void Editor::DisplaySplashScreen() {
   // 0123456789abcdef
   //     mutable 
@@ -581,6 +617,7 @@ void Editor::DisplaySplashScreen() {
   display.Print(1, line_buffer_);
 }
 
+/* static */
 void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
                                        char* buffer, uint8_t width) {
   int16_t value;
@@ -632,10 +669,12 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
   }
 }
 
+/* static */
 void Editor::ResetPatch() {
   engine.ResetPatch();
 }
 
+/* static */
 const ParameterDefinition& Editor::parameter_definition(uint8_t index) {
   if (index != parameter_definition_index_) {
     parameter_definition_index_ = index;

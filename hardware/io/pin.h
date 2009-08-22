@@ -95,20 +95,20 @@ struct PinImpl {
       set_mode(DIGITAL_OUTPUT);
     }
     OutputBit::set();
-  };
+  }
   static inline void Low() {
     if (safe) {
       set_mode(DIGITAL_OUTPUT);
     }
     OutputBit::clear();
-  };
+  }
   static inline void set_value(uint8_t value) {
     if (value == 0) {
       Low();
     } else {
       High();
     }
-  };
+  }
   static inline void set_analog_value(uint8_t value) {
     if (safe) {
       set_mode(ANALOG_OUTPUT);
@@ -126,7 +126,7 @@ struct PinImpl {
       set_mode(DIGITAL_INPUT);
     }
     return InputBit::value();
-  };
+  }
 };
 
 // A template that will be specialized for each pin, allowing the pin number to
@@ -207,10 +207,12 @@ struct DigitalInput {
     buffer_size = 0,
     data_size = 1,
   };
-  static int8_t Read() {
+  static void Init() {
     Pin<pin>::set_mode(DIGITAL_INPUT);
+  }
+  static int8_t Read() {
     return Pin<pin>::value();
-  };
+  }
 };
 
 template<int pin>
@@ -224,7 +226,7 @@ struct PwmOutput {
   }
   static void Write(uint8_t value) {
     return Pin<pin>::set_analog_value(value);
-  };
+  }
 };
 
 }  // namespace hardware_io

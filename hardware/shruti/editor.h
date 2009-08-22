@@ -101,70 +101,72 @@ struct PageDefinition {
   ParameterPage id;
   ParameterGroup group;
   ResourceId name;
-  void (Editor::*summary_page)();
-  void (Editor::*details_page)();
-  void (Editor::*input_handler)(uint8_t controller_index, uint16_t value);
+  void (*summary_page)();
+  void (*details_page)();
+  void (*input_handler)(uint8_t controller_index, uint16_t value);
 };
 
 class SynthesisEngine;
 
 class Editor {
  public:
-  Editor();
-  void ToggleGroup(ParameterGroup group);
+  Editor() { }
+  static void Init();
+  static void ToggleGroup(ParameterGroup group);
 
-  void HandleInput(uint8_t controller_index, uint16_t value);
-  void DisplaySummary();
-  void DisplayDetails();
-  void DisplaySplashScreen();
+  static void HandleInput(uint8_t controller_index, uint16_t value);
+  static void DisplaySummary();
+  static void DisplayDetails();
+  static void DisplaySplashScreen();
   
-  void ResetPatch();
-  inline ParameterPage current_page() { return current_page_; }
-  inline uint8_t cursor() { return cursor_; }
+  static void ResetPatch();
+  static inline ParameterPage current_page() { return current_page_; }
+  static inline uint8_t cursor() { return cursor_; }
 
  private:
+  static void PrettyPrintParameterValue(const ParameterDefinition& parameter,
+                                 char* buffer, uint8_t width);
+  
+  // Output and Input handling for all the different category of pages.
+  static void DisplayEditSummaryPage();
+  static void DisplayEditDetailsPage();
+  static void HandleEditInput(uint8_t controller_index, uint16_t value);
+  
+  static void DisplayLoadSavePage();
+  static void HandleLoadSaveInput(uint8_t controller_index, uint16_t value);
+  static void EnterLoadSaveMode();
+  
+  static void DisplayStepSequencerPage();
+  static void HandleStepSequencerInput(uint8_t controller_index, uint16_t value);
+
+  static const ParameterDefinition& parameter_definition(uint8_t index);
+
   static const PageDefinition page_definition_[];
 
   // Parameter definitions are stored in program memory and need to be copied
   // in SRAM when read. This temporary storage space holds them.
-  const ParameterDefinition& parameter_definition(uint8_t index);
-  ParameterDefinition parameter_definition_;
-  uint8_t parameter_definition_index_;
-  uint8_t current_display_type_;  // 0 for summary, 1 for details.
-  
-  ParameterPage current_page_;
-  ParameterPage last_visited_page_[kNumGroups];
-  uint8_t current_controller_;
-  uint8_t parameter_definition_offset_[kNumPages][kNumControllers];
+  static ParameterDefinition parameter_definition_;
+  static uint8_t parameter_definition_index_;
+  static uint8_t current_display_type_;  // 0 for summary, 1 for details.
 
-  char line_buffer_[kLcdWidth * kLcdHeight + 1];
-  
-  void PrettyPrintParameterValue(const ParameterDefinition& parameter,
-                                 char* buffer, uint8_t width);
+  static ParameterPage current_page_;
+  static ParameterPage last_visited_page_[kNumGroups];
+  static uint8_t current_controller_;
+  static uint8_t parameter_definition_offset_[kNumPages][kNumControllers];
+
+  static char line_buffer_[kLcdWidth * kLcdHeight + 1];
 
   // Load/Save related stuff. Cursor is also used for the step sequencer, and
   // for storing the modulation matrix entry being edited. You're warned!
-  uint16_t cursor_;
-  uint8_t flip_;  // Used for blinking cursor.
-  uint8_t action_;
-  uint8_t current_patch_number_;
-  uint8_t previous_patch_number_;
-  uint8_t patch_buffer_[kSerializedPatchSize];
+  static uint16_t cursor_;
+  static uint8_t flip_;  // Used for blinking cursor.
+  static uint8_t action_;
+  static uint8_t current_patch_number_;
+  static uint8_t previous_patch_number_;
+  static uint8_t patch_buffer_[kSerializedPatchSize];
   // Buffer used to allow the user to undo the loading of a patch (similar to
   // the "compare" function on some synths).
-  uint8_t patch_undo_buffer_[kSerializedPatchSize];
-  
-  // Output and Input handling for all the different category of pages.
-  void DisplayEditSummaryPage();
-  void DisplayEditDetailsPage();
-  void HandleEditInput(uint8_t controller_index, uint16_t value);
-  
-  void DisplayLoadSavePage();
-  void HandleLoadSaveInput(uint8_t controller_index, uint16_t value);
-  void EnterLoadSaveMode();
-  
-  void DisplayStepSequencerPage();
-  void HandleStepSequencerInput(uint8_t controller_index, uint16_t value);
+  static uint8_t patch_undo_buffer_[kSerializedPatchSize];
   
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };

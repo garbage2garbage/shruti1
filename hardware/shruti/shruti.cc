@@ -202,6 +202,7 @@ TIMER_2_TICK {
 
 void Setup() {
   display.Init();
+  editor.Init();
   
   // 31250kHz, phase correct.
   Timer<2>::set_prescaler(1);

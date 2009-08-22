@@ -50,6 +50,7 @@ class InputArray {
     // TODO(oliviergillet): remove this initialization code.
     active_input_ = 0;
     starting_up_ = 1;
+    Input::Init();
   }
   static Event Read() {
     Event e;

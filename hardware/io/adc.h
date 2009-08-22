@@ -77,9 +77,10 @@ struct AnalogInput {
     buffer_size = 0,
     data_size = 16,
   };
+  static void Init() { }
   static int16_t Read() {
     return Adc::Read(pin);
-  };
+  }
 };
 
 #else

@@ -26,10 +26,7 @@ volatile unsigned long timer0_overflow_count = 0;
 volatile unsigned long timer0_milliseconds = 0;
 static unsigned char timer0_fractional = 0;
 
-ISR(TIMER0_OVF_vect)
-{
-  // copy these to local variables so they can be stored in registers
-  // (volatile variables must be read from memory on every access)
+TIMER_0_TICK {
   unsigned long m = timer0_milliseconds;
   unsigned char f = timer0_fractional;
 
@@ -45,8 +42,7 @@ ISR(TIMER0_OVF_vect)
   timer0_overflow_count++;
 }
 
-unsigned long milliseconds()
-{
+unsigned long milliseconds() {
   unsigned long m;
   uint8_t oldSREG = SREG;
   cli();
