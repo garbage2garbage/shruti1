@@ -14,8 +14,8 @@ const uint8_t kModulationWheelMsb = 1;
 const uint8_t kModulationWheelLsb = 21;
 
 // A device that responds to MIDI messages should implement this interface.
-// Everything is static - this is because the main synth class is a static
-// singleton. Note that this allows all the MIDI processing code to be inlined!
+// Everything is static - this is because the main synth class is a "static
+// singleton". Note that this allows all the MIDI processing code to be inlined!
 struct MidiDevice {
   static void NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) { }
   static void NoteOff(uint8_t channel, uint8_t note, uint8_t velocity) { }

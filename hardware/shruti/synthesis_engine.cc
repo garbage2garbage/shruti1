@@ -169,7 +169,7 @@ void SynthesisEngine::SetParameter(
   uint8_t* base = &patch_.keep_me_at_the_top;
   base[parameter_index + 1] = parameter_value;
   if (parameter_index >= PRM_ENV_ATTACK && parameter_index <= PRM_LFO_RATE_2) {
-    RecomputeModulationIncrements();
+    UpdateModulationIncrements();
   }
   if ((parameter_index <= PRM_OSC_ALGORITHM_2) ||
       (parameter_index == PRM_MIX_SUB_OSC_ALGORITHM)) {
@@ -212,7 +212,7 @@ uint16_t SynthesisEngine::ScaleEnvelopeIncrement(uint8_t time, uint8_t scale) {
 };
 
 /* static */
-void SynthesisEngine::RecomputeModulationIncrements() {
+void SynthesisEngine::UpdateModulationIncrements() {
   // Update the LFO increments.
   for (uint8_t i = 0; i < 2; ++i) {
     lfo_[i].Update(
@@ -331,7 +331,7 @@ void Voice::Control() {
   }
   
   // Used temporarily, then scaled to modulation_destinations_
-  int16_t dst[MOD_DST_FILTER_RESONANCE + 1];
+  int16_t dst[kNumModulationDestinations];
 
   // Update the pre-scaled modulation sources.
   modulation_sources_[MOD_SRC_ENV - MOD_SRC_ENV] = 
@@ -343,7 +343,7 @@ void Voice::Control() {
 
   // Prepare the work of the modulation matrix, by setting an initial / default
   // value to each modulated parameter.
-  dst[MOD_DST_FILTER_CUTOFF] =  engine.patch_.filter_cutoff << 7;
+  dst[MOD_DST_FILTER_CUTOFF] = engine.patch_.filter_cutoff << 7;
   dst[MOD_DST_VCA] = dead() ? 0 : 255;
   dst[MOD_DST_PWM_1] = engine.patch_.osc_parameter[0] << 7;
   dst[MOD_DST_PWM_2] = engine.patch_.osc_parameter[1] << 7;
@@ -354,33 +354,24 @@ void Voice::Control() {
   dst[MOD_DST_MIX_BALANCE] = engine.patch_.mix_balance << 7;
   dst[MOD_DST_MIX_NOISE] = engine.patch_.mix_noise << 7;
   dst[MOD_DST_MIX_SUB_OSC] = engine.patch_.mix_sub_osc << 7;
-  dst[MOD_DST_FILTER_RESONANCE] = engine.patch_.mix_sub_osc << 7;
+  dst[MOD_DST_FILTER_RESONANCE] = engine.patch_.filter_resonance << 7;
   
   // Apply the modulations in the modulation matrix + 2 hardcoded modulations
   // for the filter (envelope and LFO2).
-  for (uint8_t i = 0; i < 10; ++i) {
+  for (uint8_t i = 0; i < kModulationMatrixSize + 2; ++i) {
     uint8_t source;
-    uint8_t destination;
+    uint8_t destination = MOD_DST_FILTER_CUTOFF;
     uint8_t amount;
-    uint8_t is_relative;
-    if (i < 8) {
+    if (i < kModulationMatrixSize) {
       source = engine.patch_.modulation_matrix.modulation[i].source;
       destination = engine.patch_.modulation_matrix.modulation[i].destination;
       amount = engine.patch_.modulation_matrix.modulation[i].amount;
-      // For those sources, use relative modulation.
-      is_relative = (source <= MOD_SRC_LFO_2) ||
-                    (source == MOD_SRC_PITCH_BEND) ||
-                    (source == MOD_SRC_NOTE);
-    } else if (i == 8) {
+    } else if (i == kModulationMatrixSize) {
       source = MOD_SRC_ENV;
-      destination = MOD_DST_FILTER_CUTOFF;
       amount = engine.patch_.filter_env;
-      is_relative = 0;
-    } else if (i == 9) {
+    } else if (i == kModulationMatrixSize + 1) {
       source = MOD_SRC_LFO_2;
-      destination = MOD_DST_FILTER_CUTOFF;
       amount = engine.patch_.filter_lfo;
-      is_relative = 1;
     }
     if (amount == 0) {
       continue;
@@ -395,7 +386,10 @@ void Voice::Control() {
     if (destination != MOD_DST_VCA) {
       uint16_t value = dst[destination];
       value += (source * amount) >> 1;
-      if (is_relative) {
+      // For those sources, use relative modulation.
+      if (source <= MOD_SRC_LFO_2 ||
+          source == MOD_SRC_PITCH_BEND ||
+          source == MOD_SRC_NOTE) {
         value -= amount << 6;
       }
       dst[destination] = Signal::Clip(value, 0, 16383);
@@ -427,7 +421,7 @@ void Voice::Control() {
   modulation_destinations_[MOD_DST_MIX_SUB_OSC] = dst[MOD_DST_MIX_SUB_OSC] >> 7;
   
   // Update the oscillator parameters.
-  for (int i = 0; i < 2; ++i) {
+  for (uint8_t i = 0; i < 2; ++i) {
     int16_t pitch = pitch_value_;
     // -24 / +24 semitones by the range controller.
     pitch += (int16_t(engine.patch_.osc_range[i]) - 128) << 7;

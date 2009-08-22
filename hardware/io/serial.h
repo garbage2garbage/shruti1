@@ -69,64 +69,64 @@ struct SerialPort {
 
 template<typename SerialPort>
 struct SerialInput : public Input {
-	enum {
-		buffer_size = SerialPort::input_buffer_size,
-		data_size = 8
-	};
-	typedef uint8_t Value;
-	
-	// Blocking!
-	static inline Value Read() { while (!readable()); return ImmediateRead(); }  
-	
-	// Number of bytes available for read.
-	static inline uint8_t readable() { return SerialPort::rx_ready(); }
-	
-	// A byte, or -1 if reading failed.
-	static inline int16_t NonBlockingRead() { return readable() ? Read() : -1; }
-	
-	// No check for ready state.
-	static inline Value ImmediateRead() { return SerialPort::data(); }
-	
-	// Called in data reception interrupt.
-	static inline void Received() {
-		// This will discard data if the buffer is full.
-		Buffer<SerialInput<SerialPort> >::NonBlockingWrite(ImmediateRead());
-	}
+  enum {
+    buffer_size = SerialPort::input_buffer_size,
+    data_size = 8
+  };
+  typedef uint8_t Value;
+  
+  // Blocking!
+  static inline Value Read() { while (!readable()); return ImmediateRead(); }  
+  
+  // Number of bytes available for read.
+  static inline uint8_t readable() { return SerialPort::rx_ready(); }
+  
+  // A byte, or -1 if reading failed.
+  static inline int16_t NonBlockingRead() { return readable() ? Read() : -1; }
+  
+  // No check for ready state.
+  static inline Value ImmediateRead() { return SerialPort::data(); }
+  
+  // Called in data reception interrupt.
+  static inline void Received() {
+    // This will discard data if the buffer is full.
+    Buffer<SerialInput<SerialPort> >::NonBlockingWrite(ImmediateRead());
+  }
 };
 
 template<typename SerialPort>
 struct SerialOutput : public Output {
-	enum {
-		buffer_size = SerialPort::output_buffer_size,
-		data_size = 8
-	};
-	typedef uint8_t Value;
-	
-	// Blocking!
-	static inline void Write(Value v) { while (!writable()); Overwrite(v); }
-	
-	// Number of bytes that can be fed.
-	static inline uint8_t writable() { return SerialPort::tx_ready(); }
-	
-	// 1 if success.
-	static inline uint8_t NonBlockingWrite(Value v) {
-		if (!writable()) {
-			return 0;
-		}
-		Overwrite(v);
-		return 1;
-	} 
-	
-	// No check for ready state.
-	static inline void Overwrite(Value v) { SerialPort::set_data(v); }
-	
-	// Called in data emission interrupt.
-	static inline Value Requested() {
+  enum {
+    buffer_size = SerialPort::output_buffer_size,
+    data_size = 8
+  };
+  typedef uint8_t Value;
+  
+  // Blocking!
+  static inline void Write(Value v) { while (!writable()); Overwrite(v); }
+  
+  // Number of bytes that can be fed.
+  static inline uint8_t writable() { return SerialPort::tx_ready(); }
+  
+  // 1 if success.
+  static inline uint8_t NonBlockingWrite(Value v) {
+    if (!writable()) {
+      return 0;
+    }
+    Overwrite(v);
+    return 1;
+  } 
+  
+  // No check for ready state.
+  static inline void Overwrite(Value v) { SerialPort::set_data(v); }
+  
+  // Called in data emission interrupt.
+  static inline Value Requested() {
     Value v = Buffer<SerialOutput<SerialPort> >::NonBlockingRead();
     if (v >= 0) {
       Overwrite(v);
     }
-	}
+  }
 };
 
 template<typename SerialPort, PortMode input = POLLED, PortMode output = POLLED>
@@ -195,17 +195,17 @@ struct Serial {
     }
   }
   static inline void Write(Value v) { Impl::IO::Write(v); }
-	static inline uint8_t writable() { return Impl::IO::writable(); }
-	static inline uint8_t NonBlockingWrite(Value v ) {
-		return Impl::IO::NonBlockingWrite(v);
-	}
-	static inline void Overwrite(Value v) { Impl::IO::Overwrite(v); }
-	static inline Value Read() { return Impl::IO::Read(); }
-	static inline uint8_t readable() { return Impl::IO::readable(); }
-	static inline int16_t NonBlockingRead() {
-	  return Impl::IO::NonBlockingRead();
-	}
-	static inline Value ImmediateRead() { return Impl::IO::ImmediateRead(); }
+  static inline uint8_t writable() { return Impl::IO::writable(); }
+  static inline uint8_t NonBlockingWrite(Value v ) {
+    return Impl::IO::NonBlockingWrite(v);
+  }
+  static inline void Overwrite(Value v) { Impl::IO::Overwrite(v); }
+  static inline Value Read() { return Impl::IO::Read(); }
+  static inline uint8_t readable() { return Impl::IO::readable(); }
+  static inline int16_t NonBlockingRead() {
+    return Impl::IO::NonBlockingRead();
+  }
+  static inline Value ImmediateRead() { return Impl::IO::ImmediateRead(); }
 };
 
 IORegister(UBRR0H);

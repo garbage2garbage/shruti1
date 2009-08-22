@@ -24,11 +24,11 @@ template<typename OutputPort,
 class AudioOutput {
  public:
    AudioOutput() { };
-	enum {
-		buffer_size = buffer_size_,
-		data_size = OutputPort::data_size,
-	};
-	typedef AudioOutput<OutputPort, buffer_size_, block_size, underrun_policy> Me;
+  enum {
+    buffer_size = buffer_size_,
+    data_size = OutputPort::data_size,
+  };
+  typedef AudioOutput<OutputPort, buffer_size_, block_size, underrun_policy> Me;
   typedef typename DataTypeForSize<data_size>::Type Value;
   typedef Buffer<Me> OutputBuffer;
   
@@ -36,33 +36,34 @@ class AudioOutput {
     OutputPort::Init();
   }
   
-	static inline void Write(Value v) { while (!writable()); Overwrite(v); }
-	static inline void Overwrite(Value v) { OutputBuffer::Overwrite(v); }
-	
-	static inline uint8_t writable() { return OutputBuffer::writable(); }
-	static inline uint8_t writable_block() {
+  static inline void Write(Value v) { while (!writable()); Overwrite(v); }
+  static inline void Overwrite(Value v) { OutputBuffer::Overwrite(v); }
+  
+  static inline uint8_t writable() { return OutputBuffer::writable(); }
+  static inline uint8_t writable_block() {
     return OutputBuffer::writable() >= block_size;
   }
-	static inline uint8_t NonBlockingWrite(Value v) {
-		if (!writable()) {
-			return 0;
-		}
-		Overwrite(v);
-		return 1;
-	}
-	
-	// Called in data emission interrupt.
-	static inline void EmitSample() {
+  static inline uint8_t NonBlockingWrite(Value v) {
+    if (!writable()) {
+      return 0;
+    }
+    Overwrite(v);
+    return 1;
+  }
+  
+  // Called in data emission interrupt.
+  static inline void EmitSample() {
     int16_t v = OutputBuffer::NonBlockingRead();
     if (v >= 0) {
       OutputPort::Write(Value(v));
     } else {
       ++num_glitches_;
       if (underrun_policy == EMIT_CLICK) {
-        OutputPort::Write(0);  // Introduces clicks for debugging purposes.
+        // Introduces clicks to allow underruns to be easily detected.
+        OutputPort::Write(0);
       }
     }
-	}
+  }
   static uint16_t num_glitches() { return num_glitches_; }
 
  private:

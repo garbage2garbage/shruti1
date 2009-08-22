@@ -393,33 +393,29 @@ class Oscillator {
     }
   }
   static uint8_t RenderSpeech() {
-	  data_.sp.formant_phase[0] += data_.sp.formant_increment[0];
-	  data_.sp.formant_phase[1] += data_.sp.formant_increment[1];
-	  data_.sp.formant_phase[2] += data_.sp.formant_increment[2];
-
     int16_t phase_noise = 0;
-	  if (data_.sp.noise_modulation) {
-	    phase_noise = Random::Byte() * data_.sp.noise_modulation;
-	  }
+    if (data_.sp.noise_modulation) {
+      phase_noise = int8_t(Random::Byte()) * int8_t(data_.sp.noise_modulation);
+    }
 
-	  int8_t result = 0;
-	  result += ResourcesManager::Lookup<uint8_t, uint8_t>(
-	      waveform_table[WAV_RES_FORMANT_SINE],
-	      ((data_.sp.formant_phase[0] >> 8) & 0xf0) | data_.sp.formant_amplitude[0]);
-	  result += ResourcesManager::Lookup<uint8_t, uint8_t>(
-	      waveform_table[WAV_RES_FORMANT_SINE],
-	      ((data_.sp.formant_phase[1] >> 8) & 0xf0) | data_.sp.formant_amplitude[1]);
-	  result += ResourcesManager::Lookup<uint8_t, uint8_t>(
-	      waveform_table[WAV_RES_FORMANT_SQUARE],
-	      ((data_.sp.formant_phase[2] >> 8) & 0xf0) | data_.sp.formant_amplitude[2]);
+    int8_t result = 0;
+    for (uint8_t i = 0; i < 3; ++i) {
+      data_.sp.formant_phase[i] += data_.sp.formant_increment[i];
+      result += ResourcesManager::Lookup<uint8_t, uint8_t>(
+          i == 2 ? waveform_table[WAV_RES_FORMANT_SQUARE] :
+                   waveform_table[WAV_RES_FORMANT_SINE],
+          ((data_.sp.formant_phase[i] >> 8) & 0xf0) |
+            data_.sp.formant_amplitude[i]);
+    }
     result = Signal::SignedMulScale8(result, 255 - (phase_ >> 8));
+    
     phase_ += phase_increment_;
-	  if ((phase_ + phase_noise) < phase_increment_) {
+    if ((phase_ + phase_noise) < phase_increment_) {
       data_.sp.formant_phase[0] = 0;
       data_.sp.formant_phase[1] = 0;
       data_.sp.formant_phase[2] = 0;
-	  }
-	  return result + 128;
+    }
+    return result + 128;
   }
   
   DISALLOW_COPY_AND_ASSIGN(Oscillator);

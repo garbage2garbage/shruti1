@@ -13,8 +13,36 @@
 using hardware_utils::Random;
 
 namespace hardware_shruti {
+  
+/* <static> */
+int16_t VoiceController::internal_clock_counter_;
+uint8_t VoiceController::midi_clock_counter_;
+int16_t VoiceController::step_duration_[2];
+uint8_t VoiceController::random_byte_;
 
-VoiceController::VoiceController() {
+uint16_t VoiceController::pattern_;
+uint16_t VoiceController::pattern_mask_;
+uint8_t VoiceController::pattern_step_;
+  
+int8_t VoiceController::arpeggio_step_;
+int8_t VoiceController::direction_;
+int8_t VoiceController::octave_step_;
+int8_t VoiceController::octaves_;
+uint8_t VoiceController::mode_;
+
+NoteStack VoiceController::notes_;
+Voice* VoiceController::voices_;
+uint8_t VoiceController::num_voices_;
+  
+uint8_t VoiceController::tempo_;
+uint8_t VoiceController::swing_;
+/* </static> */
+
+/* static */
+void VoiceController::Init(Voice* voices, uint8_t num_voices) {
+  voices_ = voices;
+  num_voices_ = num_voices;
+  notes_.Clear();
   voices_ = NULL;
   num_voices_ = 0;
   tempo_ = 120;
@@ -29,11 +57,7 @@ VoiceController::VoiceController() {
   Reset();
 }
 
-void VoiceController::Init(Voice* voices, uint8_t num_voices) {
-  voices_ = voices;
-  num_voices_ = num_voices;
-}
-
+/* static */
 void VoiceController::Reset() {
   pattern_mask_ = 255;
   pattern_step_ = 15;
@@ -51,6 +75,7 @@ void VoiceController::Reset() {
   }
 }
 
+/* static */
 void VoiceController::AllSoundOff() {
   notes_.Clear();
   for (uint8_t i = 0; i < num_voices_; ++i) {
@@ -58,6 +83,7 @@ void VoiceController::AllSoundOff() {
   }
 }
 
+/* static */
 void VoiceController::AllNotesOff() {
   notes_.Clear();
   for (uint8_t i = 0; i < num_voices_; ++i) {
@@ -65,16 +91,19 @@ void VoiceController::AllNotesOff() {
   }
 }
 
+/* static */
 void VoiceController::SetTempo(uint8_t tempo) {
   tempo_ = tempo;
   RecomputeStepDurations();
 }
 
+/* static */
 void VoiceController::SetSwing(uint8_t swing) {
   swing_ = swing;
   RecomputeStepDurations();
 }
 
+/* static */
 void VoiceController::RecomputeStepDurations() {
   if (tempo_) {
     step_duration_[0] = (kSampleRate * 60L / 4) / long(tempo_);
@@ -89,6 +118,7 @@ void VoiceController::RecomputeStepDurations() {
   }
 }
 
+/* static */
 void VoiceController::SetPattern(uint8_t pattern) {
   pattern_ = ResourcesManager::Lookup<uint16_t, uint8_t>(
       lut_res_arpeggiator_patterns, pattern >> 2);
@@ -96,6 +126,7 @@ void VoiceController::SetPattern(uint8_t pattern) {
   direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1;
 }
 
+/* static */
 void VoiceController::NoteOn(uint8_t note, uint8_t velocity) {
   random_byte_ += note;
   random_byte_ += velocity;
@@ -114,6 +145,7 @@ void VoiceController::NoteOn(uint8_t note, uint8_t velocity) {
   }
 }
 
+/* static */
 void VoiceController::NoteOff(uint8_t note) {
   notes_.NoteOff(note);
 
@@ -127,6 +159,7 @@ void VoiceController::NoteOff(uint8_t note) {
   }
 }
 
+/* static */
 void VoiceController::Control() {
   if ((tempo_ && internal_clock_counter_ > 0) ||
       (!tempo_ && midi_clock_counter_ > 0)) {
@@ -162,17 +195,19 @@ void VoiceController::Control() {
   }
 }
 
+/* static */
 void VoiceController::ArpeggioFirst() {
   octave_step_ = 0;
   arpeggio_step_ = 0;
 }
 
+/* static */
 void VoiceController::ArpeggioLast() {
   octave_step_ = octaves_ - 1;
   arpeggio_step_ = notes_.size() - 1;
 }
 
-
+/* static */
 void VoiceController::ArpeggioUp() {
   uint8_t num_notes = notes_.size();
   
@@ -197,6 +232,7 @@ void VoiceController::ArpeggioUp() {
   }
 }
 
+/* static */
 void VoiceController::ArpeggioDown() {
   uint8_t num_notes = notes_.size();
   
@@ -221,6 +257,7 @@ void VoiceController::ArpeggioDown() {
   }
 }
 
+/* static */
 void VoiceController::Step() {
   uint8_t num_notes = notes_.size();
   if (mode_ == ARPEGGIO_DIRECTION_RANDOM) {

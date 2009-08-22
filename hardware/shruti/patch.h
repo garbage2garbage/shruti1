@@ -17,6 +17,7 @@ namespace hardware_shruti {
 const uint8_t kPatchNameSize = 8;
 const uint8_t kSerializedPatchSize = 64;
 /*const uint8_t kSerializedPatchSize = 49;*/
+const uint8_t kModulationMatrixSize = 8;
 
 struct Modulation {
   uint8_t source;
@@ -25,8 +26,8 @@ struct Modulation {
 };
 
 union ModulationMatrix {
-  Modulation modulation[8];
-  uint8_t raw_modulation_data[24];
+  Modulation modulation[kModulationMatrixSize];
+  uint8_t raw_modulation_data[kModulationMatrixSize * 3];
 };
 
 struct Patch {

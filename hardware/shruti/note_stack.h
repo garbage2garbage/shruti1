@@ -19,6 +19,11 @@
 //
 // Additionally, an array of pointers is stored to allow random access to the
 // n-th note, sorted by ascending order of pitch (for arpeggiation).
+//
+// TODO(oliviergillet): having this class implemented as a "static singleton"
+// saves almost 300 bytes of code. w00t! But we'd rather move this back to a
+// simple class when adding multitimbrality. When will we add multitimbrality?
+// Probably never.
 
 #ifndef HARDWARE_SHRUTI_NOTE_STACK_H_
 #define HARDWARE_SHRUTI_NOTE_STACK_H_
@@ -37,24 +42,25 @@ struct NoteEntry {
 
 class NoteStack {
  public: 
-  NoteStack();
+  NoteStack() { }
+  static void Init() { Clear(); }
 
-  void NoteOn(uint8_t note, uint8_t velocity);
-  void NoteOff(uint8_t note);
-  void Clear();
+  static void NoteOn(uint8_t note, uint8_t velocity);
+  static void NoteOff(uint8_t note);
+  static void Clear();
 
-  uint8_t size() const { return size_; }
-  const NoteEntry& most_recent_note() const { return pool_[root_ptr_]; }
-  const NoteEntry& sorted_note(uint8_t index) const {
+  static uint8_t size() { return size_; }
+  static const NoteEntry& most_recent_note() { return pool_[root_ptr_]; }
+  static const NoteEntry& sorted_note(uint8_t index) {
     return pool_[sorted_ptr_[index]];
   }
-  const NoteEntry& dummy() const { return pool_[0]; }
+  static const NoteEntry& dummy() { return pool_[0]; }
   
  private:
-  uint8_t size_;
-  NoteEntry pool_[kNoteStackSize + 1];  // First element is a dummy node!
-  uint8_t root_ptr_;  // Base 1.
-  uint8_t sorted_ptr_[kNoteStackSize];  // Base 1.
+  static uint8_t size_;
+  static NoteEntry pool_[kNoteStackSize + 1];  // First element is a dummy node!
+  static uint8_t root_ptr_;  // Base 1.
+  static uint8_t sorted_ptr_[kNoteStackSize];  // Base 1.
 
   DISALLOW_COPY_AND_ASSIGN(NoteStack);
 };

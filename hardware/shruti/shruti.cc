@@ -229,8 +229,8 @@ void Setup() {
 
 int main(void)
 {
-	InitArduino();
+  InitArduino();
   Setup();
   ScheduleTasks();
-	return 0;
+  return 0;
 }

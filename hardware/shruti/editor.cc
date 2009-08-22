@@ -373,7 +373,7 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
       }
       break;
     case 3:
-      if (value < 16) {
+      if (value < 64) {
         action_ = ACTION_LOAD;
       } else {
         // We are leaving the load mode - restore the previously saved patch.
@@ -382,7 +382,7 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
           engine.mutable_patch()->Unpack(patch_undo_buffer_);
           engine.TouchPatch();
         }
-        action_ = value >= 1008 ? ACTION_SAVE : ACTION_EXIT;
+        action_ = value >= 960 ? ACTION_SAVE : ACTION_EXIT;
       }
       break;
   }  

@@ -28,6 +28,8 @@ enum ModulationSource {
   MOD_SRC_GATE,
 };
 
+static const uint8_t kNumModulationSources = 12;
+
 enum ModulationDestination {
   MOD_DST_FILTER_CUTOFF = 0,
   MOD_DST_VCA,
@@ -40,6 +42,8 @@ enum ModulationDestination {
   MOD_DST_MIX_SUB_OSC,
   MOD_DST_FILTER_RESONANCE
 };
+
+static const uint8_t kNumModulationDestinations = 10;
 
 enum Parameter {
   PRM_OSC_ALGORITHM_1,

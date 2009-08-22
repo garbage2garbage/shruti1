@@ -8,10 +8,19 @@
 
 namespace hardware_shruti {
 
-NoteStack::NoteStack() {
-  Clear();
-}
+/* static */
+uint8_t NoteStack::size_;
 
+/* static */
+NoteEntry NoteStack::pool_[kNoteStackSize + 1];
+
+/* static */
+uint8_t NoteStack::root_ptr_;
+
+/* static */
+uint8_t NoteStack::sorted_ptr_[kNoteStackSize];
+
+/* static */
 void NoteStack::NoteOn(uint8_t note, uint8_t velocity) {
   // Remove the note from the list first.
   NoteOff(note);
@@ -54,6 +63,7 @@ void NoteStack::NoteOn(uint8_t note, uint8_t velocity) {
   ++size_;
 }
 
+/* static */
 void NoteStack::NoteOff(uint8_t note) {
   uint8_t current = root_ptr_;
   uint8_t previous = 0;
@@ -85,6 +95,7 @@ void NoteStack::NoteOff(uint8_t note) {
   }
 }
 
+/* static */
 void NoteStack::Clear() {
   size_ = 0;
   for (int i = 1; i <= kNoteStackSize; ++i) {

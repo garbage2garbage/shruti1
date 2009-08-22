@@ -28,32 +28,32 @@ static unsigned char timer0_fractional = 0;
 
 ISR(TIMER0_OVF_vect)
 {
-	// copy these to local variables so they can be stored in registers
-	// (volatile variables must be read from memory on every access)
-	unsigned long m = timer0_milliseconds;
-	unsigned char f = timer0_fractional;
+  // copy these to local variables so they can be stored in registers
+  // (volatile variables must be read from memory on every access)
+  unsigned long m = timer0_milliseconds;
+  unsigned char f = timer0_fractional;
 
-	m += milliseconds_increment;
-	f += fractional_increment;
-	if (f >= fractional_max) {
-		f -= fractional_max;
-		m += 1;
-	}
+  m += milliseconds_increment;
+  f += fractional_increment;
+  if (f >= fractional_max) {
+    f -= fractional_max;
+    m += 1;
+  }
 
-	timer0_fractional = f;
-	timer0_milliseconds = m;
-	timer0_overflow_count++;
+  timer0_fractional = f;
+  timer0_milliseconds = m;
+  timer0_overflow_count++;
 }
 
 unsigned long milliseconds()
 {
-	unsigned long m;
-	uint8_t oldSREG = SREG;
-	cli();
-	m = timer0_milliseconds;
-	SREG = oldSREG;
+  unsigned long m;
+  uint8_t oldSREG = SREG;
+  cli();
+  m = timer0_milliseconds;
+  SREG = oldSREG;
 
-	return m;
+  return m;
 }
 
 void SetupClock() {

@@ -9,8 +9,10 @@
 // the NoteStack instance contained in this class to handle voice stealing for
 // polyphonic.
 //
-// Note that we don't spend enough cycles in this guy to justify the
-// "staticification" SynthesisEngine and Voice have gone through.
+// Two instances of this guy will be needed for multitimbrality. Since there is
+// no plan to support multitimbrality, this class is implemented as a "static
+// singleton". This does not yield a code size gain, but this is coherent with
+// what was done with NoteStack.
 
 #ifndef HARDWARE_SHRUTI_VOICE_CONTROLLER_
 #define HARDWARE_SHRUTI_VOICE_CONTROLLER_
@@ -34,53 +36,60 @@ class Voice;
 
 class VoiceController {
  public:
-  VoiceController();
-  void Init(Voice* voices, uint8_t num_voices_);
-  void SetTempo(uint8_t tempo);
-  void SetSwing(uint8_t swing);
-  void SetPattern(uint8_t pattern);
-  void SetOctaves(uint8_t octaves) { octaves_ = octaves; }
-  void AllNotesOff();
-  void AllSoundOff();
-  void Reset();
-  void Step();
-  void NoteOn(uint8_t note, uint8_t velocity);
-  void NoteOff(uint8_t note);
-  inline void Audio() { --internal_clock_counter_; }
-  inline void ExternalSync() { --midi_clock_counter_; }
-  inline uint8_t step() { return pattern_step_; }
-  inline uint16_t has_arpeggiator_note() { return pattern_mask_ & pattern_; }
-  void Control();
+  VoiceController() { }
+  static void Init(Voice* voices, uint8_t num_voices_);
+  static void SetTempo(uint8_t tempo);
+  static void SetSwing(uint8_t swing);
+  static void SetPattern(uint8_t pattern);
+  static void SetOctaves(uint8_t octaves) { octaves_ = octaves; }
+  static void AllNotesOff();
+  static void AllSoundOff();
+  static void Reset();
+  static void Step();
+  static void NoteOn(uint8_t note, uint8_t velocity);
+  static void NoteOff(uint8_t note);
+  static inline void Audio() { --internal_clock_counter_; }
+  static inline void ExternalSync() { --midi_clock_counter_; }
+  static inline uint8_t step() { return pattern_step_; }
+  static inline uint16_t has_arpeggiator_note() {
+    return pattern_mask_ & pattern_;
+  }
+  static void Control();
 
  private:
-  void RecomputeStepDurations();
-  void ArpeggioDown();
-  void ArpeggioUp();
-  void ArpeggioLast();
-  void ArpeggioFirst();
+  static void RecomputeStepDurations();
+  static void ArpeggioDown();
+  static void ArpeggioUp();
+  static void ArpeggioLast();
+  static void ArpeggioFirst();
 
-  int16_t internal_clock_counter_;
-  uint8_t midi_clock_counter_;
-  int16_t step_duration_[2];
-  uint8_t random_byte_;
+  static int16_t internal_clock_counter_;
+  static uint8_t midi_clock_counter_;
+  static int16_t step_duration_[2];
+  static uint8_t random_byte_;
 
   // 16 steps x-o-x pattern storing the steps at which a new note is triggered.
-  uint16_t pattern_;
-  uint16_t pattern_mask_;  // Shift by 1 every 1/16th note, with swing.
-  uint8_t pattern_step_;  // Increment by 1 every 1/16th note, with swing.
+  static uint16_t pattern_;
+  // Shift by 1 every 1/16th note, with swing.
+  static uint16_t pattern_mask_;
+  // Increment by 1 every 1/16th note, with swing.
+  static uint8_t pattern_step_;
   
-  int8_t arpeggio_step_;  // Incremented/decremented by 1 for up/down pattern.
-  int8_t direction_;  // Direction increment.
-  int8_t octave_step_;
-  int8_t octaves_;  // Number of octaves
-  uint8_t mode_;
+  // Incremented/decremented by 1 for up/down pattern.
+  static int8_t arpeggio_step_;
+  // Direction increment.
+  static int8_t direction_;
+  static int8_t octave_step_;
+  // Number of octaves
+  static int8_t octaves_;
+  static uint8_t mode_;
 
-  NoteStack notes_;
-  Voice* voices_;
-  uint8_t num_voices_;
+  static NoteStack notes_;
+  static Voice* voices_;
+  static uint8_t num_voices_;
   
-  uint8_t tempo_;
-  uint8_t swing_;
+  static uint8_t tempo_;
+  static uint8_t swing_;
   
   DISALLOW_COPY_AND_ASSIGN(VoiceController);
 };

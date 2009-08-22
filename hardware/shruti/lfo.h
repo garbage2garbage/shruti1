@@ -4,9 +4,9 @@
 //
 // LFO (cheap oscillator).
 //
-// Contrary to oscillators which are "static'ified" to generate the fastest code
-// as possible, LFOs are less performance-sensitive and are thus implemented as
-// a simple class.
+// Contrary to oscillators which are templatized "static singletons", to
+// generate the fastest, most specialized code, LFOs are less
+// performance-sensitive and are thus implemented as a traditional class.
 
 #ifndef HARDWARE_SHRUTI_LFO_H_
 #define HARDWARE_SHRUTI_LFO_H_

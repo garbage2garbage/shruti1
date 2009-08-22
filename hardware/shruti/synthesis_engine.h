@@ -8,13 +8,18 @@
 // lds r18, 0x04e4
 //
 // instead of ugly indirect addressing like:
-// subi	r28, 0xF1
-// sbci	r29, 0xFD
-// ld	r18, Y
-// ldd	r19, Y+1	; 0x01
+// subi r28, 0xF1
+// sbci r29, 0xFD
+// ld r18, Y
+// ldd  r19, Y+1  ; 0x01
 //
-// As a result, the code looks ugly. Sorry... At least, I applied this
-// "optimization" here only.
+// This transformation from a class that would be used as a singleton anyway,
+// to a "class" with only static methods/member variables yielded faster, leaner
+// code in many places and has since been widely adopted in the code.
+//
+// Note that a polyphonic synth would need several voices object - in this case
+// this transformation should not be applied to the Voice class. Since, for now
+// only the monophonic mode is supported, Voice is also "static'ified".
 
 #ifndef HARDWARE_SHRUTI_SYNTHESIS_ENGINE_H_
 #define HARDWARE_SHRUTI_SYNTHESIS_ENGINE_H_
@@ -102,7 +107,7 @@ class Voice {
   static int8_t modulation_destinations_[MOD_DST_FILTER_RESONANCE + 1];
   
   static uint8_t signal_;
-  
+
   DISALLOW_COPY_AND_ASSIGN(Voice);
 };
 
@@ -153,7 +158,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   // loading a patch from the EEPROM)... so in this case we need to recompute
   // all the related variables.
   static inline void TouchPatch() {
-    RecomputeModulationIncrements();
+    UpdateModulationIncrements();
     UpdateOscillatorAlgorithms();
   }
   static void set_patch(const uint8_t* packed_patch) {
@@ -190,7 +195,8 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
 
   // Called whenever a parameter related to LFOs/envelopes is modified (for now
   // everytime a parameter is modified by the user).
-  static void RecomputeModulationIncrements();
+  static void UpdateModulationIncrements();
+  
   // Called whenever a parameter related to oscillators is called.
   static void UpdateOscillatorAlgorithms();
 

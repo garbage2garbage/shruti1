@@ -24,11 +24,11 @@ IORegister(UCSR0B);
 namespace hardware_base {
 
 void InitArduino() {
-	sei();
-	
+  sei();
+  
   SetupClock();
-	
-	// Setup the timers to run at 1kHz.
+  
+  // Setup the timers to run at 1kHz.
   Timer<1>::set_prescaler(3);
   Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
 

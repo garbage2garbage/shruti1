@@ -50,11 +50,11 @@ class BufferedSoftwareSerialOutput {
     TxPin::High();
   }
   static inline void Write(Value v) { OutputBuffer::Write(v); }
-	static inline uint8_t writable() { return OutputBuffer::writable(); }
-	static inline uint8_t NonBlockingWrite(Value v ) {
-		return OutputBuffer::NonBlockingWrite(v);
-	}
-	static inline void Overwrite(Value v) { OutputBuffer::Overwrite(v); }
+  static inline uint8_t writable() { return OutputBuffer::writable(); }
+  static inline uint8_t NonBlockingWrite(Value v ) {
+    return OutputBuffer::NonBlockingWrite(v);
+  }
+  static inline void Overwrite(Value v) { OutputBuffer::Overwrite(v); }
   static inline void Tick() {
     prescaler_counter_--;
     if (prescaler_counter_ > 0) {
