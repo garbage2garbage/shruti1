@@ -34,6 +34,7 @@ uint8_t SynthesisEngine::modulation_sources_[MOD_SRC_ASSIGNABLE_2 + 1];
 Patch SynthesisEngine::patch_;
 Voice SynthesisEngine::voice_;
 VoiceController SynthesisEngine::controller_;
+Lfo SynthesisEngine::lfo_[2];
 /* </static> */
 
 /* static */
@@ -152,8 +153,8 @@ void SynthesisEngine::Reset() {
   modulation_sources_[MOD_SRC_WHEEL] = 0;
   modulation_sources_[MOD_SRC_ASSIGNABLE_1] = 0;
   modulation_sources_[MOD_SRC_ASSIGNABLE_2] = 0;
-  Lfo<1>::ResetPhase();
-  Lfo<2>::ResetPhase();
+  lfo_[0].ResetPhase();
+  lfo_[1].ResetPhase();
 }
 
 /* static */
@@ -213,13 +214,12 @@ uint16_t SynthesisEngine::ScaleEnvelopeIncrement(uint8_t time, uint8_t scale) {
 /* static */
 void SynthesisEngine::RecomputeModulationIncrements() {
   // Update the LFO increments.
-  uint16_t increments[2];
   for (uint8_t i = 0; i < 2; ++i) {
-    increments[i] = ResourcesManager::Lookup<uint16_t, uint8_t>(
-        lut_res_lfo_increments, patch_.lfo_rate[i]);
+    lfo_[i].Update(
+        patch_.lfo_wave[i],
+        ResourcesManager::Lookup<uint16_t, uint8_t>(
+            lut_res_lfo_increments, patch_.lfo_rate[i]));
   }
-  Lfo<1>::Update(patch_.lfo_wave[0], increments[0]);
-  Lfo<2>::Update(patch_.lfo_wave[1], increments[1]);
     
   // Update the envelope increments and targets.
   envelope_increment_[ATTACK] = ScaleEnvelopeIncrement(
@@ -235,10 +235,11 @@ void SynthesisEngine::RecomputeModulationIncrements() {
 
 /* static */
 void SynthesisEngine::Control() {
-  Lfo<1>::Increment();
-  Lfo<2>::Increment();
-  modulation_sources_[MOD_SRC_LFO_1] = Lfo<1>::Render();
-  modulation_sources_[MOD_SRC_LFO_2] = Lfo<2>::Render();
+  for (uint8_t i = 0; i < 2; ++i) {
+    lfo_[i].Increment();
+    modulation_sources_[MOD_SRC_LFO_1 + i] = lfo_[i].Render();
+  }
+    
   // Update the arpeggiator / step sequencer.
   controller_.Control();
   

@@ -11,15 +11,15 @@
 
 #include "hardware/base/base.h"
 #include "hardware/io/display.h"
+#include "hardware/io/pin.h"
 #include "hardware/shruti/parameters.h"
 #include "hardware/shruti/patch.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/shruti.h"
 
-using hardware_io::Display;
-using hardware_io::kLcdWidth;
-using hardware_io::kLcdLines;
 using hardware_io::kLcdNoCursor;
+using hardware_io::Display;
+using hardware_io::Pin;
 
 namespace hardware_shruti {
 
@@ -111,7 +111,6 @@ class SynthesisEngine;
 class Editor {
  public:
   Editor();
-  void Init(Display* display);
   void ToggleGroup(ParameterGroup group);
 
   void HandleInput(uint8_t controller_index, uint16_t value);
@@ -133,14 +132,12 @@ class Editor {
   uint8_t parameter_definition_index_;
   uint8_t current_display_type_;  // 0 for summary, 1 for details.
   
-  Display* display_;
-  
   ParameterPage current_page_;
   ParameterPage last_visited_page_[kNumGroups];
   uint8_t current_controller_;
   uint8_t parameter_definition_offset_[kNumPages][kNumControllers];
 
-  char line_buffer_[(kLcdWidth + 1) * kLcdLines];
+  char line_buffer_[kLcdWidth * kLcdHeight + 1];
   
   void PrettyPrintParameterValue(const ParameterDefinition& parameter,
                                  char* buffer, uint8_t width);

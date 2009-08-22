@@ -6,7 +6,6 @@
 #include "hardware/base/time.h"
 #include "hardware/io/adc.h"
 #include "hardware/io/audio_output.h"
-#include "hardware/io/display.h"
 #include "hardware/io/input_array.h"
 #include "hardware/io/output_array.h"
 #include "hardware/io/pin.h"
@@ -15,6 +14,7 @@
 #include "hardware/io/shift_register.h"
 #include "hardware/io/timer.h"
 #include "hardware/midi/midi.h"
+#include "hardware/shruti/display.h"
 #include "hardware/shruti/editor.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/synthesis_engine.h"
@@ -56,7 +56,6 @@ OutputArray<
 AudioOutput<PwmOutput<3>, kAudioBufferSize, kAudioBlockSize> audio;
 uint32_t rendered_blocks = 0;
 
-Display display;
 Editor editor;
 MidiStreamParser<SynthesisEngine> midi_parser;
 
@@ -212,7 +211,6 @@ void Setup() {
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  editor.Init(&display);
   editor.DisplaySplashScreen();
   
   midi_input.Init();

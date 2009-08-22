@@ -21,6 +21,8 @@ namespace hardware_shruti {
 static const uint16_t kMainTimerRate = 31250;
 static const uint16_t kSampleRate = 31250;
 
+static const uint16_t kDisplayBaudRate = 2400;
+
 static const uint8_t kAudioBufferSize = 64;
 static const uint8_t kControlRate = 16;
 static const uint8_t kAudioBlockSize = kControlRate;
@@ -47,6 +49,12 @@ static const uint8_t kPinAnalogInput = 0;
 
 static const uint8_t kPinDigitalInput = 11;
 static const uint8_t kPinDebugLed = 13;
+
+// ---- LCD type ---------------------------------------------------------------
+
+static const uint8_t kLcdWidth = 16;
+static const uint8_t kLcdWidthLog2 = 4;
+static const uint8_t kLcdHeight = 2;
 
 }  // namespace hardware_shruti
 

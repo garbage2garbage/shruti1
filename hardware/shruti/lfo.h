@@ -3,6 +3,10 @@
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
 // LFO (cheap oscillator).
+//
+// Contrary to oscillators which are "static'ified" to generate the fastest code
+// as possible, LFOs are less performance-sensitive and are thus implemented as
+// a simple class.
 
 #ifndef HARDWARE_SHRUTI_LFO_H_
 #define HARDWARE_SHRUTI_LFO_H_
@@ -17,10 +21,10 @@ using hardware_utils::Random;
 
 namespace hardware_shruti {
 
-template<int id>
 class Lfo {
  public:
-  static inline uint8_t Render() {
+  Lfo() { }
+  uint8_t Render() {
     uint8_t value;
     switch (algorithm_) {
       case LFO_WAVEFORM_S_H:
@@ -41,39 +45,34 @@ class Lfo {
     }
     return value;
   }
-  static inline void Reset() {
+  void Reset() {
     ResetPhase();
     phase_ = 0;
   }
-  static inline void Increment() {
+  void Increment() {
     phase_ += phase_increment_;
   }
-  static inline void Update(uint8_t algorithm, uint16_t increment) {
+  void Update(uint8_t algorithm, uint16_t increment) {
     algorithm_ = algorithm;
     phase_increment_ = increment;
   }
-  static inline void ResetPhase() { phase_ = 0; }
+  void ResetPhase() { phase_ = 0; }
 
  private:
   // Phase increment.
-  static uint16_t phase_increment_;
+  uint16_t phase_increment_;
 
   // Current phase of the lfo.
-  static uint16_t phase_;
+  uint16_t phase_;
   
   // Copy of the algorithm used by this oscillator.
-  static uint8_t algorithm_;
+  uint8_t algorithm_;
 
   // Current value of S&H.
-  static uint8_t value_;
+  uint8_t value_;
   
   DISALLOW_COPY_AND_ASSIGN(Lfo);
 };
-
-template<int id> uint16_t Lfo<id>::phase_;
-template<int id> uint16_t Lfo<id>::phase_increment_;
-template<int id> uint8_t Lfo<id>::algorithm_;
-template<int id> uint8_t Lfo<id>::value_;
 
 }  // namespace hardware_shruti
 

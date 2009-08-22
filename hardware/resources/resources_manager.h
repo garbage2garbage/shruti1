@@ -79,7 +79,6 @@ class ResourcesManager {
     return ResultType(pgm_read_byte(p + i));
 #endif  // __TEST__
   }
-
   
   template<typename ResultType, typename IndexType>
   static inline ResultType Lookup(const prog_uint16_t* p, IndexType i) {

@@ -8,7 +8,7 @@
 // things in progress...
 
 #include "hardware/shruti/editor.h"
-
+#include "hardware/shruti/display.h"
 #include "hardware/io/pretty_printer.h"
 #include "hardware/io/serial.h"
 #include "hardware/shruti/patch_memory.h"
@@ -252,7 +252,6 @@ const PageDefinition Editor::page_definition_[] = {
 
 Editor::Editor()
   : parameter_definition_index_(0xff),
-    display_(NULL),
     current_page_(PAGE_FILTER_FILTER),
     current_controller_(0) {
   last_visited_page_[GROUP_OSC] = PAGE_OSC_OSC_1;
@@ -275,13 +274,9 @@ Editor::Editor()
   flip_ = 0;
 }
 
-void Editor::Init(Display* display) {
-  display_ = display;
-}
-
 void Editor::ToggleGroup(ParameterGroup group) {
   cursor_ = 0;
-  display_->set_cursor_position(kLcdNoCursor);
+  display.set_cursor_position(kLcdNoCursor);
   current_display_type_ = PAGE_TYPE_DETAILS;
   // Special case for the load/save page.
   if (group == GROUP_LOAD_SAVE) {
@@ -402,7 +397,7 @@ void Editor::DisplayLoadSavePage() {
       line_buffer_,
       kLcdWidth);
   AlignLeft(line_buffer_, kLcdWidth);
-  display_->Print(0, line_buffer_);
+  display.Print(0, line_buffer_);
   
   Itoa<int16_t>(current_patch_number_ + 1, 2, line_buffer_);
   AlignRight(line_buffer_, 2);
@@ -410,15 +405,15 @@ void Editor::DisplayLoadSavePage() {
   memcpy(line_buffer_ + 3, engine.patch().name, kPatchNameSize);
   line_buffer_[11] = ' ';
   if (action_ == ACTION_SAVE) {
-    display_->set_cursor_position(kLcdWidth + 3 + cursor_);
+    display.set_cursor_position(kLcdWidth + 3 + cursor_);
   } else {
-    display_->set_cursor_position(kLcdNoCursor);
+    display.set_cursor_position(kLcdNoCursor);
   }
   ResourcesManager::LoadStringResource(
       action_ + STR_RES_LOAD,
       line_buffer_ + 12,
       kColumnWidth);
-  display_->Print(1, line_buffer_);
+  display.Print(1, line_buffer_);
 }
 
 void Editor::DisplayStepSequencerPage() {
@@ -430,13 +425,13 @@ void Editor::DisplayStepSequencerPage() {
       line_buffer_,
       kLcdWidth);
   AlignLeft(line_buffer_, kLcdWidth);
-  display_->Print(0, line_buffer_);
+  display.Print(0, line_buffer_);
   for (uint8_t i = 0; i < 16; ++i) {
     uint8_t value = engine.patch().sequence_step(i) >> 4;
     line_buffer_[i] = value < 10 ? value + 48 : value + 87;
   }
-  display_->Print(1, line_buffer_);
-  display_->set_cursor_position(kLcdWidth + cursor_);
+  display.Print(1, line_buffer_);
+  display.set_cursor_position(kLcdWidth + cursor_);
 }
 
 void Editor::HandleStepSequencerInput(
@@ -471,25 +466,53 @@ void Editor::DisplayEditSummaryPage() {
     line_buffer_[i * kColumnWidth + kColumnWidth + kLcdWidth] = '\0';
     AlignRight(line_buffer_ + i * kColumnWidth + kLcdWidth + 1, kColumnWidth);
   }
-  display_->Print(0, line_buffer_);
-  display_->Print(1, line_buffer_ + kLcdWidth + 1);
+  display.Print(0, line_buffer_);
+  display.Print(1, line_buffer_ + kLcdWidth + 1);
 }
 
 void Editor::DisplayEditDetailsPage() {  
   // 0123456789abcdef
   // filter
   // cutoff       127
+  //
+  // OR
+  //
+  // mod src>dst
+  // amount       127
+  if (current_page_ == PAGE_MOD_MATRIX) {
+    const ParameterDefinition& current_source = parameter_definition(
+        parameter_definition_offset_[PAGE_MOD_MATRIX][1]);
+    PrettyPrintParameterValue(
+        current_source,
+        line_buffer_ + 4,
+        kColumnWidth - 1);
+    const ParameterDefinition& current_destination = parameter_definition(
+        parameter_definition_offset_[PAGE_MOD_MATRIX][2]);
+    PrettyPrintParameterValue(
+        current_destination,
+        line_buffer_ + kColumnWidth + 4,
+        kColumnWidth);
+    line_buffer_[0] = 'm';
+    line_buffer_[1] = 'o';
+    line_buffer_[2] = 'd';
+    line_buffer_[3] = ' ';
+    line_buffer_[kColumnWidth + 3] = '>';
+    AlignLeft(line_buffer_ + kColumnWidth + 4, kLcdWidth - kColumnWidth - 4);
+    display.Print(0, line_buffer_);
+  }
   uint8_t index =
       parameter_definition_offset_[current_page_][current_controller_];
   const ParameterDefinition& parameter = parameter_definition(index);
   const PageDefinition& page = page_definition_[parameter.page];
 
-  ResourcesManager::LoadStringResource(
-      page.name,
-      line_buffer_,
-      kLcdWidth);
-  AlignLeft(line_buffer_, kLcdWidth);
-  display_->Print(0, line_buffer_);
+  if (current_page_ != PAGE_MOD_MATRIX) {
+    ResourcesManager::LoadStringResource(
+        page.name,
+        line_buffer_,
+        kLcdWidth);
+    AlignLeft(line_buffer_, kLcdWidth);
+    display.Print(0, line_buffer_);
+  }
   
   ResourcesManager::LoadStringResource(
       parameter.long_name,
@@ -502,7 +525,7 @@ void Editor::DisplayEditDetailsPage() {
       line_buffer_ + kCaptionWidth,
       kValueWidth);
   AlignRight(line_buffer_ + kCaptionWidth, kValueWidth);
-  display_->Print(1, line_buffer_);
+  display.Print(1, line_buffer_);
 }
 
 void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
@@ -549,13 +572,13 @@ void Editor::DisplaySplashScreen() {
       line_buffer_,
       kLcdWidth);
   AlignLeft(line_buffer_, kLcdWidth);
-  display_->Print(0, line_buffer_);
+  display.Print(0, line_buffer_);
   ResourcesManager::LoadStringResource(
       STR_RES___INSTRUMENTS,
       line_buffer_,
       kLcdWidth);
   AlignLeft(line_buffer_, kLcdWidth);
-  display_->Print(1, line_buffer_);
+  display.Print(1, line_buffer_);
 }
 
 void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,

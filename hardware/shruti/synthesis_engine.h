@@ -22,6 +22,7 @@
 #include "hardware/shruti/shruti.h"
 
 #include "hardware/midi/midi.h"
+#include "hardware/shruti/lfo.h"
 #include "hardware/shruti/parameters.h"
 #include "hardware/shruti/patch.h"
 #include "hardware/shruti/voice_controller.h"
@@ -183,6 +184,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static uint8_t modulation_sources_[MOD_SRC_ASSIGNABLE_2 + 1];
   
   static Patch patch_;
+  static Lfo lfo_[2];
   static Voice voice_;  // Monophonic.
   static VoiceController controller_;
 
