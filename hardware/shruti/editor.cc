@@ -20,6 +20,9 @@ using namespace hardware_io;
 using namespace hardware_utils;
 
 namespace hardware_shruti {
+  
+/* extern */
+Editor editor;
 
 static const prog_char raw_parameter_definition[
     kNumEditableParameters * sizeof(ParameterDefinition)] PROGMEM = {

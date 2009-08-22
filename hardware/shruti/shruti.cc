@@ -56,7 +56,6 @@ OutputArray<
 AudioOutput<PwmOutput<3>, kAudioBufferSize, kAudioBlockSize> audio;
 uint32_t rendered_blocks = 0;
 
-Editor editor;
 MidiStreamParser<SynthesisEngine> midi_parser;
 
 void OutputTask() {
@@ -224,7 +223,6 @@ void Setup() {
   leds.Init();  
   
   engine.Init();
-  
   engine.NoteOn(0, 48, 120);
 }
 

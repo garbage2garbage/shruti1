@@ -143,11 +143,12 @@ struct SoftwareSerialOutput {
   static inline void TunedDelay(uint16_t delay) {
     uint8_t tmp = 0;
 
-    asm volatile("sbiw    %0, 0x01 \n\t"
-      "ldi %1, 0xFF \n\t"
-      "cpi %A0, 0xFF \n\t"
-      "cpc %B0, %1 \n\t"
-      "brne .-10 \n\t"
+    asm volatile(
+      "sbiw %0, 0x01"  "\n\t"
+      "ldi %1, 0xff"   "\n\t"
+      "cpi %A0, 0xff"  "\n\t"
+      "cpc %B0, %1"    "\n\t"
+      "brne .-10"      "\n\t"
       : "+r" (delay), "+a" (tmp)
       : "0" (delay)
       );

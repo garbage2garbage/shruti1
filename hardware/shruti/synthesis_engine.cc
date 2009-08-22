@@ -50,20 +50,20 @@ void SynthesisEngine::Init() {
 
 static const prog_char empty_patch[] PROGMEM = {
     99,
-    1, 1, 0, 0,
+    WAVEFORM_SAW, WAVEFORM_SAW, 0, 0,
     128, 128, 0, 0,
     0, 0, 0, 3,
     120, 0, 0, 0,
     0, 40, 100, 40,
-    0, 0, 64, 16,
-    0, 4, 0,
-    0, 5, 0,
-    1, 2, 0,
-    1, 3, 0,
-    10, 0, 48,
-    8, 1, 127,
-    9, 1, 31,
-    1, 6, 0,
+    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 64, 16,
+    MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
+    MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
+    MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
+    MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
+    MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 48,
+    MOD_SRC_ENV, MOD_DST_VCA, 127,
+    MOD_SRC_VELOCITY, MOD_DST_VCA, 31,
+    MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
     120, 0, 0, 0,
     136, 136, 136, 136, 136, 136, 136, 136,
     128, 0, 0, 1,
@@ -361,6 +361,7 @@ void Voice::Control() {
   for (uint8_t i = 0; i < kModulationMatrixSize + 2; ++i) {
     uint8_t source;
     uint8_t destination = MOD_DST_FILTER_CUTOFF;
+    uint8_t source_value;
     uint8_t amount;
     if (i < kModulationMatrixSize) {
       source = engine.patch_.modulation_matrix.modulation[i].source;
@@ -378,27 +379,27 @@ void Voice::Control() {
     }
     if (source <= MOD_SRC_ASSIGNABLE_2) {
       // Global sources, read from the engine.
-      source = engine.modulation_sources_[source];
+      source_value = engine.modulation_sources_[source];
     } else {
       // Voice specific sources, read from the voice.
-      source = modulation_sources_[source - MOD_SRC_ENV];
+      source_value = modulation_sources_[source - MOD_SRC_ENV];
     }
     if (destination != MOD_DST_VCA) {
-      uint16_t value = dst[destination];
-      value += (source * amount) >> 1;
+      int16_t modulation = dst[destination];
+      modulation += Signal::MulScale1(source_value, amount);
       // For those sources, use relative modulation.
       if (source <= MOD_SRC_LFO_2 ||
           source == MOD_SRC_PITCH_BEND ||
           source == MOD_SRC_NOTE) {
-        value -= amount << 6;
+        modulation -= amount << 6;
       }
-      dst[destination] = Signal::Clip(value, 0, 16383);
+      dst[destination] = Signal::Clip(modulation, 0, 16383);
     } else {
       // The VCA modulation is multiplicative, not additive. Yet another
       // Special case :(.
       dst[MOD_DST_VCA] = Signal::MulScale8(
           dst[MOD_DST_VCA],
-          Signal::Mix(255, source, amount << 1));
+          Signal::Mix(255, source_value, amount << 1));
     }
   }
   

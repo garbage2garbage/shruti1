@@ -106,8 +106,6 @@ struct PageDefinition {
   void (*input_handler)(uint8_t controller_index, uint16_t value);
 };
 
-class SynthesisEngine;
-
 class Editor {
  public:
   Editor() { }
@@ -170,6 +168,8 @@ class Editor {
   
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };
+
+extern Editor editor;
 
 }  // namespace hardware_shruti
 

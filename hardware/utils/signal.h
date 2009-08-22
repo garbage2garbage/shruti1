@@ -73,7 +73,7 @@ struct Signal {
       "or %B3, %A3"     "\n\t"  // copy 4 high bits of L to H -> LLLLHHHH
       "swap %B3"        "\n\t"  // swap to get HHHHLLLL
       "mov %0, %B3"     "\n\t"  // move to output
-      : "+r" (a)
+      : "=r" (a)
       : "a" (balance), "a" (b), "a" (sum)
       );
     return a;
@@ -99,15 +99,15 @@ struct Signal {
   }
   
   static inline uint8_t Shift4(uint8_t a) {
-    uint8_t ret;
+    uint8_t result;
     asm(
       "mov %0, %1"      "\n\t"
       "swap %0"         "\n\t"
       "andi %0, 15"     "\n\t"
-      : "=r" (ret)
+      : "=r" (result)
       : "a" (a)
       );
-    return ret;
+    return result;
   }
   
   static inline uint8_t MulScale8(uint8_t a, uint8_t b) {
@@ -121,6 +121,21 @@ struct Signal {
     );
     return result;
   }
+  
+  static inline uint16_t MulScale1(uint8_t a, uint8_t b) {
+    uint16_t result;
+    asm(
+      "mul %1, %2"      "\n\t"
+      "asr r1"          "\n\t"
+      "ror r0"          "\n\t"
+      "movw %A0, r0"    "\n\t"
+      "eor r1, r1"      "\n\t"
+      : "=r" (result)
+      : "a" (a), "a" (b)
+    );
+    return result;
+  }
+  
   static inline int8_t SignedMulScale8(int8_t a, uint8_t b) {
     uint8_t result;
     asm(
@@ -132,6 +147,7 @@ struct Signal {
     );
     return result;
   }
+  
   static inline int16_t SignedMulScale4(int8_t a, uint8_t b) {
     int16_t result;
     asm(
@@ -144,9 +160,8 @@ struct Signal {
       "ror r0"          "\n\t"
       "asr r1"          "\n\t"
       "ror r0"          "\n\t"
-      "mov %B0, r1"     "\n\t"
+      "movw %A0, r0"    "\n\t"
       "eor r1, r1"      "\n\t"
-      "mov %A0, r0"     "\n\t"
       : "=r" (result)
       : "a" (a), "a" (b)
     );
@@ -182,6 +197,9 @@ struct Signal {
   static inline uint8_t MulScale8(uint8_t a, uint8_t b) {
     return a * b >> 8;
   }
+  static inline uint16_t MulScale1(uint8_t a, uint8_t b) {
+    return a * b >> 1;
+  }
 
   static inline int8_t SignedMulScale8(int8_t a, uint8_t b) {
     return int8_t(a) * b >> 8;
@@ -190,7 +208,7 @@ struct Signal {
   static inline int16_t SignedMulScale4(int8_t a, uint8_t b) {
     return int16_t(int8_t(a) * uint8_t(b)) >> 4;
   }
-
+  
 #endif  // __FAST_SIGNAL_PROCESSING__
 };
 

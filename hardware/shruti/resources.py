@@ -441,6 +441,7 @@ for scale, values in scales:
 # ------------------------------------------------------------------------------
 
 waveforms = []
+numpy.random.seed(21)
 # Create sine wave table.
 sine = -numpy.cos(numpy.arange(257.0) / 256.0 * 2 * numpy.pi) * 127.5 + 127.5
 sine += numpy.random.rand(257) - 0.5
@@ -524,8 +525,8 @@ speech_data = [
 23,44,87,252,16,
 13,29,80,216,0,
 6,46,81,195,0,
-6,110,110,65,15,
-6,26,81,50,79]
+9, 51, 95, 243, 3,
+6, 73, 99, 122, 233]
 
 waveforms.append(('speech_data', speech_data))
 

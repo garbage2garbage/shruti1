@@ -27,17 +27,18 @@ struct BandLimitedOscillatorData {
   int8_t square;
   uint16_t shift;
   uint8_t leak;
-  uint8_t pure_square_shortcut;
   const prog_uint8_t* pulse_tbl;
 };
 
-struct HqWavetableOscillatorData {
+// Interpolates between two 256-samples wavetables.
+struct Wavetable256OscillatorData {
   uint8_t balance;
   const prog_uint8_t* wave_a;
   const prog_uint8_t* wave_b;
 };
 
-struct DirtyWavetableOscillatorData {
+// Interpolates between two different points in a 64-samples wavetable.
+struct Wavetable64OscillatorData {
   int16_t smooth_parameter;
 };
 
@@ -61,11 +62,11 @@ struct SpeechSynthesizerData {
 
 union OscillatorData {
   BandLimitedOscillatorData bl;
-  HqWavetableOscillatorData wv;
+  Wavetable256OscillatorData wv;
   CzOscillatorData cz;
   FmOscillatorData fm;
   SpeechSynthesizerData sp;
-  DirtyWavetableOscillatorData wt;
+  Wavetable64OscillatorData wt;
 };
 
 typedef uint8_t (*RenderFn)();
@@ -99,7 +100,7 @@ class Oscillator {
   }
   static inline uint8_t Render() {
     // Updating the phase by the increment here is a bad idea, because it will
-    // be reloaded from memory anyway in the oscillator code @@, because we
+    // be reloaded from memory anyway in the oscillator code @@, and because we
     // might use a different increment (FM), or because we might need to
     // check if we have completed a cycle to sync to another waveform.
     return (*fn_.render)();
@@ -116,7 +117,7 @@ class Oscillator {
       uint16_t increment) {
     if (!stripped_down && sweeping_) {
       algorithm_ = parameter >> 5;
-      // Sweeping through the triangle table is boring.
+      // Sweeping through the triangle table is sooo boring.
       if (parameter >= 96) {
         ++algorithm_;
       }
@@ -184,7 +185,7 @@ class Oscillator {
       "adc r31, r1"             "\n\t"  // accumulate H
       "eor r1, r1"              "\n\t"  // reset r1 after multiplication
       "mov %0, r31"             "\n\t"  // use sum H as output
-      : "+r" (result)
+      : "=r" (result)
       : "a" (table), "a" (phase)
       : "r30", "r31"
     );
@@ -209,23 +210,23 @@ class Oscillator {
   static void UpdateBandLimited() {
     uint8_t note = Signal::Shift4(note_ - 24);
     if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
-      // TODO(oliviergillet) : find better formula for leaky integrator constant.
+      // TODO(oliviergillet): find better formula for leaky integrator constant.
       data_.bl.leak = 255 - ((note_ - 24) >> 3);
       data_.bl.pulse_tbl = waveform_table[WAV_RES_BANDLIMITED_PULSE_0 + note];
       data_.bl.shift = uint16_t(parameter_ + 127) << 8;
-      data_.bl.pure_square_shortcut = 0;
     } else {
       data_.bl.pulse_tbl = waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + note];
-      data_.bl.pure_square_shortcut = 1;
+      // Leak is set to 0 - this will be used by the rendering code to know that
+      // it should render a pure square wave, by not trying to integrate a
+      // blit, but instead directly reading from the wavetable.
+      data_.bl.leak = 0;
     }
   }
   static uint8_t RenderBandLimited() {
     phase_ += phase_increment_;
-    // The pure square wave is precomputed!
-    if (data_.bl.pure_square_shortcut) {
-      return InterpolateSample(data_.bl.pulse_tbl, phase_);
-    } else {
-      int16_t blit = InterpolateSample(data_.bl.pulse_tbl, phase_);
+    uint8_t blit_1 = InterpolateSample(data_.bl.pulse_tbl, phase_);
+    if (data_.bl.leak) {
+      int16_t blit = blit_1;
       blit -= InterpolateSample(data_.bl.pulse_tbl, phase_ + data_.bl.shift);
       if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
         return Signal::Clip8(blit + 128);
@@ -235,17 +236,19 @@ class Oscillator {
         data_.bl.square = square;
         return square + 128;
       }
+    } else {
+      return blit_1;
     }
   }
   
-  // ------- Interpolation between two waveforms in a wavetable ---------------.
+  // ------- Interpolation between two waveforms from two wavetables -----------
   // 256 samples per cycle.
-  static void ResetHqWave() {
+  static void ResetWavetable256() {
     data_.wv.balance = 0;
     data_.wv.wave_a = waveform_table[WAV_RES_BANDLIMITED_SAW_0];
     data_.wv.wave_b = waveform_table[WAV_RES_BANDLIMITED_SAW_0];
   }
-  static void UpdateHqWave() {
+  static void UpdateWavetable256() {
     uint8_t note = Signal::Shift4(note_ - 24);
     switch (algorithm_) {
       case WAVEFORM_SAW:
@@ -260,7 +263,7 @@ class Oscillator {
         break;
     }
   }
-  static uint8_t RenderHqWave() {
+  static uint8_t RenderWavetable256() {
     phase_ += phase_increment_;
     uint8_t a = InterpolateSample(data_.wv.wave_a, phase_);
     if (data_.wv.balance) {
@@ -271,16 +274,15 @@ class Oscillator {
     }
   }
 
-  // ------- Cheaper and dirtier wavetable ------------------------------------.
-  // Uses 64 samples per cycle (not 256) - and the samples are not particularly
-  // band-limited.
-  static void ResetDirtyWave() {
+  // ------- Interpolation between two offsets of a wavetable ------------------
+  // 64 samples per cycle.
+  static void ResetWavetable64() {
     data_.wt.smooth_parameter = 0;
   }
-  static void UpdateDirtyWave() {
+  static void UpdateWavetable64() {
     // Since the wavetable is very crowded (32 waveforms) and the parameter
     // value has a low resolution (4 positions between each waveform), the
-    // parameter value is smoothed.
+    // parameter value is smoothed to avoid rough stepping.
     int16_t target_parameter = parameter_ * 64;
     int16_t increment = (target_parameter - data_.wt.smooth_parameter) >> 4;
     if (increment == 0) {
@@ -292,7 +294,7 @@ class Oscillator {
     }
     data_.wt.smooth_parameter += increment;
   }
-  static uint8_t RenderDirtyWave() {
+  static uint8_t RenderWavetable64() {
     phase_ += phase_increment_;
     uint8_t p = data_.wt.smooth_parameter >> 8;
     uint16_t offset_a = (p << 6) + p;  // p * 65
@@ -433,19 +435,19 @@ template<int id, bool lite> OscillatorData Oscillator<id, lite>::data_;
 template<int id, bool lite> AlgorithmFn Oscillator<id, lite>::fn_;
 template<int id, bool lite> AlgorithmFn Oscillator<id, lite>::fn_tablet_[] = {
   { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::ResetHqWave, &Os::UpdateHqWave, &Os::RenderHqWave },
+  { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
 };
 template<int id, bool lite> AlgorithmFn Oscillator<id, lite>::fn_table_[] = {
   { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::ResetHqWave, &Os::UpdateHqWave, &Os::RenderHqWave },
+  { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
   { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::ResetHqWave, &Os::UpdateHqWave, &Os::RenderHqWave },
+  { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
   { NULL, &Os::UpdateCz, &Os::RenderCz },  // cz
   { NULL, &Os::UpdateFm, &Os::RenderFm },  // fm
   { NULL, NULL, &Os::Render8BitLand },
   { NULL, &Os::UpdateSpeech, &Os::RenderSpeech },  // speech
-  { &Os::ResetDirtyWave, &Os::UpdateDirtyWave, &Os::RenderDirtyWave },
-  { &Os::ResetHqWave, &Os::UpdateHqWave, &Os::RenderHqWave },
+  { &Os::ResetWavetable64, &Os::UpdateWavetable64, &Os::RenderWavetable64 },
+  { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
 };
 
 }  // namespace hardware_shruti
