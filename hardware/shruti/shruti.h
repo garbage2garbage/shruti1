@@ -19,7 +19,8 @@ namespace hardware_shruti {
 // want to do something different to achieve other sample rates
 // (20kHz or 16kHz).
 static const uint16_t kMainTimerRate = 31250;
-static const uint16_t kSampleRate = 31250;
+static const uint16_t kSampleRate = 15625;
+static const uint8_t  kTicksPerSample = 2;
 
 static const uint16_t kDisplayBaudRate = 2400;
 
@@ -34,21 +35,19 @@ static const uint8_t kPinMidiInRx = 0;
 static const uint8_t kPinMidiThruTx = 1;
 static const uint8_t kPinLcdTx = 2;
 
+// Shift register / muxes.
+static const uint8_t kPinData = 3;
+static const uint8_t kPinDigitalInput = 4;
+static const uint8_t kPinOutputLatch = 7;
+static const uint8_t kPinInputLatch = 8;
+static const uint8_t kPinClk = 9;
+
 // PWM/audio output.
-static const uint8_t kPinVcoOut = 3;
+static const uint8_t kPinVcoOut = 11;
 static const uint8_t kPinVcfCutoffOut = 5;
 static const uint8_t kPinVcfResonanceOut = 6;
-static const uint8_t kPinVcaOut = 9;
 
-// Shift register / muxes.
-static const uint8_t kPinClk = 4;
-static const uint8_t kPinData = 7;
-static const uint8_t kPinOutputLatch = 8;
-static const uint8_t kPinInputLatch = 10;
 static const uint8_t kPinAnalogInput = 0;
-
-static const uint8_t kPinDigitalInput = 9;
-static const uint8_t kPinDebugLed = 13;
 
 // ---- LCD type ---------------------------------------------------------------
 

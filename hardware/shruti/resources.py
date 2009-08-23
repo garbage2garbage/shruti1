@@ -209,7 +209,7 @@ equal
 # Create lookup table for LFO increments (logarithmic frequency).
 lookup_tables = []
 
-sample_rate = 31250.0
+sample_rate = 31250.0 / 2.0
 control_rate = sample_rate / 16
 min_frequency = 1.0 / 8.0  # Hertz
 max_frequency = 20.0  # Hertz
@@ -478,7 +478,6 @@ def Scale(array, min=0, max=255, use_min=0):
   return numpy.round(array).astype(int)
 
 # Band limited waveforms.
-sr = 31250
 num_zones = (107 - 24) / 16 + 1
 bl_pulse_tables = []
 bl_square_tables = []

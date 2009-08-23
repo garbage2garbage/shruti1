@@ -53,7 +53,7 @@ OutputArray<
     Pin<kPinData>, 11, 4, LSB_FIRST, false> leds;
 
 // Audio output on pin 3.
-AudioOutput<PwmOutput<3>, kAudioBufferSize, kAudioBlockSize> audio;
+AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio;
 uint32_t rendered_blocks = 0;
 
 MidiStreamParser<SynthesisEngine> midi_parser;
@@ -194,16 +194,22 @@ void ScheduleTasks() {
   }
 }
 
+uint8_t tick = 0;
+
 TIMER_2_TICK {
+  tick++;
   display.Tick();
-  audio.EmitSample();
+  if (tick == kTicksPerSample) {
+    tick = 0;
+    audio.EmitSample();
+  }
 }
 
 void Setup() {
   display.Init();
   editor.Init();
   
-  // 31250kHz, phase correct.
+  // 62500kHz, phase correct.
   Timer<2>::set_prescaler(1);
   Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
   Timer<2>::Start();

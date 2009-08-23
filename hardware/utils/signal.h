@@ -32,7 +32,7 @@ struct Signal {
     );
     return result;  
   }
-  
+
   static inline int8_t SignedClip8(int16_t value) {
     return Clip8(value + 128) + 128;  
   }
@@ -97,8 +97,31 @@ struct Signal {
       );
     return sum;
   }
-  
-  static inline uint8_t Shift4(uint8_t a) {
+
+  static inline uint8_t ShiftLeft4(uint8_t a) {
+    uint8_t result;
+    asm(
+      "mov %0, %1"      "\n\t"
+      "swap %0"         "\n\t"
+      "andi %0, 240"     "\n\t"
+      : "=r" (result)
+      : "a" (a)
+      );
+    return result;
+  }
+
+  static inline uint8_t Swap4(uint8_t a) {
+    uint8_t result;
+    asm(
+      "mov %0, %1"      "\n\t"
+      "swap %0"         "\n\t"
+      : "=r" (result)
+      : "a" (a)
+      );
+    return result;
+  }
+
+  static inline uint8_t ShiftRight4(uint8_t a) {
     uint8_t result;
     asm(
       "mov %0, %1"      "\n\t"
@@ -190,8 +213,16 @@ struct Signal {
     return a * (15 - balance) + b * balance;
   }
 
-  static inline uint8_t Shift4(uint8_t a) {
+  static inline uint8_t ShiftRight4(uint8_t a) {
     return a >> 4;
+  }
+
+  static inline uint8_t ShiftLeft4(uint8_t a) {
+    return a << 4;
+  }
+
+  static inline uint8_t Swap4(uint8_t a) {
+    return (a << 4) | (a >> 4);
   }
   
   static inline uint8_t MulScale8(uint8_t a, uint8_t b) {

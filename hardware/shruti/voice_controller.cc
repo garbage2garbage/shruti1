@@ -47,8 +47,8 @@ void VoiceController::Init(Voice* voices, uint8_t num_voices) {
   num_voices_ = 0;
   tempo_ = 120;
   swing_ = 0;
-  step_duration_[0] = 3906;
-  step_duration_[1] = 3906;
+  step_duration_[0] = (kSampleRate * 60L / 4) / 120;
+  step_duration_[1] = (kSampleRate * 60L / 4) / 120;
   octaves_ = 0;
   pattern_ = 0x5555;
   mode_ = 0;

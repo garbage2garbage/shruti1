@@ -24,17 +24,17 @@ namespace hardware_shruti {
 const uint8_t kSpeechControlRateDecimation = 4;
 
 struct BandLimitedOscillatorData {
+  uint8_t balance;
   int8_t square;
   uint16_t shift;
   uint8_t leak;
-  const prog_uint8_t* pulse_tbl;
+  const prog_uint8_t* wave[2];
 };
 
 // Interpolates between two 256-samples wavetables.
 struct Wavetable256OscillatorData {
   uint8_t balance;
-  const prog_uint8_t* wave_a;
-  const prog_uint8_t* wave_b;
+  const prog_uint8_t* wave[2];
 };
 
 // Interpolates between two different points in a 64-samples wavetable.
@@ -205,29 +205,40 @@ class Oscillator {
   static void ResetBandLimited() {
     data_.bl.square = 0;
     data_.bl.leak = 255;
-    data_.bl.pulse_tbl = waveform_table[WAV_RES_BANDLIMITED_PULSE_0];
+    data_.bl.wave[0] = waveform_table[WAV_RES_BANDLIMITED_PULSE_0];
+    data_.bl.wave[1] = waveform_table[WAV_RES_BANDLIMITED_PULSE_0];
   }
   static void UpdateBandLimited() {
-    uint8_t note = Signal::Shift4(note_ - 24);
+    uint8_t note = Signal::Swap4(note_ - 24);
+    uint8_t wave_index = note & 0xf;
     if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
       // TODO(oliviergillet): find better formula for leaky integrator constant.
       data_.bl.leak = 255 - ((note_ - 24) >> 3);
-      data_.bl.pulse_tbl = waveform_table[WAV_RES_BANDLIMITED_PULSE_0 + note];
+      data_.bl.wave[0] =
+          waveform_table[WAV_RES_BANDLIMITED_PULSE_0 + wave_index];
       data_.bl.shift = uint16_t(parameter_ + 127) << 8;
     } else {
-      data_.bl.pulse_tbl = waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + note];
+      data_.bl.wave[0] =
+          waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
+      wave_index++;
+      if (wave_index > 5) {
+        wave_index = 5;
+      }
+      data_.bl.wave[1] =
+          waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
       // Leak is set to 0 - this will be used by the rendering code to know that
       // it should render a pure square wave, by not trying to integrate a
       // blit, but instead directly reading from the wavetable.
       data_.bl.leak = 0;
+      data_.bl.balance = note & 0xf0;
     }
   }
   static uint8_t RenderBandLimited() {
     phase_ += phase_increment_;
-    uint8_t blit_1 = InterpolateSample(data_.bl.pulse_tbl, phase_);
+    uint8_t a = InterpolateSample(data_.bl.wave[0], phase_);
     if (data_.bl.leak) {
-      int16_t blit = blit_1;
-      blit -= InterpolateSample(data_.bl.pulse_tbl, phase_ + data_.bl.shift);
+      int16_t blit = a;
+      blit -= InterpolateSample(data_.bl.wave[0], phase_ + data_.bl.shift);
       if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
         return Signal::Clip8(blit + 128);
       } else {
@@ -237,7 +248,8 @@ class Oscillator {
         return square + 128;
       }
     } else {
-      return blit_1;
+      uint8_t b = InterpolateSample(data_.bl.wave[1], phase_);
+      return Signal::Mix(a, b, data_.bl.balance);
     }
   }
   
@@ -245,29 +257,44 @@ class Oscillator {
   // 256 samples per cycle.
   static void ResetWavetable256() {
     data_.wv.balance = 0;
-    data_.wv.wave_a = waveform_table[WAV_RES_BANDLIMITED_SAW_0];
-    data_.wv.wave_b = waveform_table[WAV_RES_BANDLIMITED_SAW_0];
+    data_.wv.wave[0] = waveform_table[WAV_RES_BANDLIMITED_SAW_0];
+    data_.wv.wave[0] = waveform_table[WAV_RES_BANDLIMITED_SAW_0];
   }
   static void UpdateWavetable256() {
-    uint8_t note = Signal::Shift4(note_ - 24);
+    uint8_t note = Signal::Swap4(note_ - 24);
+    uint8_t wave_index = note & 0xf;
     switch (algorithm_) {
       case WAVEFORM_SAW:
-        data_.wv.wave_a = waveform_table[WAV_RES_BANDLIMITED_SAW_0 + note];
-        data_.wv.wave_b = waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_0 + note];
-        data_.wv.balance = parameter_ << 1;
+        data_.wv.wave[0] =
+            waveform_table[WAV_RES_BANDLIMITED_SAW_0 + wave_index];
+        // When parameter is set to 0, use zoning.
+        if (parameter_ == 0) {
+          wave_index++;
+          if (wave_index > 5) {
+            wave_index = 5;
+          }
+          data_.wv.wave[1] =
+              waveform_table[WAV_RES_BANDLIMITED_SAW_0 + wave_index];
+          data_.wv.balance = note & 0xf0;
+        } else {
+          data_.wv.wave[1] =
+              waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_0 + wave_index];
+          data_.wv.balance = parameter_ << 1;
+        }
         break;
       case WAVEFORM_TRIANGLE:
-        data_.wv.wave_a = waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_0 + note];
-        data_.wv.wave_b = waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_5];
+        data_.wv.wave[0] =
+            waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_0 + wave_index];
+        data_.wv.wave[1] = waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_5];
         data_.wv.balance = parameter_ << 1;
         break;
     }
   }
   static uint8_t RenderWavetable256() {
     phase_ += phase_increment_;
-    uint8_t a = InterpolateSample(data_.wv.wave_a, phase_);
+    uint8_t a = InterpolateSample(data_.wv.wave[0], phase_);
     if (data_.wv.balance) {
-      uint8_t b = InterpolateSample(data_.wv.wave_b, phase_);
+      uint8_t b = InterpolateSample(data_.wv.wave[1], phase_);
       return Signal::Mix(a, b, data_.wv.balance);
     } else {
       return a;
@@ -277,7 +304,7 @@ class Oscillator {
   // ------- Interpolation between two offsets of a wavetable ------------------
   // 64 samples per cycle.
   static void ResetWavetable64() {
-    data_.wt.smooth_parameter = 0;
+    data_.wt.smooth_parameter = parameter_ * 64;
   }
   static void UpdateWavetable64() {
     // Since the wavetable is very crowded (32 waveforms) and the parameter
@@ -363,7 +390,7 @@ class Oscillator {
       return;
     }
     
-    uint8_t offset_1 = Signal::Shift4(parameter_);
+    uint8_t offset_1 = Signal::ShiftRight4(parameter_);
     offset_1 = (offset_1 << 2) + offset_1;  // offset_1 * 5
     uint8_t offset_2 = offset_1 + 5;
     uint8_t mix = parameter_ & 15;
@@ -374,7 +401,7 @@ class Oscillator {
           ResourcesManager::Lookup<uint8_t, uint8_t>(
               waveform_table[WAV_RES_SPEECH_DATA], offset_2 + i),
           mix);
-      data_.sp.formant_increment[i] <<= 2;
+      data_.sp.formant_increment[i] <<= 3;
     }
     for (uint8_t i = 0; i < 2; ++i) {
       uint8_t amplitude_a = ResourcesManager::Lookup<uint8_t, uint8_t>(
@@ -387,8 +414,8 @@ class Oscillator {
       data_.sp.formant_amplitude[2 * i + 1] = Signal::Mix4(
           amplitude_a & 0xf,
           amplitude_b & 0xf, mix);
-      amplitude_a = Signal::Shift4(amplitude_a);
-      amplitude_b = Signal::Shift4(amplitude_b);
+      amplitude_a = Signal::ShiftRight4(amplitude_a);
+      amplitude_b = Signal::ShiftRight4(amplitude_b);
       data_.sp.formant_amplitude[2 * i] = Signal::Mix4(
           amplitude_a,
           amplitude_b, mix);

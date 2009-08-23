@@ -109,4 +109,4 @@ def WriteWavFile(signal, sample_rate, file_name, bitdepth=16, normalize=True):
 
 values = numpy.array([int(line) for line in sys.stdin])
 values = (values - 128.0) / 128.0
-WriteWavFile(values, 31250, sys.argv[1])
+WriteWavFile(values, 15625, sys.argv[1])
