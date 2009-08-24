@@ -4,7 +4,7 @@
 //
 // Utility functions for string processing.
 
-#include "hardware/utils/string_utils.h"
+#include "hardware/utils/string.h"
 
 #include <stdio.h>
 

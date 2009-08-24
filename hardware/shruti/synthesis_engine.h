@@ -50,7 +50,7 @@ enum EnvelopeStage {
 
 class Voice {
  public:
-  Voice() { };
+  Voice() { }
   static void Init();
 
   // Called whenever a new note is played, manually or through the arpeggiator.
@@ -115,7 +115,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   friend class Voice;
 
  public:
-  SynthesisEngine() { };
+  SynthesisEngine() { }
   static void Init();
 
   // Forwarded to the controller.
@@ -182,8 +182,8 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   
  private:
   // Increment and stage info for the envelopes.
-  static int16_t envelope_increment_[4];
-  static int16_t envelope_target_[4];
+  static int16_t envelope_increment_[5];
+  static int16_t envelope_target_[5];
   
   // Value of global modulation parameters, scaled to 0-255;
   static uint8_t modulation_sources_[MOD_SRC_ASSIGNABLE_2 + 1];

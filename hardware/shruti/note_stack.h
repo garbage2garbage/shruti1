@@ -20,7 +20,7 @@
 // Additionally, an array of pointers is stored to allow random access to the
 // n-th note, sorted by ascending order of pitch (for arpeggiation).
 //
-// TODO(oliviergillet): having this class implemented as a "static singleton"
+// TODO(pichenettes): having this class implemented as a "static singleton"
 // saves almost 300 bytes of code. w00t! But we'd rather move this back to a
 // simple class when adding multitimbrality. When will we add multitimbrality?
 // Probably never.

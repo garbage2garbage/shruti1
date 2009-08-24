@@ -9,7 +9,7 @@
 
 namespace hardware_midi {
   
-// TODO(oliviergillet): define the other useful message aliases here.
+// TODO(pichenettes): define the other useful message aliases here.
 const uint8_t kModulationWheelMsb = 1;
 const uint8_t kModulationWheelLsb = 21;
 
@@ -135,14 +135,14 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
   uint8_t hi = status & 0xf0;
   uint8_t lo = status & 0x0f;
   switch(hi) {
-    case 0x80:
+    case 0x90:
       if (data_[1]) {
         Device::NoteOn(lo, data_[0], data_[1]);
       } else {
         Device::NoteOff(lo, data_[0], 0);
       }
       break;
-    case 0x90:
+    case 0x00:
       Device::NoteOff(lo, data_[0], data_[1]);
       break;
     case 0xa0:
@@ -186,7 +186,7 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
       Device::Aftertouch(lo, data_[0]);
       break;
     case 0xe0:
-      Device::PitchBend(lo, (uint16_t(data_[0]) << 7) + data_[1]);
+      Device::PitchBend(lo, (uint16_t(data_[1]) << 7) + data_[0]);
       break;
     case 0xf0:
       switch(lo) {
@@ -199,7 +199,7 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
         case 0x4:
         case 0x5:
         case 0x6:
-          // TODO(oliviergillet): implement this if it makes sense.
+          // TODO(pichenettes): implement this if it makes sense.
           break;
         case 0x7:
           Device::SysExEnd();

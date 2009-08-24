@@ -51,10 +51,14 @@ def GenerateHeader(base_name, res):
     max_num_resources = max(max_num_resources, len(resource[0]))
 
   f = file(os.path.join(res.target, base_name + '.h'), 'w')
+  base_name = os.path.split(base_name)[-1]
   f.write(res.header + '\n\n')
   f.write('#ifndef %s_%s_H_\n' % (res.namespace.upper(), base_name.upper()))
   f.write('#define %s_%s_H_\n\n' % (res.namespace.upper(), base_name.upper()))
   f.write(res.includes + '\n\n')
+  if res.create_specialized_manager:
+    f.write('#include "hardware/resources/resources_manager.h"\n')
+
   if res.namespace:
     f.write('namespace %s {\n\n' % res.namespace)
   
@@ -85,7 +89,6 @@ def GenerateHeader(base_name, res):
         f.write('#define %s_%s_SIZE %d\n' % args)
     
   if res.create_specialized_manager:
-    f.write('#include "hardware/resources/resources_manager.h"\n')
     f.write('typedef hardware_resources::ResourcesManager<\n')
     f.write('    ResourceId,\n')
     f.write('    hardware_resources::ResourcesTables<\n')

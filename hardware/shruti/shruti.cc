@@ -7,29 +7,23 @@
 #include "hardware/io/adc.h"
 #include "hardware/io/audio_output.h"
 #include "hardware/io/input_array.h"
-#include "hardware/io/output_array.h"
+#include "hardware/io/devices/output_array.h"
 #include "hardware/io/pin.h"
 #include "hardware/io/pretty_printer.h"
 #include "hardware/io/serial.h"
-#include "hardware/io/shift_register.h"
+#include "hardware/io/devices/74hc595.h"
 #include "hardware/io/timer.h"
 #include "hardware/midi/midi.h"
 #include "hardware/shruti/display.h"
 #include "hardware/shruti/editor.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/synthesis_engine.h"
-#include "hardware/utils/random.h"
 #include "hardware/utils/task.h"
 
 using namespace hardware_base;
 using namespace hardware_io;
 using namespace hardware_midi;
 using namespace hardware_shruti;
-
-// Serial object used for debugging.
-typedef Serial<SerialPort0, 38400, DISABLED, POLLED> DebugOutput;
-DebugOutput debug_output;
-PrettyPrinter<DebugOutput> debug;
 
 // Midi input.
 Serial<SerialPort0, 31250, BUFFERED, DISABLED> midi_input;
@@ -53,6 +47,7 @@ OutputArray<
     Pin<kPinData>, 11, 4, LSB_FIRST, false> leds;
 
 // Audio output on pin 3.
+
 AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio;
 uint32_t rendered_blocks = 0;
 
@@ -64,7 +59,7 @@ TASK_BEGIN_NEAR
     // Update the LED showing the active page. When the current page is the
     // modulation matrix editor, the LED blinks according to the active
     // modulation source.
-    // TODO(oliviergillet): which class is responsible for handling that? In
+    // TODO(pichenettes): which class is responsible for handling that? In
     // any case, this code does not belong here and is not readable.
     for (uint8_t i = 0; i < kNumPages; ++i) {
       uint8_t value = 0;
@@ -133,7 +128,7 @@ TASK_BEGIN_NEAR
       editor.DisplayDetails();
     }
     TASK_SWITCH;
-    // TODO(oliviergillet): write VCF control signals to the PWM output.
+    // TODO(pichenettes): write VCF control signals to the PWM output.
   }
 TASK_END
 }
@@ -141,10 +136,9 @@ TASK_END
 void MidiTask() {
 TASK_BEGIN_NEAR
   while (1) {
-    for (uint8_t i = 0; i < 4; ++i) {
-      if (midi_input.readable()) {
-        midi_parser.PushByte(midi_input.ImmediateRead());
-      }
+    if (midi_input.readable()) {
+      uint8_t value = midi_input.ImmediateRead();
+      midi_parser.PushByte(value);
     }
     TASK_SWITCH;
   }
@@ -172,9 +166,6 @@ void HeartbeatTask() {
 TASK_BEGIN_NEAR
   while (1) {
     heartbeat_counter++;
-    if ((heartbeat_counter & 1023) == 0) {
-      debug << audio.num_glitches() << endl;
-    }
     TASK_SWITCH;
   }
 TASK_END
@@ -208,7 +199,7 @@ TIMER_2_TICK {
 void Setup() {
   display.Init();
   editor.Init();
-  
+
   // 62500kHz, phase correct.
   Timer<2>::set_prescaler(1);
   Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
@@ -220,7 +211,6 @@ void Setup() {
   editor.DisplaySplashScreen();
   
   midi_input.Init();
-  debug_output.Init();
   pots.Init();
   switches.Init();
   // Set the digital input to high to enable the pull-up resistor.
@@ -229,11 +219,9 @@ void Setup() {
   leds.Init();  
   
   engine.Init();
-  engine.NoteOn(0, 48, 120);
 }
 
-int main(void)
-{
+int main(void) {
   InitArduino();
   Setup();
   ScheduleTasks();

@@ -14,7 +14,7 @@
 #include "hardware/shruti/patch_memory.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/synthesis_engine.h"
-#include "hardware/utils/string_utils.h"
+#include "hardware/utils/string.h"
 
 using namespace hardware_io;
 using namespace hardware_utils;
@@ -581,14 +581,14 @@ void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
     new_value = ((value >> 3) * range) >> 7;
     new_value += parameter.min_value;
   }
-  // TODO(oliviergillet): this is not a very pretty way of doing this...
+  // TODO(pichenettes): this is not a very pretty way of doing this...
   if (parameter.unit == UNIT_TEMPO_WITH_EXTERNAL_CLOCK) {
     if (new_value < 40) {
       new_value = 0;
     }
   }
   
-  // TODO(oliviergillet): dirty hack to get the modulation page working.
+  // TODO(pichenettes): dirty hack to get the modulation page working.
   if (current_page_ == PAGE_MOD_MATRIX) {
     if (parameter.id == PRM_MOD_ROW) {
       cursor_ = new_value;
@@ -624,7 +624,7 @@ void Editor::DisplaySplashScreen() {
 void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
                                        char* buffer, uint8_t width) {
   int16_t value;
-  // TODO(oliviergillet): dirty hack to get the modulation page working.
+  // TODO(pichenettes): dirty hack to get the modulation page working.
   if (current_page_ == PAGE_MOD_MATRIX) {
     if (parameter.id == PRM_MOD_ROW) {
       value = cursor_ + 1;

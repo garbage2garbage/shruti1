@@ -19,9 +19,9 @@
 
 namespace hardware_io {
 
-enum ShiftRegisterOrder {
-  LSB_FIRST = 0,
-  MSB_FIRST = 1
+enum DataOrder {
+  MSB_FIRST = 0,
+  LSB_FIRST = 1
 };
 
 enum DigitalValue {

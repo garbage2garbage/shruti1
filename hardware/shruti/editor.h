@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #include "hardware/base/base.h"
-#include "hardware/io/display.h"
+#include "hardware/io/devices/sparkfun_ser_lcd.h"
 #include "hardware/io/pin.h"
 #include "hardware/shruti/parameters.h"
 #include "hardware/shruti/patch.h"

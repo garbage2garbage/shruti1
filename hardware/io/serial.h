@@ -25,7 +25,7 @@
 // Flushing a buffer:
 // Serial::InputBuffer::Flush()
 //
-// TODO(oliviergillet): Buffered writes not supported for now (should look up
+// TODO(pichenettes): Buffered writes not supported for now (should look up
 // the right interrupt handler).
 
 #ifndef HARDWARE_IO_SERIAL_H_

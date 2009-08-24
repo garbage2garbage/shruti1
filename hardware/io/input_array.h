@@ -36,7 +36,7 @@ enum InputEvent {
 template<typename Input, uint8_t num_inputs, uint8_t threshold = 1>
 class InputArray {
  public:
-  InputArray() { };
+  InputArray() { }
   typedef typename DataTypeForSize<Input::data_size>::Type T;
   typedef struct {
     uint8_t id;
@@ -47,7 +47,7 @@ class InputArray {
   static void Init() {
     // No need to initialize anything - the first cycle of readouts will take
     // care of this.
-    // TODO(oliviergillet): remove this initialization code.
+    // TODO(pichenettes): remove this initialization code.
     active_input_ = 0;
     starting_up_ = 1;
     Input::Init();

@@ -27,8 +27,8 @@ typedef Oscillator<2, true> Osc2;
 typedef Oscillator<3, true> SubOsc;
 
 /* <static> */
-int16_t SynthesisEngine::envelope_increment_[4];
-int16_t SynthesisEngine::envelope_target_[4];
+int16_t SynthesisEngine::envelope_increment_[5];
+int16_t SynthesisEngine::envelope_target_[5];
 uint8_t SynthesisEngine::modulation_sources_[MOD_SRC_ASSIGNABLE_2 + 1];
   
 Patch SynthesisEngine::patch_;
@@ -41,6 +41,8 @@ Lfo SynthesisEngine::lfo_[2];
 void SynthesisEngine::Init() {
   envelope_target_[ATTACK] = 16383;
   envelope_target_[RELEASE] = 0;
+  envelope_target_[DEAD] = -1;
+  envelope_increment_[DEAD] = 0;
   envelope_increment_[SUSTAIN] = 0;
   controller_.Init(&voice_, 1);  // "Monophonic shit" - Mr Oizo.
   ResetPatch();
@@ -99,7 +101,7 @@ void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
   IGNORE_OTHER_CHANNELS;
   switch (controller) {
     case hardware_midi::kModulationWheelMsb:
-      // TODO(oliviergillet): improve the MIDI implementation.
+      // TODO(pichenettes): improve the MIDI implementation.
       modulation_sources_[MOD_SRC_WHEEL] = (value << 1);
       break;
   }
@@ -227,9 +229,6 @@ void SynthesisEngine::UpdateModulationIncrements() {
   envelope_increment_[DECAY] = -ScaleEnvelopeIncrement(
       patch_.env_decay,
       127 - patch_.env_sustain);
-  envelope_increment_[RELEASE] = -ScaleEnvelopeIncrement(
-      patch_.env_release,
-      patch_.env_sustain);
   envelope_target_[DECAY] = int16_t(patch_.env_sustain) << 7;
 }
 
@@ -279,7 +278,18 @@ void Voice::Init() {
 /* static */
 void Voice::TriggerEnvelope(uint8_t stage) {
   envelope_stage_ = stage;
-  envelope_increment_ = engine.envelope_increment_[stage];
+  // The note might be release at any moment, so we need to figure out
+  // the right slope.
+  if (stage == RELEASE) {
+    envelope_increment_ = -SynthesisEngine::ScaleEnvelopeIncrement(
+        engine.patch_.env_release,
+        envelope_value_ >> 7);
+    if (envelope_increment_ == 0) {
+      envelope_increment_ = -1;
+    }
+  } else {
+    envelope_increment_ = engine.envelope_increment_[stage];
+  }
   envelope_target_ = engine.envelope_target_[stage];
 }
 
@@ -339,17 +349,17 @@ void Voice::Control() {
   modulation_sources_[MOD_SRC_NOTE - MOD_SRC_ENV] =
       uint8_t(pitch_value_ >> 6);
   modulation_sources_[MOD_SRC_GATE - MOD_SRC_ENV] =
-      envelope_stage_ == RELEASE ? 0 : 255;
+      envelope_stage_ >= RELEASE ? 0 : 255;
 
   // Prepare the work of the modulation matrix, by setting an initial / default
   // value to each modulated parameter.
   dst[MOD_DST_FILTER_CUTOFF] = engine.patch_.filter_cutoff << 7;
-  dst[MOD_DST_VCA] = dead() ? 0 : 255;
+  dst[MOD_DST_VCA] = 255;
   dst[MOD_DST_PWM_1] = engine.patch_.osc_parameter[0] << 7;
   dst[MOD_DST_PWM_2] = engine.patch_.osc_parameter[1] << 7;
   // The connection from the pitch-bend to the oscillators is hardcoded.
-  dst[MOD_DST_VCO_1] = 8192 - 512 + (
-      engine.modulation_sources_[MOD_SRC_PITCH_BEND] << 2);
+  dst[MOD_DST_VCO_1] = 8192 - 1024 + (
+      engine.modulation_sources_[MOD_SRC_PITCH_BEND] << 3);
   dst[MOD_DST_VCO_2] = dst[MOD_DST_VCO_1];  
   dst[MOD_DST_MIX_BALANCE] = engine.patch_.mix_balance << 7;
   dst[MOD_DST_MIX_NOISE] = engine.patch_.mix_noise << 7;
@@ -436,7 +446,7 @@ void Voice::Control() {
     pitch += (dst[MOD_DST_VCO_1 + i] - 8192) >> 2;
 
     // Wrap pitch to a reasonable range.
-    while (pitch <= kLowestNote) {
+    while (pitch < kLowestNote) {
       pitch += kOctave;
     }
     while (pitch >= kHighestNote) {
@@ -491,7 +501,8 @@ void Voice::Audio() {
     mix = Signal::Mix(mix, noise,
                       modulation_destinations_[MOD_DST_MIX_NOISE]);
   }
-  signal_ = mix;
+  signal_ = Signal::SignedMulScale8(128 + mix, modulation_destinations_[MOD_DST_VCA]);
+  signal_ = signal_ + 128;
   
   // If the phase of oscillator 1 has wrapped and if sync is enabled, reset the
   // phase of the second oscillator.

@@ -2,10 +2,10 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Shift register
+// Shift register.
 
-#ifndef HARDWARE_IO_SHIFT_REGISTER_H_
-#define HARDWARE_IO_SHIFT_REGISTER_H_
+#ifndef HARDWARE_IO_DEVICES_74HC595_H_
+#define HARDWARE_IO_DEVICES_74HC595_H_
 
 #include "hardware/io/pin.h"
 #include "hardware/io/size_to_type.h"
@@ -14,7 +14,7 @@ namespace hardware_io {
 
 template<typename Latch, typename Clock, typename Data>
 struct BaseShiftRegister {
-  BaseShiftRegister() { };
+  BaseShiftRegister() { }
   static void Init() {
     Clock::set_mode(DIGITAL_OUTPUT);
     Latch::set_mode(DIGITAL_OUTPUT);
@@ -24,7 +24,7 @@ struct BaseShiftRegister {
 };
 
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size = 8, ShiftRegisterOrder order = LSB_FIRST>
+         uint8_t size = 8, DataOrder order = LSB_FIRST>
 struct ShiftRegister : public BaseShiftRegister<Latch, Clock, Data> {
 };
 
@@ -32,7 +32,7 @@ template<typename Latch, typename Clock, typename Data,
          uint8_t size>
 struct ShiftRegister<Latch, Clock, Data, size, LSB_FIRST>
   : public BaseShiftRegister<Latch, Clock, Data> {
-  ShiftRegister() { };
+  ShiftRegister() { }
   static void Write(typename DataTypeForSize<size>::Type data) {
     LOG(INFO) << "pin_" << Data::number() << "\tshift\t" << int(data);
     Latch::Low();
@@ -52,7 +52,7 @@ struct ShiftRegister<Latch, Clock, Data, size, LSB_FIRST>
 template<typename Latch, typename Clock, typename Data, uint8_t size>
 struct ShiftRegister<Latch, Clock, Data, size, MSB_FIRST>
   : public BaseShiftRegister<Latch, Clock, Data> {
-  ShiftRegister() { };
+  ShiftRegister() { }
   typedef typename DataTypeForSize<size>::Type T;
   static void Write(T data) {
     LOG(INFO) << "pin_" << Data::number() << "\tshift\t" << int(data);
@@ -73,4 +73,4 @@ struct ShiftRegister<Latch, Clock, Data, size, MSB_FIRST>
 
 }  // namespace hardware_io
 
-#endif   // HARDWARE_IO_SHIFT_REGISTER_H_
+#endif   // HARDWARE_IO_DEVICES_74HC595_H_

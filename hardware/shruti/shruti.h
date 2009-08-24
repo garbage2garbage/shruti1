@@ -36,16 +36,18 @@ static const uint8_t kPinMidiThruTx = 1;
 static const uint8_t kPinLcdTx = 2;
 
 // Shift register / muxes.
-static const uint8_t kPinData = 3;
-static const uint8_t kPinDigitalInput = 4;
-static const uint8_t kPinOutputLatch = 7;
-static const uint8_t kPinInputLatch = 8;
-static const uint8_t kPinClk = 9;
+static const uint8_t kPinData = 4;
+static const uint8_t kPinDigitalInput = 8;
+static const uint8_t kPinOutputLatch = 6;
+static const uint8_t kPinInputLatch = 7;
+static const uint8_t kPinClk = 5;
 
 // PWM/audio output.
-static const uint8_t kPinVcoOut = 11;
-static const uint8_t kPinVcfCutoffOut = 5;
-static const uint8_t kPinVcfResonanceOut = 6;
+static const uint8_t kPinDacLatch = 10;
+static const uint8_t kPinVcoOut = 3;
+static const uint8_t kPinVcaOut = 11;
+static const uint8_t kPinVcfCutoffOut = 9;
+static const uint8_t kPinVcfResonanceOut = 10;
 
 static const uint8_t kPinAnalogInput = 0;
 

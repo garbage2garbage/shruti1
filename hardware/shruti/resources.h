@@ -8,8 +8,8 @@
 // python arc.py resources.py
 
 
-#ifndef HARDWARE_SHRUTI_HARDWARE/SHRUTI/RESOURCES_H_
-#define HARDWARE_SHRUTI_HARDWARE/SHRUTI/RESOURCES_H_
+#ifndef HARDWARE_SHRUTI_RESOURCES_H_
+#define HARDWARE_SHRUTI_RESOURCES_H_
 
 
 #include "hardware/base/base.h"
@@ -24,6 +24,7 @@
 #endif
 
 
+#include "hardware/resources/resources_manager.h"
 namespace hardware_shruti {
 
 typedef uint8_t ResourceId;
@@ -540,7 +541,6 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define WAV_RES_SPEECH_DATA_SIZE 45
 #define CHR_RES_SPECIAL_CHARACTERS 0
 #define CHR_RES_SPECIAL_CHARACTERS_SIZE 64
-#include "hardware/resources/resources_manager.h"
 typedef hardware_resources::ResourcesManager<
     ResourceId,
     hardware_resources::ResourcesTables<
@@ -549,4 +549,4 @@ typedef hardware_resources::ResourcesManager<
 
 }  // namespace hardware_shruti
 
-#endif  // HARDWARE_SHRUTI_HARDWARE/SHRUTI/RESOURCES_H_
+#endif  // HARDWARE_SHRUTI_RESOURCES_H_

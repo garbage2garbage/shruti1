@@ -2,16 +2,28 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 // 
-// Driver for a 2x16 LCD display, with double buffering. All updates to the
-// content of the screen are done in an in-memory "local" text page. A "remote"
-// text page mirrors the current state of the LCD display. A timer (the same as
-// for the audio rendering) periodically scans the local and remote pages for
-// differences, transmit serially the modified character in the local page to
-// the LCD, and update the remote buffer to reflect that the character was
-// transmitted.
+// Driver for Sparkfun's serial-enabled LCD displays, with double buffering, and
+// a "low-granularity" approach.
+//
+// All updates to the content of the screen are done in an in-memory "local"
+// text page. A "remote" text page mirrors the current state of the LCD display.
+// A task should periodically call the Update() method, which scans the local
+// and remote pages for differences, transmit serially the modified character
+// in the local page to the LCD, and update the remote buffer to reflect that
+// the character was transmitted. This guarantees that large, contiguous chunks
+// of CPU time are not spend in the display time - and make this class deal more
+// nicely with other tasks when cooperative multitasking is used.
+//
+// Note also that it minimizes the amount of data to transmit. In particular,
+// if only small sections of the display are updated (for example a digit in
+// the bottom right corner), this only retransmits the updated characters -
+// without the programmer having to manually deal with cursor positioning.
+//
+// TODO(pichenettes): this class assumes that software serial will be used.
+// Rework this a bit to have the driver and serial i/o more loosely coupled.
 
-#ifndef HARDWARE_IO_DISPLAY_H_
-#define HARDWARE_IO_DISPLAY_H_
+#ifndef HARDWARE_IO_DEVICES_SPARKFUN_SER_LCD_H_
+#define HARDWARE_IO_DEVICES_SPARKFUN_SER_LCD_H_
 
 #include "hardware/base/base.h"
 #include "hardware/io/log2.h"
@@ -55,9 +67,28 @@ class Display {
     scan_position_last_write_ = 255;
     blink_ = 0;
     cursor_position_ = 255;
+    // It is assumed, at initialization, that the display is wrongly in 9600
+    // bauds mode. Send this message to switch to 2400 bauds, if necessary.
+    // switch to the target baud rate. At worst, if the baud rate is already
+    // set, this will display glitchy characters for a short amount of time.
     if (baud_rate == 2400) {
       DisplayPanicSerialOutput::Write(124);
       DisplayPanicSerialOutput::Write(11);
+    } else if (baud_rate == 4800) {
+      DisplayPanicSerialOutput::Write(124);
+      DisplayPanicSerialOutput::Write(12);
+    } else if (baud_rate == 9600) {
+      DisplayPanicSerialOutput::Write(124);
+      DisplayPanicSerialOutput::Write(13);
+    } else if (baud_rate == 14400) {
+      DisplayPanicSerialOutput::Write(124);
+      DisplayPanicSerialOutput::Write(14);
+    } else if (baud_rate == 19200) {
+      DisplayPanicSerialOutput::Write(124);
+      DisplayPanicSerialOutput::Write(15);
+    } else if (baud_rate == 19200) {
+      DisplayPanicSerialOutput::Write(124);
+      DisplayPanicSerialOutput::Write(16);
     }
     DisplaySerialOutput::Init();
   }
@@ -111,7 +142,7 @@ class Display {
   }
 
   static inline void set_status(uint8_t status) {
-    // TODO(oliviergillet): we're using the same clock for blinking the cursor
+    // TODO(pichenettes): we're using the same clock for blinking the cursor
     // and the status indicator. ewwww...
     blink_clock_ = 0;
     status_ = status + 1;
@@ -153,7 +184,7 @@ class Display {
         character = local_[scan_position_];
       }
     }
-    // TODO(oliviergillet): check if we can get rid of the
+    // TODO(pichenettes): check if we can get rid of the
     // scan_position_ == cursor_position_ condition (dead code?).
     if (character != remote_[scan_position_] ||
         scan_position_ == cursor_position_) {
@@ -250,4 +281,4 @@ uint8_t Display<TxPin, main_timer_rate, baud_rate, width, height>::status_;
 
 }  // namespace hardware_io
 
-#endif   // HARDWARE_IO_DISPLAY_H_
+#endif   // HARDWARE_IO_DEVICES_SPARKFUN_SER_LCD_H_

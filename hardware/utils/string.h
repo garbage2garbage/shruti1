@@ -62,6 +62,6 @@ void Itoa(T i, uint8_t width, char* destination) {
   }
 }
 
-}  // namespace hardware_string_utils
+}  // namespace hardware_string
 
 #endif  // HARDWARE_UTILS_STRING_UTILS_H_

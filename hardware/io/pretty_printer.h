@@ -7,7 +7,7 @@
 #ifndef HARDWARE_IO_PRETTY_PRINTER_H_
 #define HARDWARE_IO_PRETTY_PRINTER_H_
 
-#include "hardware/utils/string_utils.h"
+#include "hardware/utils/string.h"
 
 using hardware_utils::Itoa;
 using hardware_utils::TypeInfo;

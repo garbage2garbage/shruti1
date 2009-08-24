@@ -14,10 +14,10 @@
 // (we cycle N times through the array and at time i, we power only the outputs
 // with level above i/N).
 
-#ifndef HARDWARE_IO_OUTPUT_ARRAY_H_
-#define HARDWARE_IO_OUTPUT_ARRAY_H_
+#ifndef HARDWARE_IO_DEVICES_OUTPUT_ARRAY_H_
+#define HARDWARE_IO_DEVICES_OUTPUT_ARRAY_H_
 
-#include "hardware/io/shift_register.h"
+#include "hardware/io/devices/74hc595.h"
 #include "hardware/io/size_to_type.h"
 
 namespace hardware_io {
@@ -26,10 +26,10 @@ namespace hardware_io {
 // depths.
 template<typename Latch, typename Clock, typename Data,
          uint8_t size = 16, uint8_t bit_depth = 1,
-         ShiftRegisterOrder order = LSB_FIRST, bool safe = true>
+         DataOrder order = LSB_FIRST, bool safe = true>
 class OutputArray {
  public:
-  OutputArray() { };
+  OutputArray() { }
   typedef ShiftRegister<Latch, Clock, Data, size, order> Register;
   typedef typename DataTypeForSize<bit_depth>::Type Value;
   typedef typename DataTypeForSize<size>::Type Index;
@@ -76,12 +76,12 @@ class OutputArray {
 };
 
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, uint8_t bit_depth, ShiftRegisterOrder order, bool safe>
+         uint8_t size, uint8_t bit_depth, DataOrder order, bool safe>
 typename OutputArray<Latch, Clock, Data, size, bit_depth, order, safe>::Value
 OutputArray<Latch, Clock, Data, size, bit_depth, order, safe>::values_[size];
 
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, uint8_t bit_depth, ShiftRegisterOrder order, bool safe>
+         uint8_t size, uint8_t bit_depth, DataOrder order, bool safe>
 typename OutputArray<Latch, Clock, Data, size, bit_depth, order, safe>::Value
 OutputArray<Latch, Clock, Data, size, bit_depth, order, safe>::cycle_;
 
@@ -89,13 +89,13 @@ OutputArray<Latch, Clock, Data, size, bit_depth, order, safe>::cycle_;
 // A specialization that packs the data by nibble - this is the configuration
 // used for Shruti.
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, ShiftRegisterOrder order, bool safe>
+         uint8_t size, DataOrder order, bool safe>
 class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
  public:
   typedef ShiftRegister<Latch, Clock, Data, size, order> Register;
   typedef typename DataTypeForSize<4>::Type Value;
   typedef typename DataTypeForSize<size>::Type Index;
-  OutputArray() { };
+  OutputArray() { }
   static inline void Init() {
     if (safe) {
       memset(values_, 0, sizeof(values_));
@@ -158,13 +158,13 @@ class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
 };
 
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, ShiftRegisterOrder order, bool safe>
+         uint8_t size, DataOrder order, bool safe>
 typename OutputArray<Latch, Clock, Data, size, 4, order, safe>::Value
 OutputArray<Latch, Clock, Data, size, 4, order, safe>::values_[
     (size - 1) / 2 + 1];
 
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, ShiftRegisterOrder order, bool safe>
+         uint8_t size, DataOrder order, bool safe>
 typename OutputArray<Latch, Clock, Data, size, 4, order, safe>::Value
 OutputArray<Latch, Clock, Data, size, 4, order, safe>::cycle_;
 
@@ -173,12 +173,12 @@ OutputArray<Latch, Clock, Data, size, 4, order, safe>::cycle_;
 // shift register only when a bit has changed in the array - there's no pseudo
 // PWM brightness modulation.
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, ShiftRegisterOrder order, bool safe>
+         uint8_t size, DataOrder order, bool safe>
 class OutputArray<Latch, Clock, Data, size, 1, order, safe> {
   typedef ShiftRegister<Latch, Clock, Data, size, order> Register;
  public:
   typedef typename DataTypeForSize<size>::Type T;
-  OutputArray() { };
+  OutputArray() { }
   static inline void Init() {
     if (safe) {
       touched_ = 1;
@@ -221,19 +221,19 @@ class OutputArray<Latch, Clock, Data, size, 1, order, safe> {
 };
 
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, ShiftRegisterOrder order, bool safe>
+         uint8_t size, DataOrder order, bool safe>
 typename OutputArray<Latch, Clock, Data, size, 1, order, safe>::T
 OutputArray<Latch, Clock, Data, size, 1, order, safe>::bits_;
 
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, ShiftRegisterOrder order, bool safe>
+         uint8_t size, DataOrder order, bool safe>
 typename OutputArray<Latch, Clock, Data, size, 1, order, safe>::T
 OutputArray<Latch, Clock, Data, size, 1, order, safe>::last_bits_;
 
 template<typename Latch, typename Clock, typename Data,
-         uint8_t size, ShiftRegisterOrder order, bool safe>
+         uint8_t size, DataOrder order, bool safe>
 uint8_t OutputArray<Latch, Clock, Data, size, 1, order, safe>::touched_;
 
 }  // namespace hardware_io
 
-#endif   // HARDWARE_IO_OUTPUT_ARRAY_H_
+#endif   // HARDWARE_IO_DEVICES_OUTPUT_ARRAY_H_

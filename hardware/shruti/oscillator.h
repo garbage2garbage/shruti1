@@ -212,7 +212,7 @@ class Oscillator {
     uint8_t note = Signal::Swap4(note_ - 24);
     uint8_t wave_index = note & 0xf;
     if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
-      // TODO(oliviergillet): find better formula for leaky integrator constant.
+      // TODO(pichenettes): find better formula for leaky integrator constant.
       data_.bl.leak = 255 - ((note_ - 24) >> 3);
       data_.bl.wave[0] =
           waveform_table[WAV_RES_BANDLIMITED_PULSE_0 + wave_index];

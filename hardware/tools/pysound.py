@@ -43,7 +43,7 @@ def Quantize(signal, bitdepth, normalize=True):
       scaled_signal[scaled_signal > 1] = 1
 
   # Dithering.
-  # TODO(oliviergillet): implement noise shapping, especially for
+  # TODO(pichenettes): implement noise shapping, especially for
   # 8 bits writing.
   if bitdepth == 8:
     scaled_signal = (scaled_signal + 1.0) * _FLOAT_TO_UNSIGNED_CHAR_SCALE

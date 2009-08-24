@@ -46,7 +46,7 @@ class Adc {
   static inline void Disabled() {
     AdcEnabled::clear();
   }
-  // TODO(oliviergillet): add function to modify sampling rate.
+  // TODO(pichenettes): add function to modify sampling rate.
   static inline int16_t Read(uint8_t pin) {
     StartConversion(pin);
     Wait();
