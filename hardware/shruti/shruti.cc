@@ -200,7 +200,7 @@ void Setup() {
   display.Init();
   editor.Init();
 
-  // 62500kHz, phase correct.
+  // 31.25kHz, phase correct.
   Timer<2>::set_prescaler(1);
   Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
   Timer<2>::Start();

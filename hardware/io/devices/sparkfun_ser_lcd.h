@@ -68,9 +68,9 @@ class Display {
     blink_ = 0;
     cursor_position_ = 255;
     // It is assumed, at initialization, that the display is wrongly in 9600
-    // bauds mode. Send this message to switch to 2400 bauds, if necessary.
-    // switch to the target baud rate. At worst, if the baud rate is already
-    // set, this will display glitchy characters for a short amount of time.
+    // bauds mode. Send this message to switch to the target baud rate.
+    // At worst, if the baud rate is already set, this will display glitchy
+    // characters for a short amount of time.
     if (baud_rate == 2400) {
       DisplayPanicSerialOutput::Write(124);
       DisplayPanicSerialOutput::Write(11);

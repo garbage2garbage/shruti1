@@ -142,7 +142,7 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
         Device::NoteOff(lo, data_[0], 0);
       }
       break;
-    case 0x00:
+    case 0x80:
       Device::NoteOff(lo, data_[0], data_[1]);
       break;
     case 0xa0:
