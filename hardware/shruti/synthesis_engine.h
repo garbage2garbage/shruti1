@@ -107,6 +107,7 @@ class Voice {
   static int8_t modulation_destinations_[MOD_DST_FILTER_RESONANCE + 1];
   
   static uint8_t signal_;
+  static uint8_t noise_sample_;
 
   DISALLOW_COPY_AND_ASSIGN(Voice);
 };
@@ -151,6 +152,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static void set_assignable_controller(uint8_t controller, uint8_t value) {
     modulation_sources_[MOD_SRC_ASSIGNABLE_1 + controller] = value;
   }
+  static uint8_t oscillator_decimation() { return oscillator_decimation_; }
   static void ResetPatch();
   // Variables dependent on parameters (increments) are recomputed in
   // SetParameter when the related parameter is modified. Sometimes, the patch
@@ -192,6 +194,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static Lfo lfo_[2];
   static Voice voice_;  // Monophonic.
   static VoiceController controller_;
+  static uint8_t oscillator_decimation_;
 
   // Called whenever a parameter related to LFOs/envelopes is modified (for now
   // everytime a parameter is modified by the user).

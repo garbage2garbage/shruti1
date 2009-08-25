@@ -19,14 +19,13 @@ namespace hardware_shruti {
 // want to do something different to achieve other sample rates
 // (20kHz or 16kHz).
 static const uint16_t kMainTimerRate = 31250;
-static const uint16_t kSampleRate = 15625;
-static const uint8_t  kTicksPerSample = 2;
+static const uint16_t kSampleRate = 31250;
 
 static const uint16_t kDisplayBaudRate = 2400;
 
-static const uint8_t kAudioBufferSize = 64;
-static const uint8_t kControlRate = 16;
+static const uint8_t kControlRate = 32;
 static const uint8_t kAudioBlockSize = kControlRate;
+static const uint8_t kAudioBufferSize = kAudioBlockSize * 4;
 
 // ---- Wirings ----------------------------------------------------------------
 

@@ -185,15 +185,9 @@ void ScheduleTasks() {
   }
 }
 
-uint8_t tick = 0;
-
 TIMER_2_TICK {
-  tick++;
   display.Tick();
-  if (tick == kTicksPerSample) {
-    tick = 0;
-    audio.EmitSample();
-  }
+  audio.EmitSample();
 }
 
 void Setup() {

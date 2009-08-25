@@ -151,6 +151,7 @@ class Display {
   }
 
   static inline void Tick() { DisplaySerialOutput::Tick(); }
+  
   static void Update() {
     // The following code is likely to write 3 bytes at most. If there are less
     // than 3 bytes available for write in the output buffer, there's no reason
@@ -158,9 +159,8 @@ class Display {
     if (DisplaySerialOutput::writable() < 3) {
       return;
     }
-    // It is now safe that all write of 3 bytes to the display buffer will not
+    // It is now safe that all writes of 3 bytes to the display buffer will not
     // block.
-
     blink_clock_ = (blink_clock_ + 1) & kLcdCursorBlinkRate;
     if (blink_clock_ == 0) {
       blink_ = ~blink_;
@@ -184,8 +184,6 @@ class Display {
         character = local_[scan_position_];
       }
     }
-    // TODO(pichenettes): check if we can get rid of the
-    // scan_position_ == cursor_position_ condition (dead code?).
     if (character != remote_[scan_position_] ||
         scan_position_ == cursor_position_) {
       // There is a character to transmit!
@@ -198,7 +196,7 @@ class Display {
         DisplaySerialOutput::Overwrite(character);
       } else {
         // The character to transmit is at a different position, we need to move
-        // the cursor, and compute the cursor move command argument.
+        // the cursor, and determine the cursor move command argument.
         uint8_t cursor_position = 0x80;
         cursor_position |= (scan_position_ & ~(width - 1)) <<
             Log2<64 / width>::value;
@@ -207,8 +205,8 @@ class Display {
         DisplaySerialOutput::Overwrite(cursor_position);
         DisplaySerialOutput::Overwrite(character);
       }
-      // We can now assume that remote display will be updated. This works because
-      // the entry to this block of code is protected by a check on the
+      // We can now assume that remote display will be updated. This works
+      // because the entry to this block of code is protected by a check on the
       // transmission success!
       remote_[scan_position_] = character;
       scan_position_last_write_ = scan_position_;

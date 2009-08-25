@@ -106,10 +106,10 @@ on
 tri
 sqr
 s&h
-saw
+ramp
 
 blit
-saw+
+saw
 square
 triang
 cz
@@ -209,8 +209,8 @@ equal
 # Create lookup table for LFO increments (logarithmic frequency).
 lookup_tables = []
 
-sample_rate = 31250.0 / 2.0
-control_rate = sample_rate / 16
+sample_rate = 31250.0
+control_rate = sample_rate / 32
 min_frequency = 1.0 / 8.0  # Hertz
 max_frequency = 20.0  # Hertz
 
@@ -478,7 +478,7 @@ def Scale(array, min=0, max=255, use_min=0):
   return numpy.round(array).astype(int)
 
 # Band limited waveforms.
-num_zones = (107 - 24) / 16 + 1
+num_zones = (107 - 24) / 16 + 2
 bl_pulse_tables = []
 bl_square_tables = []
 bl_saw_tables = []
@@ -501,6 +501,9 @@ for zone in range(num_zones):
                         Scale(triangle, 0, 255)))
   saw = numpy.cumsum(pulse[wrap] - pulse.mean())
   bl_saw_tables.append(('bandlimited_saw_%d' % zone, Scale(saw, 0, 255)))
+
+del bl_pulse_tables[0]
+del bl_tri_tables[0]
 
 waveforms.extend(bl_pulse_tables)
 waveforms.extend(bl_square_tables)

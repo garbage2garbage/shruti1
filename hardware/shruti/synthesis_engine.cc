@@ -30,7 +30,9 @@ typedef Oscillator<3, true> SubOsc;
 int16_t SynthesisEngine::envelope_increment_[5];
 int16_t SynthesisEngine::envelope_target_[5];
 uint8_t SynthesisEngine::modulation_sources_[MOD_SRC_ASSIGNABLE_2 + 1];
-  
+
+uint8_t SynthesisEngine::oscillator_decimation_;
+
 Patch SynthesisEngine::patch_;
 Voice SynthesisEngine::voice_;
 VoiceController SynthesisEngine::controller_;
@@ -51,10 +53,30 @@ void SynthesisEngine::Init() {
 }
 
 static const prog_char empty_patch[] PROGMEM = {
-    99,
+    /*108,
     WAVEFORM_SAW, WAVEFORM_SAW, 0, 0,
     128, 128, 0, 0,
-    0, 0, 0, 3,
+    0, 0, 0, WAVEFORM_TRIANGLE,
+    120, 0, 0, 0,
+    0, 40, 100, 40,
+    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 64, 16,
+    MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
+    MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
+    MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
+    MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
+    MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 48,
+    MOD_SRC_ENV, MOD_DST_VCA, 127,
+    MOD_SRC_VELOCITY, MOD_DST_VCA, 31,
+    MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
+    120, 0, 0, 0,
+    136, 136, 136, 136, 136, 136, 136, 136,
+    128, 0, 0, 1,
+    'n', 'e', 'w', ' ', ' ', ' ', ' ', ' '};*/
+
+    99,
+    WAVEFORM_SQUARE, WAVEFORM_SQUARE, 0, 50,
+    128, 128, 0, 0,
+    1, 1, 1, WAVEFORM_SQUARE,
     120, 0, 0, 0,
     0, 40, 100, 40,
     LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 64, 16,
@@ -70,6 +92,7 @@ static const prog_char empty_patch[] PROGMEM = {
     136, 136, 136, 136, 136, 136, 136, 136,
     128, 0, 0, 1,
     'n', 'e', 'w', ' ', ' ', ' ', ' ', ' '};
+
 
 /* static */
 void SynthesisEngine::ResetPatch() {
@@ -252,6 +275,7 @@ void SynthesisEngine::Control() {
 
 /* static */
 void SynthesisEngine::Audio() {
+  oscillator_decimation_++;
   controller_.Audio();
   voice_.Audio();
 }
@@ -267,6 +291,7 @@ int16_t Voice::pitch_value_;
 uint8_t Voice::modulation_sources_[MOD_SRC_GATE - MOD_SRC_ENV + 1];
 int8_t Voice::modulation_destinations_[MOD_DST_FILTER_RESONANCE + 1];
 uint8_t Voice::signal_;
+uint8_t Voice::noise_sample_;
 /* </static> */
 
 /* static */
@@ -497,8 +522,11 @@ void Voice::Audio() {
                       modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
   }
   if (modulation_destinations_[MOD_DST_MIX_NOISE]) {
-    uint8_t noise = Random::Byte();
-    mix = Signal::Mix(mix, noise,
+    // Do not recompute the noise sample for every sample.
+    if ((engine.oscillator_decimation() & 3) == 0) {
+      noise_sample_ = Random::Byte();
+    }
+    mix = Signal::Mix(mix, noise_sample_,
                       modulation_destinations_[MOD_DST_MIX_NOISE]);
   }
   signal_ = Signal::SignedMulScale8(128 + mix, modulation_destinations_[MOD_DST_VCA]);
