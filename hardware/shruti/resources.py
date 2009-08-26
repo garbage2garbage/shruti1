@@ -36,7 +36,7 @@ strings = """
 alg
 prm
 rng
-syn
+op
 tun
 lfo
 atk
@@ -62,7 +62,7 @@ swg
 algorithm
 parameter
 range
-sync
+operator
 detune
 env~vcf
 lfo2~vcf
@@ -118,6 +118,10 @@ fm
 voice
 table
 sweep
+
+1+2
+1>2
+1*2
 
 lf1
 lf2

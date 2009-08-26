@@ -15,7 +15,7 @@ namespace hardware_shruti {
 static const prog_char str_res_alg[] PROGMEM = "alg";
 static const prog_char str_res_prm[] PROGMEM = "prm";
 static const prog_char str_res_rng[] PROGMEM = "rng";
-static const prog_char str_res_syn[] PROGMEM = "syn";
+static const prog_char str_res_op[] PROGMEM = "op";
 static const prog_char str_res_tun[] PROGMEM = "tun";
 static const prog_char str_res_lfo[] PROGMEM = "lfo";
 static const prog_char str_res_atk[] PROGMEM = "atk";
@@ -40,7 +40,7 @@ static const prog_char str_res_swg[] PROGMEM = "swg";
 static const prog_char str_res_algorithm[] PROGMEM = "algorithm";
 static const prog_char str_res_parameter[] PROGMEM = "parameter";
 static const prog_char str_res_range[] PROGMEM = "range";
-static const prog_char str_res_sync[] PROGMEM = "sync";
+static const prog_char str_res_operator[] PROGMEM = "operator";
 static const prog_char str_res_detune[] PROGMEM = "detune";
 static const prog_char str_res_envTvcf[] PROGMEM = "env~vcf";
 static const prog_char str_res_lfo2Tvcf[] PROGMEM = "lfo2~vcf";
@@ -92,6 +92,9 @@ static const prog_char str_res_8bits[] PROGMEM = "8bits";
 static const prog_char str_res_voice[] PROGMEM = "voice";
 static const prog_char str_res_table[] PROGMEM = "table";
 static const prog_char str_res_sweep[] PROGMEM = "sweep";
+static const prog_char str_res_1S2[] PROGMEM = "1+2";
+static const prog_char str_res_1_2[] PROGMEM = "1>2";
+static const prog_char str_res_1P2[] PROGMEM = "1*2";
 static const prog_char str_res_lf1[] PROGMEM = "lf1";
 static const prog_char str_res_lf2[] PROGMEM = "lf2";
 static const prog_char str_res_seq[] PROGMEM = "seq";
@@ -252,7 +255,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_alg,
   str_res_prm,
   str_res_rng,
-  str_res_syn,
+  str_res_op,
   str_res_tun,
   str_res_lfo,
   str_res_atk,
@@ -277,7 +280,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_algorithm,
   str_res_parameter,
   str_res_range,
-  str_res_sync,
+  str_res_operator,
   str_res_detune,
   str_res_envTvcf,
   str_res_lfo2Tvcf,
@@ -329,6 +332,9 @@ PROGMEM const prog_char* string_table[] = {
   str_res_voice,
   str_res_table,
   str_res_sweep,
+  str_res_1S2,
+  str_res_1_2,
+  str_res_1P2,
   str_res_lf1,
   str_res_lf2,
   str_res_seq,

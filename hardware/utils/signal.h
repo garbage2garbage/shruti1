@@ -171,6 +171,18 @@ struct Signal {
     return result;
   }
   
+  static inline int8_t SignedSignedMulScale8(int8_t a, int8_t b) {
+    uint8_t result;
+    asm(
+      "muls %1, %2"    "\n\t"
+      "mov %0, r1"      "\n\t"
+      "eor r1, r1"      "\n\t"
+      : "=r" (result)
+      : "a" (a), "a" (b)
+    );
+    return result;
+  }
+  
   static inline int16_t SignedMulScale4(int8_t a, uint8_t b) {
     int16_t result;
     asm(
@@ -235,7 +247,10 @@ struct Signal {
   static inline int8_t SignedMulScale8(int8_t a, uint8_t b) {
     return int8_t(a) * b >> 8;
   }
-
+  
+  static inline int8_t SignedSignedMulScale8(int8_t a, int8_t b) {
+    return int8_t(a) * int8_t(b) >> 8;
+  }
   static inline int16_t SignedMulScale4(int8_t a, uint8_t b) {
     return int16_t(int8_t(a) * uint8_t(b)) >> 4;
   }

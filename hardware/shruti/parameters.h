@@ -121,6 +121,12 @@ enum Status {
   ON
 };
 
+enum OPERATOR {
+  SUM = 0,
+  SYNC = 1,
+  RING_MOD = 2
+};
+
 static const uint8_t kNumEditableParameters = 36;
 
 }  // namespace hardware_shruti

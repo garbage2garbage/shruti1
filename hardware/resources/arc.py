@@ -25,6 +25,10 @@ def Canonicalize(x):
       out_chr[i] = ord(str(i))
     elif chr(i) == '~':
       out_chr[i] = ord('T')
+    elif chr(i) == '*':
+      out_chr[i] = ord('P')
+    elif chr(i) == '+':
+      out_chr[i] = ord('S')
     else:
       out_chr[i] = ord('_')
   table = string.maketrans(in_chr, ''.join(map(chr, out_chr)))

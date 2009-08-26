@@ -43,9 +43,9 @@ static const prog_char raw_parameter_definition[
   STR_RES_RNG, STR_RES_RANGE,
   
   PRM_OSC_OPTION_1,
-  OFF, ON,
-  PAGE_OSC_OSC_1, UNIT_BOOLEAN,
-  STR_RES_SYN, STR_RES_SYNC,
+  SUM, RING_MOD,
+  PAGE_OSC_OSC_1, UNIT_OPERATOR,
+  STR_RES_OP, STR_RES_OPERATOR,
 
   // Osc 2.
   PRM_OSC_ALGORITHM_2,
@@ -641,6 +641,9 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
       break;
     case UNIT_BOOLEAN:
       base = STR_RES_OFF;
+      break;
+    case UNIT_OPERATOR:
+      base = STR_RES_1S2;
       break;
     case UNIT_WAVEFORM:
       base = STR_RES_BLIT;

@@ -511,8 +511,12 @@ void Voice::Audio() {
   uint16_t previous_phase = Osc1::phase();
 
   uint8_t mix = Osc1::Render();
-  if (modulation_destinations_[MOD_DST_MIX_BALANCE]) {
+  uint8_t ring_mod = engine.patch_.osc_option[0] == RING_MOD;
+  if (modulation_destinations_[MOD_DST_MIX_BALANCE] || ring_mod) {
     uint8_t osc_2 = Osc2::Render();
+    if (ring_mod) {
+      mix = Signal::SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
+    }
     mix = Signal::Mix(mix, osc_2,
                       modulation_destinations_[MOD_DST_MIX_BALANCE]);
   }
@@ -540,7 +544,7 @@ void Voice::Audio() {
  
   // If the phase of oscillator 1 has wrapped and if sync is enabled, reset the
   // phase of the second oscillator.
-  if ((Osc1::phase() < previous_phase) && engine.patch_.osc_option[0]) {
+  if ((Osc1::phase() < previous_phase) && engine.patch_.osc_option[0] == SYNC) {
     Osc2::ResetPhase();
   }
 }
