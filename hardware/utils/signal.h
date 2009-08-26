@@ -16,7 +16,7 @@ struct Signal {
     return value < min ? min : (value > max ? max : value);
   }
   
-#ifdef __FAST_SIGNAL_PROCESSING__
+#ifdef FAST_SIGNAL_PROCESSING
   static inline uint8_t Clip8(int16_t value) {
     uint8_t result;
     asm(
@@ -240,7 +240,7 @@ struct Signal {
     return int16_t(int8_t(a) * uint8_t(b)) >> 4;
   }
   
-#endif  // __FAST_SIGNAL_PROCESSING__
+#endif  // FAST_SIGNAL_PROCESSING
 };
 
 }  // namespace hardware_utils

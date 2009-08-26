@@ -10,8 +10,10 @@
 #include "hardware/base/base.h"
 
 #ifndef __TEST__
-#define __FAST_SIGNAL_PROCESSING__
+#define FAST_SIGNAL_PROCESSING
 #endif  // !__TEST__
+
+// #define SOFTWARE_VCA
 
 namespace hardware_shruti {
 

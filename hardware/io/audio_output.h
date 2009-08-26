@@ -2,7 +2,8 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 // 
-// Audio output. Supports PWM and DAC.
+// Audio output. Supports PWM (through a PwmOutput object) and DAC (through a
+// Dac object, for example in mcp492x.h).
 
 #ifndef HARDWARE_IO_AUDIO_OUTPUT_H_
 #define HARDWARE_IO_AUDIO_OUTPUT_H_

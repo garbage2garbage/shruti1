@@ -11,7 +11,7 @@
 // and remote pages for differences, transmit serially the modified character
 // in the local page to the LCD, and update the remote buffer to reflect that
 // the character was transmitted. This guarantees that large, contiguous chunks
-// of CPU time are not spend in the display time - and make this class deal more
+// of CPU time are not spent in the display code - and make this class deal more
 // nicely with other tasks when cooperative multitasking is used.
 //
 // Note also that it minimizes the amount of data to transmit. In particular,
@@ -143,7 +143,7 @@ class Display {
 
   static inline void set_status(uint8_t status) {
     // TODO(pichenettes): we're using the same clock for blinking the cursor
-    // and the status indicator. ewwww...
+    // and clearing the status indicator. ewwww...
     blink_clock_ = 0;
     status_ = status + 1;
     // Make sure that the next character to be redrawn will be the status char.

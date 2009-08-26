@@ -41,8 +41,8 @@ extern int16_t (*buffer_read_cback)();
 extern volatile uint8_t transmission_in_progress;
 
 template<uint8_t slave_select_pin = 10,
-          DataOrder order = MSB_FIRST,
-          uint8_t speed = 4>
+         DataOrder order = MSB_FIRST,
+         uint8_t speed = 4>
 class Spi {
  public:
   enum {

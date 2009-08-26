@@ -137,7 +137,8 @@ void VoiceController::NoteOn(uint8_t note, uint8_t velocity) {
     if (notes_.size() == 0) {
       Reset();
     }
-    // This code feels weird, it's because of the deliberately mono design.
+    // Add a note to the stack. If the arpeggiator is running, it will trigger
+    // itself. Otherwise, trigger it manually.
     notes_.NoteOn(note, velocity);
     if (octaves_ == 0) {
       voices_[0].Trigger(note, velocity, false);
@@ -149,10 +150,12 @@ void VoiceController::NoteOn(uint8_t note, uint8_t velocity) {
 void VoiceController::NoteOff(uint8_t note) {
   notes_.NoteOff(note);
 
-  // If no note is remaining, play the decaying phase.
+  // If no note is remaining, play the release phase of the envelope.
   if (notes_.size() == 0) {
     voices_[0].Release();
   } else {
+    // Otherwise retrigger the previously played note, or let the arpeggiator
+    // do it.
     if (octaves_ == 0) {
       voices_[0].Trigger(notes_.most_recent_note().note, 0, true);
     }

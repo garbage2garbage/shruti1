@@ -22,9 +22,9 @@ namespace hardware_shruti {
 /* extern */
 SynthesisEngine engine;
 
-typedef Oscillator<1> Osc1;
-typedef Oscillator<2, true> Osc2;
-typedef Oscillator<3, true> SubOsc;
+typedef Oscillator<1, FULL> Osc1;
+typedef Oscillator<2, LOW_COMPLEXITY> Osc2;
+typedef Oscillator<3, SUB_OSCILLATOR> SubOsc;
 
 /* <static> */
 int16_t SynthesisEngine::envelope_increment_[5];
@@ -74,9 +74,9 @@ static const prog_char empty_patch[] PROGMEM = {
     'n', 'e', 'w', ' ', ' ', ' ', ' ', ' '};*/
 
     99,
-    WAVEFORM_SQUARE, WAVEFORM_SQUARE, 0, 50,
+    WAVEFORM_SPEECH, WAVEFORM_SQUARE, 0, 50,
     128, 128, 0, 0,
-    1, 1, 1, WAVEFORM_SQUARE,
+    3, 3, 3, WAVEFORM_SQUARE,
     120, 0, 0, 0,
     0, 40, 100, 40,
     LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 64, 16,
@@ -303,8 +303,8 @@ void Voice::Init() {
 /* static */
 void Voice::TriggerEnvelope(uint8_t stage) {
   envelope_stage_ = stage;
-  // The note might be release at any moment, so we need to figure out
-  // the right slope.
+  // The note might be released at any moment, so we need to figure out
+  // the right slope to make it reach 0 within the release time.
   if (stage == RELEASE) {
     envelope_increment_ = -SynthesisEngine::ScaleEnvelopeIncrement(
         engine.patch_.env_release,
@@ -529,9 +529,15 @@ void Voice::Audio() {
     mix = Signal::Mix(mix, noise_sample_,
                       modulation_destinations_[MOD_DST_MIX_NOISE]);
   }
-  signal_ = Signal::SignedMulScale8(128 + mix, modulation_destinations_[MOD_DST_VCA]);
+
+#ifdef SOFTWARE_VCA
+  signal_ = Signal::SignedMulScale8(128 + mix
+                                    modulation_destinations_[MOD_DST_VCA]);
   signal_ = signal_ + 128;
-  
+#else
+  signal_ = mix;
+#endif
+ 
   // If the phase of oscillator 1 has wrapped and if sync is enabled, reset the
   // phase of the second oscillator.
   if ((Osc1::phase() < previous_phase) && engine.patch_.osc_option[0]) {

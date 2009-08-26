@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Initialization function for arduino-based projects.
+// Basic Arduino initialization.
 
 #ifndef HARDWARE_BASE_INIT_ARDUINO_H_
 #define HARDWARE_BASE_INIT_ARDUINO_H_

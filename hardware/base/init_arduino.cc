@@ -2,9 +2,9 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Initialization function for arduino-based projects. Based on the original
-// initialization code by David A. Mellis (wiring.c) in the Arduino core
-// libraries.
+// Basic Arduino initialization. Put the board in the same state as the original
+// initialization code of the arduino core library by David A. Mellis
+// (wiring.c).
 
 #include "hardware/base/init_arduino.h"
 

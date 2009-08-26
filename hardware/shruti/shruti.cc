@@ -137,8 +137,24 @@ void MidiTask() {
 TASK_BEGIN_NEAR
   while (1) {
     if (midi_input.readable()) {
-      uint8_t value = midi_input.ImmediateRead();
-      midi_parser.PushByte(value);
+      uint8_t first_byte = midi_parser.PushByte(midi_input.ImmediateRead());
+      // Display a status indicator on the LCD to indicate that a message has
+      // been received. This could be done as well in the synthesis engine code
+      // or in the MIDI parser, but I'd rather keep the UI code separate.
+      switch (first_byte) {
+        case 0x90:
+          display.set_status(1);
+          break;
+        case 0xb0:
+          display.set_status(4);
+          break;
+        case 0xe0:
+          display.set_status(3);
+          break;
+        case 0xf8:
+          display.set_status(2);
+          break;
+      }
     }
     TASK_SWITCH;
   }
@@ -161,11 +177,16 @@ TASK_BEGIN_NEAR
 TASK_END
 }
 
-uint16_t heartbeat_counter = 0;
+uint16_t previous_num_glitches = 0;
 void HeartbeatTask() {
+  uint16_t num_glitches = 0;
 TASK_BEGIN_NEAR
   while (1) {
-    heartbeat_counter++;
+    num_glitches = audio.num_glitches();
+    if (num_glitches != previous_num_glitches) {
+      previous_num_glitches = num_glitches;
+      display.set_status('!');
+    }
     TASK_SWITCH;
   }
 TASK_END

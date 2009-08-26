@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Implementation of multitrasking by coroutines.
+// Implementation of multitasking by coroutines.
 
 #ifndef HARDWARE_UTILS_TASK_H_
 #define HARDWARE_UTILS_TASK_H_

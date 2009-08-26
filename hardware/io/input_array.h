@@ -12,7 +12,7 @@
 // event occurred).
 // When event != EVENT_NONE, the time is the time spent in the previous state.
 //
-// The "threshold" template parameters indicate the minimum magnitude of a
+// The "threshold" template parameter indicates the minimum magnitude of a
 // change in the ADC value that will raise an EVENT_CHANGED. This can be used,
 // for example, to avoid a costly update of internal variables to reflect a
 // change in the value read by a potentiometer - a change which turns out to be
@@ -47,7 +47,6 @@ class InputArray {
   static void Init() {
     // No need to initialize anything - the first cycle of readouts will take
     // care of this.
-    // TODO(pichenettes): remove this initialization code.
     active_input_ = 0;
     starting_up_ = 1;
     Input::Init();

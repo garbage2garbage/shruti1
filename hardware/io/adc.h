@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Analog->Digital conversion.
+// Interface to the onboard analog->digital converter, and analog multiplexer.
 
 #ifndef HARDWARE_IO_ADC_H_
 #define HARDWARE_IO_ADC_H_

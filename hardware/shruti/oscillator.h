@@ -9,21 +9,24 @@
 // particularly useful for oscillators which do not have a rich frequency
 // content, but which are very computationnally expensive.
 //
-// The template parameter low_complexity determines the features supported by
+// The template parameter mode determines the features supported by
 // an oscillator:
 //
-//          normal    low complexity
-// Blit     sr/2      sr/2
-// Square   sr        sr/2
-// Pulse    sr/2      sr/2
-// Saw      sr        sr/2
-// Triangle sr/2      sr/2
-// CZ       sr/2      n/a
-// FM       sr/2      n/a
-// 8-bits   sr        n/a
-// Voice    sr/2      n/a
-// Table    sr/2      n/a
-// Sweep    sr/2      n/a
+//          full      low complexity   sub oscillator
+// Blit     sr/2      sr/2             n/a
+// Square   sr        sr/2             sr/4
+// Pulse    sr/2      sr/2             n/a
+// Saw      sr        sr/2             n/a
+// Triangle sr/2      sr/2             sr/4
+// CZ       sr/2      n/a              n/a
+// FM       sr/2      n/a              n/a
+// 8-bits   sr        n/a              n/a
+// Voice    sr/2      n/a              n/a
+// Table    sr/2      n/a              n/a
+// Sweep    sr/2      n/a              n/a
+//
+// TODO(pichenettes): This code is horrible, find a way to get the generate the
+// 3 specialized variants in a more efficient way.
 
 #ifndef HARDWARE_SHRUTI_OSCILLATOR_H_
 #define HARDWARE_SHRUTI_OSCILLATOR_H_
@@ -42,9 +45,17 @@ using hardware_utils::Random;
 namespace hardware_shruti {
 
 #define HALF_SAMPLE_RATE if (engine.oscillator_decimation() & 1) return;
-#define FOURTH_SAMPLE_RATE if (engine.oscillator_decimation() & 3 != 0) return;
+#define FOURTH_SAMPLE_RATE if ((engine.oscillator_decimation() & 3) != 0) return;
 
-const uint8_t kSpeechControlRateDecimation = 4;
+enum OscillatorMode {
+  FULL = 0,
+  LOW_COMPLEXITY = 1,
+  SUB_OSCILLATOR = 2
+};
+
+static const uint8_t kSpeechControlRateDecimation = 4;
+static const uint8_t kNumZonesSawSquare = 6;
+static const uint8_t kNumZones = 5;
 
 struct BandLimitedOscillatorData {
   uint8_t balance;
@@ -102,21 +113,21 @@ struct AlgorithmFn {
   RenderFn render;
 };
 
-template<int id, bool low_complexity = false>
+template<int id, OscillatorMode mode>
 class Oscillator {
  public:
    // Called whenever the parameters of the oscillator change. Can be used
    // to pre-compute parameters, set tables, etc.
    static inline void SetupAlgorithm(uint8_t algorithm) {
      if (algorithm != algorithm_) {
-       if (low_complexity) {
-         fn_ = fn_tablet_[algorithm & 1];
-       } else {
+       if (mode == LOW_COMPLEXITY) {
+         fn_ = fn_table_low_complexity_[algorithm & 1];
+       } else if (mode == FULL) {
          fn_ = fn_table_[algorithm];
        }
        algorithm_ = algorithm;
        Reset();
-       if (!low_complexity) {
+       if (mode == FULL) {
          sweeping_ = algorithm_ == WAVEFORM_ANALOG_WAVETABLE;
        }
      }
@@ -126,34 +137,50 @@ class Oscillator {
     // be reloaded from memory anyway in the oscillator code @@, and because we
     // might use a different increment (FM), or because we might need to
     // check if we have completed a cycle to sync to another waveform.
-    (*fn_.render)();
+    if (mode == SUB_OSCILLATOR) {
+      RenderSub();
+    } else {
+      (*fn_.render)();
+    }
     return held_sample_;
   }
   static inline void Reset() {
     ResetPhase();
-    if (fn_.reset) {
-      (*fn_.reset)();
+    if (mode == SUB_OSCILLATOR) {
+      ResetSub();
+    } else {
+      if (fn_.reset) {
+        (*fn_.reset)();
+      }
     }
   }
   static inline void Update(
       uint8_t parameter,
       uint8_t note,
       uint16_t increment) {
-    if (!low_complexity && sweeping_) {
-      algorithm_ = parameter >> 5;
-      // Sweeping through the triangle table is sooo boring.
-      if (parameter >= 96) {
-        ++algorithm_;
-      }
-      fn_ = fn_table_[algorithm_];
-      parameter = (parameter & 0x1f) << 2;
-    }
-    parameter_ = parameter;
-    phase_increment_ = increment;
-    phase_increment_2_ = increment << 1;
     note_ = note;
-    if (fn_.update) {
-      (*fn_.update)();
+
+    if (mode == SUB_OSCILLATOR) {
+      phase_increment_ = increment << 2;
+      UpdateSub();
+    } else {
+      if (mode == FULL && sweeping_) {
+        algorithm_ = parameter >> 5;
+        // Sweeping through the triangle table is sooo boring.
+        if (parameter >= 96) {
+          ++algorithm_;
+        }
+        fn_ = fn_table_[algorithm_];
+        parameter = (parameter & 0x1f) << 2;
+      }
+      parameter_ = parameter;
+      if (mode == FULL) {
+        phase_increment_ = increment;
+      }
+      phase_increment_2_ = increment << 1;
+      if (fn_.update) {
+        (*fn_.update)();
+      }
     }
   }
   static inline uint16_t phase() { return phase_; }
@@ -190,12 +217,12 @@ class Oscillator {
   static AlgorithmFn fn_;
   
   static AlgorithmFn fn_table_[];
-  static AlgorithmFn fn_tablet_[];
+  static AlgorithmFn fn_table_low_complexity_[];
   
   static inline uint8_t ReadSample(const prog_uint8_t* table, uint16_t phase) {
     return ResourcesManager::Lookup<uint8_t, uint8_t>(table, phase >> 8);
   }
-#ifdef __FAST_SIGNAL_PROCESSING__
+#ifdef FAST_SIGNAL_PROCESSING
   static inline uint8_t InterpolateSample(
       const prog_uint8_t* table,
       uint16_t phase) {
@@ -234,18 +261,18 @@ class Oscillator {
       "mul %A3, r1"             "\n\t"  // multiply second sample by phaseL
       "movw r30, r0"            "\n\t"  // result to accumulator
       "com %A3"                 "\n\t"  // 255 - phaseL -> phaseL
-      "mul %A3, %0"             "\n\t"  // multiply first sample by (255 - phaseL)
+      "mul %A3, %0"             "\n\t"  // multiply 1st sample by (255 - phaseL)
       "add r30, r0"             "\n\t"  // accumulate L
       "adc r31, r1"             "\n\t"  // accumulate H
       "eor r1, r1"              "\n\t"  // reset r1 after multiplication
-      "mov r24, r31"            "\n\t"  // store r24 in a temporary register
+      "mov r24, r31"            "\n\t"  // keep the result in r24
 
-      "movw r30, %A2"           "\n\t"  // copy base address of second table to r30:r31
+      "movw r30, %A2"           "\n\t"  // copy base address to r30:r31
       "add r30, %B3"            "\n\t"  // increment table address by phaseH
       "adc r31, r1"             "\n\t"  // just carry
       "lpm r1, z+"              "\n\t"  // load sample[n]
       "lpm %0, z+"              "\n\t"  // load sample[n+1]
-      "mul %A3, r1"             "\n\t"  // multiply first sample by (255 - phaseL)
+      "mul %A3, r1"             "\n\t"  // multiply 1st sample by (255 - phaseL)
       "movw r30, r0"            "\n\t"  // result to accumulator
       "com %A3"                 "\n\t"  // 255 - phaseL -> phaseL
       "mul %A3, %0"             "\n\t"  // multiply second sample by phaseL
@@ -284,7 +311,7 @@ class Oscillator {
         mix & 0xff);
   }
   
-#endif  // __FAST_SIGNAL_PROCESSING__
+#endif  // FAST_SIGNAL_PROCESSING
   
   // ------- Band-limited waveforms with variable pulse width -----------------.
   static void ResetBandLimited() {
@@ -296,6 +323,9 @@ class Oscillator {
   static void UpdateBandLimited() {
     uint8_t note = Signal::Swap4(note_ - 24);
     uint8_t wave_index = note & 0xf;
+    // If the parameter is different from 0, use the PWM generator - otherwise,
+    // use directly the wavetable. This will never happen for the
+    // sub oscillator.
     if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
       // TODO(pichenettes): find better formula for leaky integrator constant.
       data_.bl.leak = 255 - ((note_ - 24) >> 3);
@@ -303,14 +333,14 @@ class Oscillator {
           waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
       data_.bl.shift = uint16_t(parameter_ + 127) << 8;
     } else {
-      if (low_complexity) {
+      if (mode == LOW_COMPLEXITY) {
         wave_index++;
       }
       data_.bl.wave[0] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
       wave_index++;
-      if (wave_index > 5) {
-        wave_index = 5;
+      if (wave_index > kNumZonesSawSquare) {
+        wave_index = kNumZonesSawSquare;
       }
       data_.bl.wave[1] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
@@ -322,7 +352,7 @@ class Oscillator {
     }
   }
   static void RenderBandLimited() {
-    uint8_t full_sr = (data_.bl.leak == 0) && !low_complexity;
+    uint8_t full_sr = (data_.bl.leak == 0) && (mode == FULL);
     
     if (!full_sr) {
       HALF_SAMPLE_RATE;
@@ -347,6 +377,40 @@ class Oscillator {
     }
   }
   
+  // ------- Minimal version of the square and triangle oscillators ------------
+  static void ResetSub() {
+    data_.wv.wave[0] = waveform_table[WAV_RES_BANDLIMITED_SQUARE_0];
+    data_.wv.wave[1] = waveform_table[WAV_RES_BANDLIMITED_SQUARE_0];
+  }
+  static void UpdateSub() {
+    uint8_t note = Signal::Swap4(note_);
+    uint8_t wave_index = note & 0xf;
+
+    uint8_t base_resource_id = algorithm_ == WAVEFORM_SQUARE ?
+        WAV_RES_BANDLIMITED_SQUARE_0 :
+        WAV_RES_BANDLIMITED_TRIANGLE_1;
+    uint8_t max_zone = algorithm_ == WAVEFORM_SQUARE ?
+        kNumZonesSawSquare : kNumZones;
+
+    if (wave_index > max_zone) {
+      wave_index = max_zone;
+    }
+    data_.wv.wave[0] = waveform_table[base_resource_id + wave_index];
+    wave_index++;
+    if (wave_index > max_zone) {
+      wave_index = max_zone;
+    }
+    data_.wv.wave[1] = waveform_table[base_resource_id + wave_index];
+    data_.wv.balance = note & 0xf0;
+  }
+  static void RenderSub() {
+    FOURTH_SAMPLE_RATE;
+    phase_ += phase_increment_;
+    held_sample_ = InterpolateTwoTables(
+        data_.wv.wave[0], data_.wv.wave[1],
+        phase_, data_.wv.balance);
+  }
+
   // ------- Interpolation between two waveforms from two wavetables -----------
   // 256 samples per cycle.
   static void ResetWavetable256() {
@@ -359,7 +423,7 @@ class Oscillator {
     uint8_t wave_index = note & 0xf;
     switch (algorithm_) {
       case WAVEFORM_SAW:
-        if (low_complexity) {
+        if (mode == LOW_COMPLEXITY) {
           wave_index++;
         }
         data_.wv.wave[0] =
@@ -367,8 +431,8 @@ class Oscillator {
         // When parameter is set to 0, use zoning.
         if (parameter_ == 0) {
           wave_index++;
-          if (wave_index > 5) {
-            wave_index = 5;
+          if (wave_index > kNumZonesSawSquare) {
+            wave_index = kNumZonesSawSquare;
           }
           data_.wv.wave[1] =
               waveform_table[WAV_RES_BANDLIMITED_SAW_0 + wave_index];
@@ -388,7 +452,7 @@ class Oscillator {
     }
   }
   static void RenderWavetable256() {
-    uint8_t full_sr = (algorithm_ == WAVEFORM_SAW) && !low_complexity;
+    uint8_t full_sr = (algorithm_ == WAVEFORM_SAW) && (mode == FULL);
     if (!full_sr) {
       HALF_SAMPLE_RATE;
     }
@@ -427,10 +491,11 @@ class Oscillator {
     const prog_uint8_t* wav_res_wavetable = waveform_table[WAV_RES_WAVETABLE];
     wav_res_wavetable += offset_a;
     uint8_t lo = (phase_ >> 2) & 0xff;
-    uint8_t wave_a = InterpolateSample(wav_res_wavetable, lo);
-    uint8_t wave_b = InterpolateSample(wav_res_wavetable, 0x4100 | lo);
-    held_sample_ = Signal::Mix(
-        wave_a, wave_b, data_.wt.smooth_parameter & 0xff);
+    held_sample_ = InterpolateTwoTables(
+        wav_res_wavetable,
+        wav_res_wavetable + 65,
+        lo,
+        data_.wt.smooth_parameter & 0xff);
   }
   
   // ------- Casio CZ-like synthesis ------------------------------------------.
@@ -487,10 +552,8 @@ class Oscillator {
   static void UpdateSpeech() {
     data_.sp.update++;
     if (data_.sp.update == kSpeechControlRateDecimation) {
-      data_.sp.update = 0;
-    }
-    
-    if (data_.sp.update != 1) {
+      data_.sp.update = 255;
+    } else {
       return;
     }
     
@@ -505,7 +568,6 @@ class Oscillator {
           ResourcesManager::Lookup<uint8_t, uint8_t>(
               waveform_table[WAV_RES_SPEECH_DATA], offset_2 + i),
           mix);
-      // Add 1 because we need to increment twice the phase.
       data_.sp.formant_increment[i] <<= 3;
     }
     for (uint8_t i = 0; i < 2; ++i) {
@@ -527,14 +589,12 @@ class Oscillator {
     }
   }
   static void RenderSpeech() {
-    FOURTH_SAMPLE_RATE;
+    HALF_SAMPLE_RATE;
     
     int16_t phase_noise = 0;
     if (data_.sp.noise_modulation) {
-      phase_noise = int8_t(Random::Byte()) * int8_t(
-          data_.sp.noise_modulation);
+      phase_noise = int8_t(Random::Byte()) * int8_t(data_.sp.noise_modulation);
     }
-
     int8_t result = 0;
     for (uint8_t i = 0; i < 3; ++i) {
       data_.sp.formant_phase[i] += data_.sp.formant_increment[i];
@@ -545,11 +605,9 @@ class Oscillator {
             data_.sp.formant_amplitude[i]);
     }
     result = Signal::SignedMulScale8(result, 255 - (phase_ >> 8));
-    
-    // This code is called only every second sample, so we increment twice.
-    uint16_t increment = phase_increment_2_ << 1;
-    phase_ += increment;
-    if ((phase_ + phase_noise) < increment) {
+
+    phase_ += phase_increment_;
+    if ((phase_ + phase_noise) < phase_increment_) {
       data_.sp.formant_phase[0] = 0;
       data_.sp.formant_phase[1] = 0;
       data_.sp.formant_phase[2] = 0;
@@ -560,23 +618,28 @@ class Oscillator {
   DISALLOW_COPY_AND_ASSIGN(Oscillator);
 };
 
-#define Os Oscillator<id, lite>
+#define Os Oscillator<id, mode>
 
-template<int id, bool lite> uint16_t Oscillator<id, lite>::phase_;
-template<int id, bool lite> uint16_t Oscillator<id, lite>::phase_increment_;
-template<int id, bool lite> uint16_t Oscillator<id, lite>::phase_increment_2_;
-template<int id, bool lite> uint8_t Oscillator<id, lite>::algorithm_;
-template<int id, bool lite> uint8_t Oscillator<id, lite>::parameter_;
-template<int id, bool lite> uint8_t Oscillator<id, lite>::note_;
-template<int id, bool lite> uint8_t Oscillator<id, lite>::sweeping_;
-template<int id, bool lite> uint8_t Oscillator<id, lite>::held_sample_;
-template<int id, bool lite> OscillatorData Oscillator<id, lite>::data_;
-template<int id, bool lite> AlgorithmFn Oscillator<id, lite>::fn_;
-template<int id, bool lite> AlgorithmFn Oscillator<id, lite>::fn_tablet_[] = {
+template<int id, OscillatorMode mode>
+uint16_t Oscillator<id, mode>::phase_increment_;
+template<int id, OscillatorMode mode>
+uint16_t Oscillator<id, mode>::phase_increment_2_;
+
+template<int id, OscillatorMode mode> uint16_t Oscillator<id, mode>::phase_;
+template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::algorithm_;
+template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::parameter_;
+template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::note_;
+template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::sweeping_;
+template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::held_sample_;
+template<int id, OscillatorMode mode> OscillatorData Oscillator<id, mode>::data_;
+template<int id, OscillatorMode mode> AlgorithmFn Oscillator<id, mode>::fn_;
+template<int id, OscillatorMode mode>
+AlgorithmFn Oscillator<id, mode>::fn_table_low_complexity_[] = {
   { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },
   { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
 };
-template<int id, bool lite> AlgorithmFn Oscillator<id, lite>::fn_table_[] = {
+template<int id, OscillatorMode mode>
+AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },
   { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
   { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },

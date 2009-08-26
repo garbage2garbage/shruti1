@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Initialization function for arduino-based projects.
+// Real time clock.
 
 #ifndef HARDWARE_BASE_TIME_H_
 #define HARDWARE_BASE_TIME_H_

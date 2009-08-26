@@ -2,7 +2,8 @@
 #
 # Copyright 2009 Olivier Gillet (ol.gillet@gmail.com). All rights reserved
 #
-# Simple matlib plotter.
+# Tool to print the largest symbol of an object dump:
+#   python hardware/tools/largest_symbols.py source.sym | c++filt -n
 
 import sys
 

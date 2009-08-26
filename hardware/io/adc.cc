@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// ADC readouts.
+// Interface to the onboard analog->digital converter, and analog multiplexer.
 
 #include "hardware/io/adc.h"
 

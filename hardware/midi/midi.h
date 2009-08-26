@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// MIDI implementation.
+// Decoding of MIDI messages.
 
 #ifndef HARDWARE_MIDI_MIDI_H_
 #define HARDWARE_MIDI_MIDI_H_
@@ -51,7 +51,7 @@ template<typename Device>
 class MidiStreamParser {
  public:
   MidiStreamParser();
-  void PushByte(uint8_t byte);
+  uint8_t PushByte(uint8_t byte);
 
  private:
   void MessageReceived(uint8_t status);
@@ -73,11 +73,13 @@ MidiStreamParser<Device>::MidiStreamParser() {
 }
 
 template<typename Device>
-void MidiStreamParser<Device>::PushByte(uint8_t byte) {
+uint8_t MidiStreamParser<Device>::PushByte(uint8_t byte) {
   // Realtime messages are immediately passed-through, and do not modified the
   // state of the parser.
+  uint8_t value = 0;
   if (byte >= 0xf8) {
     MessageReceived(byte);
+    value = byte;
   } else {
     if (byte >= 0x80) {
       uint8_t hi = byte & 0xf0;
@@ -116,6 +118,7 @@ void MidiStreamParser<Device>::PushByte(uint8_t byte) {
       data_[data_size_++] = byte;
     }
     if (data_size_ >= expected_data_size_) {
+      value = running_status_;
       MessageReceived(running_status_);
       data_size_ = 0;
       if (running_status_ > 0xf0) {
@@ -124,6 +127,7 @@ void MidiStreamParser<Device>::PushByte(uint8_t byte) {
       }
     }
   }
+  return value;  // Returns the first byte of the fully received message.
 }
 
 template<typename Device>

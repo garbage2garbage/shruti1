@@ -7,7 +7,7 @@
 // Routes note messages to a pool of voices, and handles arpeggiation.
 // For now, used in monophonic mode only, but it should be fairly easy to use
 // the NoteStack instance contained in this class to handle voice stealing for
-// polyphonic.
+// a polyphonic synth.
 //
 // Two instances of this guy will be needed for multitimbrality. Since there is
 // no plan to support multitimbrality, this class is implemented as a "static

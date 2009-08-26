@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Stack of currently held keys.
+// Stack of currently pressed keys.
 //
 // Currently pressed keys are stored as a linked list. The linked list is used
 // as a LIFO stack to allow monosynth-like behaviour. An example of such

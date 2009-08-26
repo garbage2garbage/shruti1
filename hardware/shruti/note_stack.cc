@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Stack of currently held notes.
+// Stack of currently pressed keys.
 
 #include "hardware/shruti/note_stack.h"
 
