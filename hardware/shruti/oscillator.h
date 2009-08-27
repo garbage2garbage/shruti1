@@ -34,11 +34,15 @@
 #include "hardware/base/base.h"
 #include "hardware/shruti/shruti.h"
 
+#include "hardware/shruti/display.h"
+
 #include "hardware/shruti/parameters.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/utils/random.h"
 #include "hardware/utils/signal.h"
+#include "hardware/utils/string.h"
 
+using hardware_utils::NibbleToAscii;
 using hardware_utils::Signal;
 using hardware_utils::Random;
 
@@ -54,21 +58,21 @@ enum OscillatorMode {
 };
 
 static const uint8_t kSpeechControlRateDecimation = 4;
-static const uint8_t kNumZonesSawSquare = 6;
-static const uint8_t kNumZones = 5;
+static const uint8_t kNumZonesFullSampleRate = 6;
+static const uint8_t kNumZonesHalfSampleRate = 5;
 
 struct BandLimitedOscillatorData {
-  uint8_t balance;
-  int8_t square;
-  uint16_t shift;
-  uint8_t leak;
   const prog_uint8_t* wave[2];
+  uint8_t balance;
+  uint16_t shift;
+  int8_t square;
+  uint8_t leak;
 };
 
 // Interpolates between two 256-samples wavetables.
 struct Wavetable256OscillatorData {
-  uint8_t balance;
   const prog_uint8_t* wave[2];
+  uint8_t balance;
 };
 
 // Interpolates between two different points in a 64-samples wavetable.
@@ -103,14 +107,9 @@ union OscillatorData {
   Wavetable64OscillatorData wt;
 };
 
-typedef void (*RenderFn)();
-typedef void (*UpdateFn)();
-typedef void (*ResetFn)();
-
 struct AlgorithmFn {
-  ResetFn reset;
-  UpdateFn update;
-  RenderFn render;
+  void (*update)();
+  void (*render)();
 };
 
 template<int id, OscillatorMode mode>
@@ -146,12 +145,8 @@ class Oscillator {
   }
   static inline void Reset() {
     ResetPhase();
-    if (mode == SUB_OSCILLATOR) {
-      ResetSub();
-    } else {
-      if (fn_.reset) {
-        (*fn_.reset)();
-      }
+    if (algorithm_ == WAVEFORM_WAVETABLE) {
+      data_.wt.smooth_parameter = parameter_ * 64;
     }
   }
   static inline void Update(
@@ -166,10 +161,6 @@ class Oscillator {
     } else {
       if (mode == FULL && sweeping_) {
         algorithm_ = parameter >> 5;
-        // Sweeping through the triangle table is sooo boring.
-        if (parameter >= 96) {
-          ++algorithm_;
-        }
         fn_ = fn_table_[algorithm_];
         parameter = (parameter & 0x1f) << 2;
       }
@@ -248,78 +239,25 @@ class Oscillator {
     );
     return result;
   }
-  static inline uint8_t InterpolateTwoTables(
-      const prog_uint8_t* table_a, const prog_uint8_t* table_b,
-      uint16_t phase, uint8_t mix) {
-      uint8_t result;
-    asm(
-      "movw r30, %A1"           "\n\t"  // copy base address to r30:r31
-      "add r30, %B3"            "\n\t"  // increment table address by phaseH
-      "adc r31, r1"             "\n\t"  // just carry
-      "lpm %0, z+"              "\n\t"  // load sample[n]
-      "lpm r1, z+"              "\n\t"  // load sample[n+1]
-      "mul %A3, r1"             "\n\t"  // multiply second sample by phaseL
-      "movw r30, r0"            "\n\t"  // result to accumulator
-      "com %A3"                 "\n\t"  // 255 - phaseL -> phaseL
-      "mul %A3, %0"             "\n\t"  // multiply 1st sample by (255 - phaseL)
-      "add r30, r0"             "\n\t"  // accumulate L
-      "adc r31, r1"             "\n\t"  // accumulate H
-      "eor r1, r1"              "\n\t"  // reset r1 after multiplication
-      "mov r24, r31"            "\n\t"  // keep the result in r24
-
-      "movw r30, %A2"           "\n\t"  // copy base address to r30:r31
-      "add r30, %B3"            "\n\t"  // increment table address by phaseH
-      "adc r31, r1"             "\n\t"  // just carry
-      "lpm r1, z+"              "\n\t"  // load sample[n]
-      "lpm %0, z+"              "\n\t"  // load sample[n+1]
-      "mul %A3, r1"             "\n\t"  // multiply 1st sample by (255 - phaseL)
-      "movw r30, r0"            "\n\t"  // result to accumulator
-      "com %A3"                 "\n\t"  // 255 - phaseL -> phaseL
-      "mul %A3, %0"             "\n\t"  // multiply second sample by phaseL
-      "add r30, r0"             "\n\t"  // accumulate L
-      "adc r31, r1"             "\n\t"  // accumulate H
-
-      "mul r31, %4"             "\n\t"  // second sample H * balance
-      "movw r30, r0"            "\n\t"  // to sum
-      "com %4"                  "\n\t"  // 255 - balance
-      "mul r24, %4"             "\n\t"  // a * (255 - balance)
-      "com %4"                  "\n\t"  // reset balance to its previous value
-      "add r30, r0"             "\n\t"  // add to sum L
-      "adc r31, r1"             "\n\t"  // add to sum H
-      "eor r1, r1"              "\n\t"  // reset r1 after multiplication
-      "mov %0, r31"             "\n\t"  // use H as output      
-      : "=r" (result)
-      : "a" (table_a), "a" (table_b), "a" (phase), "a" (mix)
-      : "r30", "r31", "r24"
-    );
-    return result;
-  }
-#else 
+#else
   static inline uint8_t InterpolateSample(const prog_uint8_t* table,
                                           uint16_t phase) {
-    return Mix(
+    return Signal::Mix(
         ResourcesManager::Lookup<uint8_t, uint8_t>(table, phase >> 8),
         ResourcesManager::Lookup<uint8_t, uint8_t>(table, 1 + (phase >> 8)),
         phase & 0xff);
   }
+#endif  // FAST_SIGNAL_PROCESSING
+
   static inline uint8_t InterpolateTwoTables(
       const prog_uint8_t* table_a, const prog_uint8_t* table_b,
-      uint16_t phase, uint8_t mix) {
-    return Mix(
-        InterpolateSample(table_a, phase),
-        InterpolateSample(table_b, phase),
-        mix & 0xff);
+      uint16_t phase, uint8_t balance) {
+    return Signal::Mix(InterpolateSample(table_a, phase),
+                       InterpolateSample(table_b, phase),
+                       balance & 0xff);
   }
-  
-#endif  // FAST_SIGNAL_PROCESSING
   
   // ------- Band-limited waveforms with variable pulse width -----------------.
-  static void ResetBandLimited() {
-    data_.bl.square = 0;
-    data_.bl.leak = 255;
-    data_.bl.wave[0] = waveform_table[WAV_RES_BANDLIMITED_PULSE_1];
-    data_.bl.wave[1] = waveform_table[WAV_RES_BANDLIMITED_PULSE_1];
-  }
   static void UpdateBandLimited() {
     uint8_t note = Signal::Swap4(note_ - 24);
     uint8_t wave_index = note & 0xf;
@@ -334,14 +272,11 @@ class Oscillator {
       data_.bl.shift = uint16_t(parameter_ + 127) << 8;
     } else {
       if (mode == LOW_COMPLEXITY) {
-        wave_index++;
+        wave_index = Signal::AddClip(wave_index, 1, kNumZonesFullSampleRate);
       }
       data_.bl.wave[0] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
-      wave_index++;
-      if (wave_index > kNumZonesSawSquare) {
-        wave_index = kNumZonesSawSquare;
-      }
+      wave_index = Signal::AddClip(wave_index, 1, kNumZonesFullSampleRate);
       data_.bl.wave[1] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
       // Leak is set to 0 - this will be used by the rendering code to know that
@@ -352,13 +287,12 @@ class Oscillator {
     }
   }
   static void RenderBandLimited() {
-    uint8_t full_sr = (data_.bl.leak == 0) && (mode == FULL);
-    
-    if (!full_sr) {
+    if (data_.bl.leak == 0 && mode == FULL) {
+      phase_ += phase_increment_;
+    } else {
       HALF_SAMPLE_RATE;
+      phase_ += phase_increment_2_;
     }
-    
-    phase_ += full_sr ? phase_increment_ : phase_increment_2_;
     if (data_.bl.leak) {
       int16_t blit = InterpolateSample(data_.bl.wave[0], phase_);
       blit -= InterpolateSample(data_.bl.wave[0], phase_ + data_.bl.shift);
@@ -378,30 +312,19 @@ class Oscillator {
   }
   
   // ------- Minimal version of the square and triangle oscillators ------------
-  static void ResetSub() {
-    data_.wv.wave[0] = waveform_table[WAV_RES_BANDLIMITED_SQUARE_0];
-    data_.wv.wave[1] = waveform_table[WAV_RES_BANDLIMITED_SQUARE_0];
-  }
   static void UpdateSub() {
-    uint8_t note = Signal::Swap4(note_);
+    uint8_t note = Signal::Swap4(note_ - 12);
     uint8_t wave_index = note & 0xf;
-
     uint8_t base_resource_id = algorithm_ == WAVEFORM_SQUARE ?
-        WAV_RES_BANDLIMITED_SQUARE_0 :
+        WAV_RES_BANDLIMITED_SQUARE_1 :
         WAV_RES_BANDLIMITED_TRIANGLE_1;
-    uint8_t max_zone = algorithm_ == WAVEFORM_SQUARE ?
-        kNumZonesSawSquare : kNumZones;
 
-    if (wave_index > max_zone) {
-      wave_index = max_zone;
-    }
+    wave_index = Signal::AddClip(wave_index, 1, kNumZonesHalfSampleRate);
     data_.wv.wave[0] = waveform_table[base_resource_id + wave_index];
-    wave_index++;
-    if (wave_index > max_zone) {
-      wave_index = max_zone;
-    }
+    wave_index = Signal::AddClip(wave_index, 1, kNumZonesHalfSampleRate);
     data_.wv.wave[1] = waveform_table[base_resource_id + wave_index];
     data_.wv.balance = note & 0xf0;
+    display.set_status(NibbleToAscii(data_.wv.balance >> 4));
   }
   static void RenderSub() {
     FOURTH_SAMPLE_RATE;
@@ -412,61 +335,42 @@ class Oscillator {
   }
 
   // ------- Interpolation between two waveforms from two wavetables -----------
-  // 256 samples per cycle.
-  static void ResetWavetable256() {
-    data_.wv.balance = 0;
-    data_.wv.wave[0] = waveform_table[WAV_RES_BANDLIMITED_SAW_1];
-    data_.wv.wave[0] = waveform_table[WAV_RES_BANDLIMITED_SAW_1];
-  }
   static void UpdateWavetable256() {
     uint8_t note = Signal::Swap4(note_ - 24);
     uint8_t wave_index = note & 0xf;
-    switch (algorithm_) {
-      case WAVEFORM_SAW:
-        if (mode == LOW_COMPLEXITY) {
-          wave_index++;
-        }
-        data_.wv.wave[0] =
-            waveform_table[WAV_RES_BANDLIMITED_SAW_0 + wave_index];
-        // When parameter is set to 0, use zoning.
-        if (parameter_ == 0) {
-          wave_index++;
-          if (wave_index > kNumZonesSawSquare) {
-            wave_index = kNumZonesSawSquare;
-          }
-          data_.wv.wave[1] =
-              waveform_table[WAV_RES_BANDLIMITED_SAW_0 + wave_index];
-          data_.wv.balance = note & 0xf0;
-        } else {
-          data_.wv.wave[1] =
-              waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_5];
-          data_.wv.balance = parameter_ << 1;
-        }
-        break;
-      case WAVEFORM_TRIANGLE:
-        data_.wv.wave[0] =
-            waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_1 + wave_index];
-        data_.wv.wave[1] = waveform_table[WAV_RES_BANDLIMITED_TRIANGLE_5];
-        data_.wv.balance = parameter_ << 1;
-        break;
+    uint8_t base_resource_id = algorithm_ == WAVEFORM_SAW ?
+        WAV_RES_BANDLIMITED_SAW_0 :
+        WAV_RES_BANDLIMITED_TRIANGLE_0;
+      
+    if (mode == LOW_COMPLEXITY) {
+      wave_index = Signal::AddClip(wave_index, 1, kNumZonesFullSampleRate);
     }
+    data_.wv.wave[0] = waveform_table[base_resource_id + wave_index];
+    wave_index = Signal::AddClip(wave_index, 1, kNumZonesFullSampleRate);
+    data_.wv.wave[1] = waveform_table[base_resource_id + wave_index];
+    data_.wv.balance = note & 0xf0;
   }
   static void RenderWavetable256() {
-    uint8_t full_sr = (algorithm_ == WAVEFORM_SAW) && (mode == FULL);
-    if (!full_sr) {
+    if (mode == FULL) {
+      phase_ += phase_increment_;
+    } else {
       HALF_SAMPLE_RATE;
+      phase_ += phase_increment_2_;
     }
-    phase_ += full_sr ? phase_increment_ : phase_increment_2_;
     held_sample_ = InterpolateTwoTables(
         data_.wv.wave[0], data_.wv.wave[1],
         phase_, data_.wv.balance);
+    if (held_sample_ < parameter_) {
+      if (algorithm_ == WAVEFORM_SAW) {
+        held_sample_ += parameter_ >> 1;
+      } else {
+        held_sample_ = parameter_;
+      }
+    }
   }
 
   // ------- Interpolation between two offsets of a wavetable ------------------
   // 64 samples per cycle.
-  static void ResetWavetable64() {
-    data_.wt.smooth_parameter = parameter_ * 64;
-  }
   static void UpdateWavetable64() {
     // Since the wavetable is very crowded (32 waveforms) and the parameter
     // value has a low resolution (4 positions between each waveform), the
@@ -560,14 +464,14 @@ class Oscillator {
     uint8_t offset_1 = Signal::ShiftRight4(parameter_);
     offset_1 = (offset_1 << 2) + offset_1;  // offset_1 * 5
     uint8_t offset_2 = offset_1 + 5;
-    uint8_t mix = parameter_ & 15;
+    uint8_t balance = parameter_ & 15;
     for (uint8_t i = 0; i < 3; ++i) {
       data_.sp.formant_increment[i] = Signal::UnscaledMix4(
           ResourcesManager::Lookup<uint8_t, uint8_t>(
               waveform_table[WAV_RES_SPEECH_DATA], offset_1 + i),
           ResourcesManager::Lookup<uint8_t, uint8_t>(
               waveform_table[WAV_RES_SPEECH_DATA], offset_2 + i),
-          mix);
+          balance);
       data_.sp.formant_increment[i] <<= 3;
     }
     for (uint8_t i = 0; i < 2; ++i) {
@@ -580,12 +484,12 @@ class Oscillator {
 
       data_.sp.formant_amplitude[2 * i + 1] = Signal::Mix4(
           amplitude_a & 0xf,
-          amplitude_b & 0xf, mix);
+          amplitude_b & 0xf, balance);
       amplitude_a = Signal::ShiftRight4(amplitude_a);
       amplitude_b = Signal::ShiftRight4(amplitude_b);
       data_.sp.formant_amplitude[2 * i] = Signal::Mix4(
           amplitude_a,
-          amplitude_b, mix);
+          amplitude_b, balance);
     }
   }
   static void RenderSpeech() {
@@ -635,21 +539,21 @@ template<int id, OscillatorMode mode> OscillatorData Oscillator<id, mode>::data_
 template<int id, OscillatorMode mode> AlgorithmFn Oscillator<id, mode>::fn_;
 template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_low_complexity_[] = {
-  { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
+  { &Os::UpdateBandLimited, &Os::RenderBandLimited },
+  { &Os::UpdateWavetable256, &Os::RenderWavetable256 },
 };
 template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
-  { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
-  { &Os::ResetBandLimited, &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
-  { NULL, &Os::UpdateCz, &Os::RenderCz },  // cz
-  { NULL, &Os::UpdateFm, &Os::RenderFm },  // fm
-  { NULL, NULL, &Os::Render8BitLand },
-  { NULL, &Os::UpdateSpeech, &Os::RenderSpeech },  // speech
-  { &Os::ResetWavetable64, &Os::UpdateWavetable64, &Os::RenderWavetable64 },
-  { &Os::ResetWavetable256, &Os::UpdateWavetable256, &Os::RenderWavetable256 },
+  { &Os::UpdateBandLimited, &Os::RenderBandLimited },
+  { &Os::UpdateWavetable256, &Os::RenderWavetable256 },
+  { &Os::UpdateBandLimited, &Os::RenderBandLimited },
+  { &Os::UpdateWavetable256, &Os::RenderWavetable256 },
+  { &Os::UpdateCz, &Os::RenderCz },
+  { &Os::UpdateFm, &Os::RenderFm },
+  { NULL, &Os::Render8BitLand },
+  { &Os::UpdateSpeech, &Os::RenderSpeech },
+  { &Os::UpdateWavetable64, &Os::RenderWavetable64 },
+  { &Os::UpdateWavetable256, &Os::RenderWavetable256 },
 };
 
 }  // namespace hardware_shruti

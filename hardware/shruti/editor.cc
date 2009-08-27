@@ -462,7 +462,7 @@ void Editor::DisplayStepSequencerPage() {
   display.Print(0, line_buffer_);
   for (uint8_t i = 0; i < 16; ++i) {
     uint8_t value = engine.patch().sequence_step(i) >> 4;
-    line_buffer_[i] = value < 10 ? value + 48 : value + 87;
+    line_buffer_[i] = NibbleToAscii(value);
   }
   display.Print(1, line_buffer_);
   display.set_cursor_position(kLcdWidth + cursor_);

@@ -146,8 +146,6 @@ class Display {
     // and clearing the status indicator. ewwww...
     blink_clock_ = 0;
     status_ = status + 1;
-    // Make sure that the next character to be redrawn will be the status char.
-    scan_position_ = local_[0] == ' ' ? 0 : (width - 1);
   }
 
   static inline void Tick() { DisplaySerialOutput::Tick(); }

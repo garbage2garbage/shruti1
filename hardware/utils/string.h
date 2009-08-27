@@ -32,6 +32,10 @@ template<> struct TypeInfo<int16_t> { enum { has_sign = 1, max_size = 6 }; };
 template<> struct TypeInfo<uint32_t> { enum { has_sign = 0, max_size = 10 }; };
 template<> struct TypeInfo<int32_t> { enum { has_sign = 1, max_size = 11 }; };
 
+static inline uint8_t NibbleToAscii(uint8_t digit) {
+  return digit < 10 ? digit + 48 : digit + 87;
+}
+
 template<typename T>
 void Itoa(T i, uint8_t width, char* destination) {
   unsigned char digits[TypeInfo<T>::max_size + 1];
@@ -62,6 +66,6 @@ void Itoa(T i, uint8_t width, char* destination) {
   }
 }
 
-}  // namespace hardware_string
+}  // namespace hardware_utils
 
 #endif  // HARDWARE_UTILS_STRING_UTILS_H_

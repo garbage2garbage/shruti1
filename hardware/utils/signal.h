@@ -16,6 +16,15 @@ struct Signal {
     return value < min ? min : (value > max ? max : value);
   }
   
+  static inline uint8_t AddClip(uint8_t value, uint8_t increment, uint8_t max) {
+    value += increment;
+    if (value > max) {
+      value = max;
+    }
+    return value;
+  }
+  
+  
 #ifdef FAST_SIGNAL_PROCESSING
   static inline uint8_t Clip8(int16_t value) {
     uint8_t result;

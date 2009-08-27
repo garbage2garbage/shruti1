@@ -507,7 +507,6 @@ for zone in range(num_zones):
   bl_saw_tables.append(('bandlimited_saw_%d' % zone, Scale(saw, 0, 255)))
 
 del bl_pulse_tables[0]
-del bl_tri_tables[0]
 
 waveforms.extend(bl_pulse_tables)
 waveforms.extend(bl_square_tables)
