@@ -194,9 +194,8 @@ reso
 \x066
 \x076
 ?6
-
-    mutable
-  instruments
+> mutable
+  instruments  <
 load/save patch
 step sequencer
 load

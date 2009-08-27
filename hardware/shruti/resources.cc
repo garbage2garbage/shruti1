@@ -163,8 +163,8 @@ static const prog_char str_res_56[] PROGMEM = "6";
 static const prog_char str_res_66[] PROGMEM = "6";
 static const prog_char str_res_76[] PROGMEM = "6";
 static const prog_char str_res__6[] PROGMEM = "?6";
-static const prog_char str_res_____mutable[] PROGMEM = "    mutable";
-static const prog_char str_res___instruments[] PROGMEM = "  instruments";
+static const prog_char str_res___mutable[] PROGMEM = "> mutable";
+static const prog_char str_res___instruments___[] PROGMEM = "  instruments  <";
 static const prog_char str_res_load_save_patch[] PROGMEM = "load/save patch";
 static const prog_char str_res_step_sequencer[] PROGMEM = "step sequencer";
 static const prog_char str_res_load[] PROGMEM = "load";
@@ -403,8 +403,8 @@ PROGMEM const prog_char* string_table[] = {
   str_res_66,
   str_res_76,
   str_res__6,
-  str_res_____mutable,
-  str_res___instruments,
+  str_res___mutable,
+  str_res___instruments___,
   str_res_load_save_patch,
   str_res_step_sequencer,
   str_res_load,

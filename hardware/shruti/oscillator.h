@@ -17,7 +17,7 @@
 // Square   sr        sr/2             sr/4
 // Pulse    sr/2      sr/2             n/a
 // Saw      sr        sr/2             n/a
-// Triangle sr/2      sr/2             sr/4
+// Triangle sr        sr/2             sr/4
 // CZ       sr/2      n/a              n/a
 // FM       sr/2      n/a              n/a
 // 8-bits   sr        n/a              n/a
@@ -324,7 +324,6 @@ class Oscillator {
     wave_index = Signal::AddClip(wave_index, 1, kNumZonesHalfSampleRate);
     data_.wv.wave[1] = waveform_table[base_resource_id + wave_index];
     data_.wv.balance = note & 0xf0;
-    display.set_status(NibbleToAscii(data_.wv.balance >> 4));
   }
   static void RenderSub() {
     FOURTH_SAMPLE_RATE;

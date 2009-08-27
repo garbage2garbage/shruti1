@@ -239,8 +239,8 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_66 148  // 6
 #define STR_RES_76 149  // 6
 #define STR_RES__6 150  // ?6
-#define STR_RES_____MUTABLE 151  //     mutable
-#define STR_RES___INSTRUMENTS 152  //   instruments
+#define STR_RES___MUTABLE 151  // > mutable
+#define STR_RES___INSTRUMENTS___ 152  //   instruments  <
 #define STR_RES_LOAD_SAVE_PATCH 153  // load/save patch
 #define STR_RES_STEP_SEQUENCER 154  // step sequencer
 #define STR_RES_LOAD 155  // load

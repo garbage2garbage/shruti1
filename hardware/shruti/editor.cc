@@ -606,18 +606,14 @@ void Editor::DisplaySplashScreen() {
   // 0123456789abcdef
   //     mutable 
   //   instruments
-  ResourcesManager::LoadStringResource(
-      STR_RES_____MUTABLE,
-      line_buffer_,
-      kLcdWidth);
-  AlignLeft(line_buffer_, kLcdWidth);
-  display.Print(0, line_buffer_);
-  ResourcesManager::LoadStringResource(
-      STR_RES___INSTRUMENTS,
-      line_buffer_,
-      kLcdWidth);
-  AlignLeft(line_buffer_, kLcdWidth);
-  display.Print(1, line_buffer_);
+  for (uint8_t i = 0; i < 2; ++i) {
+    ResourcesManager::LoadStringResource(
+        STR_RES___MUTABLE + i,
+        line_buffer_,
+        kLcdWidth);
+    AlignLeft(line_buffer_, kLcdWidth);
+    display.Print(i, line_buffer_);
+  }
 }
 
 /* static */

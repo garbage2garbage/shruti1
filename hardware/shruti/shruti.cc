@@ -31,6 +31,11 @@ Serial<SerialPort0, 31250, BUFFERED, DISABLED> midi_input;
 // Input event handlers.
 typedef InputArray<AnalogInput<kPinAnalogInput>, 4, 8> Pots;
 typedef InputArray<DigitalInput<kPinDigitalInput>, 5> Switches;
+
+PwmOutput<kPinVcfCutoffOut> vcf_cutoff_out;
+PwmOutput<kPinVcfResonanceOut> vcf_resonance_out;
+PwmOutput<kPinVcaOut> vca_out;
+
 Pots pots;
 Switches switches;
 
@@ -128,7 +133,6 @@ TASK_BEGIN_NEAR
       editor.DisplayDetails();
     }
     TASK_SWITCH;
-    // TODO(pichenettes): write VCF control signals to the PWM output.
   }
 TASK_END
 }
@@ -171,6 +175,9 @@ TASK_BEGIN_NEAR
         engine.Audio();
         audio.Overwrite(engine.signal());
       }
+      vcf_cutoff_out.Write(engine.cutoff());
+      vcf_resonance_out.Write(engine.resonance());
+      vca_out.Write(engine.vca());
     }
     TASK_SWITCH;
   }
@@ -221,6 +228,11 @@ void Setup() {
   Timer<2>::Start();
   audio.Init();
   
+  vcf_cutoff_out.Init();
+  vcf_resonance_out.Init();
+  vca_out.Init();
+  
+  
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
   editor.DisplaySplashScreen();
@@ -242,3 +254,9 @@ int main(void) {
   ScheduleTasks();
   return 0;
 }
+
+
+/*
+Timer<1>::set_prescaler(1);
+Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
+*/

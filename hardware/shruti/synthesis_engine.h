@@ -66,7 +66,7 @@ class Voice {
   static void Control();
 
   // Called whenever a write to the CV analog outputs has to be made.
-  static inline uint8_t vcf()  {
+  static inline uint8_t cutoff()  {
     return modulation_destinations_[MOD_DST_FILTER_CUTOFF];
   }
   static inline uint8_t vca()  {
@@ -170,7 +170,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static inline Patch* mutable_patch() { return &patch_; }
   
   // These variables are sent to I/O pins, and are made accessible here.
-  static inline uint8_t vcf() { return voice_.vcf(); }
+  static inline uint8_t cutoff() { return voice_.cutoff(); }
   static inline uint8_t vca() { return voice_.vca(); }
   static inline uint8_t resonance() { return voice_.resonance(); }
   static inline uint8_t signal() { return voice_.signal(); }
