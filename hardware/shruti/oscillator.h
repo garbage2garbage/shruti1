@@ -61,7 +61,7 @@ static const uint8_t kSpeechControlRateDecimation = 4;
 static const uint8_t kNumZonesFullSampleRate = 6;
 static const uint8_t kNumZonesHalfSampleRate = 5;
 
-struct BandLimitedOscillatorData {
+struct PulseSquareOscillatorData {
   const prog_uint8_t* wave[2];
   uint8_t balance;
   uint16_t shift;
@@ -70,7 +70,7 @@ struct BandLimitedOscillatorData {
 };
 
 // Interpolates between two 256-samples wavetables.
-struct Wavetable256OscillatorData {
+struct SawTriangleOscillatorData {
   const prog_uint8_t* wave[2];
   uint8_t balance;
 };
@@ -99,8 +99,8 @@ struct SpeechSynthesizerData {
 };
 
 union OscillatorData {
-  BandLimitedOscillatorData bl;
-  Wavetable256OscillatorData wv;
+  PulseSquareOscillatorData bl;
+  SawTriangleOscillatorData wv;
   CzOscillatorData cz;
   FmOscillatorData fm;
   SpeechSynthesizerData sp;
@@ -258,7 +258,7 @@ class Oscillator {
   }
   
   // ------- Band-limited waveforms with variable pulse width -----------------.
-  static void UpdateBandLimited() {
+  static void UpdatePulseSquare() {
     uint8_t note = Signal::Swap4(note_ - 24);
     uint8_t wave_index = note & 0xf;
     // If the parameter is different from 0, use the PWM generator - otherwise,
@@ -286,7 +286,7 @@ class Oscillator {
       data_.bl.balance = note & 0xf0;
     }
   }
-  static void RenderBandLimited() {
+  static void RenderPulseSquare() {
     if (data_.bl.leak == 0 && mode == FULL) {
       phase_ += phase_increment_;
     } else {
@@ -334,7 +334,7 @@ class Oscillator {
   }
 
   // ------- Interpolation between two waveforms from two wavetables -----------
-  static void UpdateWavetable256() {
+  static void UpdateSawTriangle() {
     uint8_t note = Signal::Swap4(note_ - 24);
     uint8_t wave_index = note & 0xf;
     uint8_t base_resource_id = algorithm_ == WAVEFORM_SAW ?
@@ -349,7 +349,7 @@ class Oscillator {
     data_.wv.wave[1] = waveform_table[base_resource_id + wave_index];
     data_.wv.balance = note & 0xf0;
   }
-  static void RenderWavetable256() {
+  static void RenderSawTriangle() {
     if (mode == FULL) {
       phase_ += phase_increment_;
     } else {
@@ -359,10 +359,24 @@ class Oscillator {
     held_sample_ = InterpolateTwoTables(
         data_.wv.wave[0], data_.wv.wave[1],
         phase_, data_.wv.balance);
+
+    // To produce pulse width-modulated variants, we shift (saw) or set to
+    // a constant (triangle) a portion of the waveform within an increasingly
+    // large fraction of the period. Note that this is pure waveshapping - the
+    // phase information is not used to determine when/where to shift.
+    //
+    //     /|            /|          /\             /\
+    //    / |           / |         /  \           /  \
+    //   /  |    =>  /|/  |        /    \  =>  ___/    \
+    //  /   |       /     |/      /      \
+    // /    |/                   /        \
+    //
     if (held_sample_ < parameter_) {
       if (algorithm_ == WAVEFORM_SAW) {
+        // Add a discontinuity.
         held_sample_ += parameter_ >> 1;
       } else {
+        // Clip
         held_sample_ = parameter_;
       }
     }
@@ -538,21 +552,21 @@ template<int id, OscillatorMode mode> OscillatorData Oscillator<id, mode>::data_
 template<int id, OscillatorMode mode> AlgorithmFn Oscillator<id, mode>::fn_;
 template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_low_complexity_[] = {
-  { &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::UpdateWavetable256, &Os::RenderWavetable256 },
+  { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },
+  { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
 };
 template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
-  { &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::UpdateWavetable256, &Os::RenderWavetable256 },
-  { &Os::UpdateBandLimited, &Os::RenderBandLimited },
-  { &Os::UpdateWavetable256, &Os::RenderWavetable256 },
+  { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },
+  { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
+  { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },
+  { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
   { &Os::UpdateCz, &Os::RenderCz },
   { &Os::UpdateFm, &Os::RenderFm },
   { NULL, &Os::Render8BitLand },
   { &Os::UpdateSpeech, &Os::RenderSpeech },
   { &Os::UpdateWavetable64, &Os::RenderWavetable64 },
-  { &Os::UpdateWavetable256, &Os::RenderWavetable256 },
+  { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
 };
 
 }  // namespace hardware_shruti

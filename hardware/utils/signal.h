@@ -45,24 +45,27 @@ struct Signal {
   static inline int8_t SignedClip8(int16_t value) {
     return Clip8(value + 128) + 128;  
   }
-  
+
   static inline uint8_t Mix(uint8_t a, uint8_t b, uint8_t balance) {
-    uint16_t sum;
+    union {
+      uint16_t sum;
+      uint8_t bytes[0];
+    } sum;
     asm(
-      "mul %2, %1"      "\n\t"  // b * balance
-      "movw %A3, r0"    "\n\t"  // to sum
-      "com %1"          "\n\t"  // 255 - balance
-      "mul %0, %1"      "\n\t"  // a * (255 - balance)
-      "com %1"          "\n\t"  // reset balance to its previous value
-      "add %A3, r0"     "\n\t"  // add to sum L
-      "adc %B3, r1"     "\n\t"  // add to sum H
+      "mul %3, %2"      "\n\t"  // b * balance
+      "movw %A0, r0"    "\n\t"  // to sum
+      "com %2"          "\n\t"  // 255 - balance
+      "mul %1, %2"      "\n\t"  // a * (255 - balance)
+      "com %2"          "\n\t"  // reset balance to its previous value
+      "add %A0, r0"     "\n\t"  // add to sum L
+      "adc %B0, r1"     "\n\t"  // add to sum H
       "eor r1, r1"      "\n\t"  // reset r1 after multiplication
-      "mov %0, %B3"     "\n\t"  // use H as output
-      : "+r" (a)
-      : "a" (balance), "a" (b), "a" (sum)
+      : "&=r" (sum)
+      : "a" (a), "a" (balance), "a" (b)
       );
-    return a;
+    return sum.bytes[1];
   }
+  
   
   static inline uint8_t Mix4(uint8_t a, uint8_t b, uint8_t balance) {
     uint16_t sum;

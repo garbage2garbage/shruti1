@@ -298,6 +298,7 @@ uint8_t Voice::noise_sample_;
 void Voice::Init() {
   pitch_value_ = 0;
   envelope_stage_ = DEAD;
+  signal_ = 128;
 }
 
 /* static */
@@ -505,34 +506,31 @@ void Voice::Control() {
 /* static */
 void Voice::Audio() {
   if (dead()) {
+    signal_ = 128;
     return;
   }
+  
   // Update the phase accumulators for the oscillators;
   uint16_t previous_phase = Osc1::phase();
 
   uint8_t mix = Osc1::Render();
-  uint8_t ring_mod = engine.patch_.osc_option[0] == RING_MOD;
-  if (modulation_destinations_[MOD_DST_MIX_BALANCE] || ring_mod) {
-    uint8_t osc_2 = Osc2::Render();
-    if (ring_mod) {
-      mix = Signal::SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
-    }
-    mix = Signal::Mix(mix, osc_2,
-                      modulation_destinations_[MOD_DST_MIX_BALANCE]);
+  
+  uint8_t osc_2 = Osc2::Render();
+  if (engine.patch_.osc_option[0] == RING_MOD) {
+    mix = Signal::SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
   }
-  if (modulation_destinations_[MOD_DST_MIX_SUB_OSC]) {
-    uint8_t sub_osc = SubOsc::Render();
-    mix = Signal::Mix(mix, sub_osc,
-                      modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
+  mix = Signal::Mix(mix, osc_2, modulation_destinations_[MOD_DST_MIX_BALANCE]);
+  
+  uint8_t sub_osc = SubOsc::Render();
+  mix = Signal::Mix(mix, sub_osc,
+                    modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
+
+  // Do not recompute the noise sample for every sample.
+  if ((engine.oscillator_decimation() & 3) == 0) {
+    noise_sample_ = Random::Byte();
   }
-  if (modulation_destinations_[MOD_DST_MIX_NOISE]) {
-    // Do not recompute the noise sample for every sample.
-    if ((engine.oscillator_decimation() & 3) == 0) {
-      noise_sample_ = Random::Byte();
-    }
-    mix = Signal::Mix(mix, noise_sample_,
-                      modulation_destinations_[MOD_DST_MIX_NOISE]);
-  }
+  mix = Signal::Mix(mix, noise_sample_,
+                    modulation_destinations_[MOD_DST_MIX_NOISE]);
 
 #ifdef SOFTWARE_VCA
   signal_ = Signal::SignedMulScale8(128 + mix

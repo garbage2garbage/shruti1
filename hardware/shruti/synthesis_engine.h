@@ -107,6 +107,7 @@ class Voice {
   static int8_t modulation_destinations_[MOD_DST_FILTER_RESONANCE + 1];
   
   static uint8_t signal_;
+  
   static uint8_t noise_sample_;
 
   DISALLOW_COPY_AND_ASSIGN(Voice);
