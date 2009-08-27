@@ -104,7 +104,7 @@ struct Signal {
       "add %A0, r0"     "\n\t"  // add to sum L
       "adc %B0, r1"     "\n\t"  // add to sum H
       "eor r1, r1"      "\n\t"  // reset r1 after multiplication
-      : "+r" (sum)
+      : "&=r" (sum)
       : "a" (a), "a" (balance), "a" (b)
       );
     return sum;

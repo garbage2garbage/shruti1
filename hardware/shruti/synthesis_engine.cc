@@ -542,7 +542,7 @@ void Voice::Audio() {
  
   // If the phase of oscillator 1 has wrapped and if sync is enabled, reset the
   // phase of the second oscillator.
-  if ((Osc1::phase() < previous_phase) && engine.patch_.osc_option[0] == SYNC) {
+  if (engine.patch_.osc_option[0] == SYNC && Osc1::phase() < previous_phase) {
     Osc2::ResetPhase();
   }
 }
