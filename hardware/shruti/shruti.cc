@@ -6,12 +6,12 @@
 #include "hardware/base/time.h"
 #include "hardware/io/adc.h"
 #include "hardware/io/audio_output.h"
-#include "hardware/io/input_array.h"
+#include "hardware/io/devices/74hc595.h"
 #include "hardware/io/devices/output_array.h"
+#include "hardware/io/input_array.h"
 #include "hardware/io/pin.h"
 #include "hardware/io/pretty_printer.h"
 #include "hardware/io/serial.h"
-#include "hardware/io/devices/74hc595.h"
 #include "hardware/io/timer.h"
 #include "hardware/midi/midi.h"
 #include "hardware/shruti/display.h"
@@ -52,7 +52,6 @@ OutputArray<
     Pin<kPinData>, 11, 4, LSB_FIRST, false> leds;
 
 // Audio output on pin 3.
-
 AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio;
 uint32_t rendered_blocks = 0;
 
@@ -226,6 +225,9 @@ void Setup() {
   Timer<2>::set_prescaler(1);
   Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
   Timer<2>::Start();
+  /* Timer<1>::set_prescaler(1);
+  Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT); */
+  
   audio.Init();
   
   vcf_cutoff_out.Init();
@@ -256,7 +258,3 @@ int main(void) {
 }
 
 
-/*
-Timer<1>::set_prescaler(1);
-Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
-*/

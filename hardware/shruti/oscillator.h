@@ -376,7 +376,7 @@ class Oscillator {
         // Add a discontinuity.
         held_sample_ += parameter_ >> 1;
       } else {
-        // Clip
+        // Clip.
         held_sample_ = parameter_;
       }
     }
