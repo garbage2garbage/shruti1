@@ -110,25 +110,46 @@ static const prog_char raw_parameter_definition[
   PAGE_FILTER_FILTER, UNIT_RAW_UINT8,
   STR_RES_LFO, STR_RES_LFO2TVCF,
 
-  // Env.
-  PRM_ENV_ATTACK,
+  // Env 1.
+  PRM_ENV_ATTACK_1,
   0, 127,
-  PAGE_MOD_ENV, UNIT_RAW_UINT8,
+  PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
   STR_RES_ATK, STR_RES_ATTACK,
   
-  PRM_ENV_DECAY,
+  PRM_ENV_DECAY_1,
   0, 127,
-  PAGE_MOD_ENV, UNIT_RAW_UINT8,
+  PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
   STR_RES_DEC, STR_RES_DECAY,
   
-  PRM_ENV_SUSTAIN,
+  PRM_ENV_SUSTAIN_1,
   0, 127,
-  PAGE_MOD_ENV, UNIT_RAW_UINT8,
+  PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
   STR_RES_SUS, STR_RES_SUSTAIN,
   
-  PRM_ENV_RELEASE,
+  PRM_ENV_RELEASE_1,
   0, 127,
-  PAGE_MOD_ENV, UNIT_RAW_UINT8,
+  PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
+  STR_RES_REL, STR_RES_RELEASE,
+
+  // Env 2.
+  PRM_ENV_ATTACK_2,
+  0, 127,
+  PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
+  STR_RES_ATK, STR_RES_ATTACK,
+  
+  PRM_ENV_DECAY_2,
+  0, 127,
+  PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
+  STR_RES_DEC, STR_RES_DECAY,
+  
+  PRM_ENV_SUSTAIN_2,
+  0, 127,
+  PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
+  STR_RES_SUS, STR_RES_SUSTAIN,
+  
+  PRM_ENV_RELEASE_2,
+  0, 127,
+  PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
   STR_RES_REL, STR_RES_RELEASE,
 
   // Lfo.
@@ -154,17 +175,17 @@ static const prog_char raw_parameter_definition[
   
   // Modulation
   PRM_MOD_ROW,
-  0, 7,
-  PAGE_MOD_MATRIX, UNIT_UINT8,
+  0, kModulationMatrixSize - 1,
+  PAGE_MOD_MATRIX, UNIT_INDEX,
   STR_RES_MOD, STR_RES_MOD_,
 
   PRM_MOD_SOURCE,
-  MOD_SRC_LFO_1, MOD_SRC_GATE,
+  0, kNumModulationSources - 1,
   PAGE_MOD_MATRIX, UNIT_MODULATION_SOURCE,
   STR_RES_SRC, STR_RES_SOURCE,
   
   PRM_MOD_DESTINATION,
-  MOD_DST_FILTER_CUTOFF, MOD_DST_FILTER_RESONANCE,
+  0, kNumModulationDestinations - 1,
   PAGE_MOD_MATRIX, UNIT_MODULATION_DESTINATION,
   STR_RES_DST, STR_RES_DEST_,
   
@@ -220,37 +241,40 @@ static const prog_char raw_parameter_definition[
 const PageDefinition Editor::page_definition_[] = {
   { PAGE_OSC_OSC_1, GROUP_OSC, STR_RES_OSCILLATOR_1,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput},
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement },
   { PAGE_OSC_OSC_2, GROUP_OSC, STR_RES_OSCILLATOR_2,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput },
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
   { PAGE_OSC_OSC_MIX, GROUP_OSC, STR_RES_MIXER,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput },
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
   { PAGE_FILTER_FILTER, GROUP_FILTER, STR_RES_FILTER,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput },
-  { PAGE_MOD_ENV, GROUP_MOD, STR_RES_ENVELOPE,
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
+  { PAGE_MOD_ENV_1, GROUP_MOD, STR_RES_ENVELOPE_1,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput },
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
+  { PAGE_MOD_ENV_2, GROUP_MOD, STR_RES_ENVELOPE_2,
+    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
   { PAGE_MOD_LFO, GROUP_MOD, STR_RES_LFOS,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput },
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
   { PAGE_MOD_MATRIX, GROUP_MOD, STR_RES_MODULATION,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput },
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
   { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_ARPEGGIO,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput },
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
   { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER,
     &Editor::DisplayStepSequencerPage, &Editor::DisplayStepSequencerPage,
-    &Editor::HandleStepSequencerInput },
+    &Editor::HandleStepSequencerInput, &Editor::HandleStepSequencerIncrement  },
   { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD,
     &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput },
+    &Editor::HandleEditInput, &Editor::HandleEditIncrement },
   { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_LOAD_SAVE_PATCH, 
     &Editor::DisplayLoadSavePage, &Editor::DisplayLoadSavePage,
-    &Editor::HandleLoadSaveInput },
+    &Editor::HandleLoadSaveInput, &Editor::HandleLoadSaveIncrement },
 };
 
 /* <static> */
@@ -265,8 +289,8 @@ uint8_t Editor::parameter_definition_offset_[kNumPages][kNumControllers];
 
 char Editor::line_buffer_[kLcdWidth * kLcdHeight + 1];
 
-uint16_t Editor::cursor_;
-uint8_t Editor::flip_;
+uint8_t Editor::cursor_;
+uint8_t Editor::subpage_;
 uint8_t Editor::action_;
 uint8_t Editor::current_patch_number_;
 uint8_t Editor::previous_patch_number_;
@@ -281,7 +305,7 @@ void Editor::Init() {
   current_controller_ = 0;
   last_visited_page_[GROUP_OSC] = PAGE_OSC_OSC_1;
   last_visited_page_[GROUP_FILTER] = PAGE_FILTER_FILTER;
-  last_visited_page_[GROUP_MOD] = PAGE_MOD_ENV;
+  last_visited_page_[GROUP_MOD] = PAGE_MOD_ENV_1;
   last_visited_page_[GROUP_PLAY] = PAGE_PLAY_ARP;
   last_visited_page_[GROUP_LOAD_SAVE] = PAGE_LOAD_SAVE;
   for (uint8_t i = 0; i < kNumEditableParameters; ++i) {
@@ -296,12 +320,12 @@ void Editor::Init() {
   line_buffer_[kLcdWidth] = '\0';
   previous_patch_number_ = 0;
   current_patch_number_ = 0;
-  flip_ = 0;
 }
 
 /* static */
 void Editor::ToggleGroup(ParameterGroup group) {
   cursor_ = 0;
+  subpage_ = 0;
   display.set_cursor_position(kLcdNoCursor);
   current_display_type_ = PAGE_TYPE_DETAILS;
   // Special case for the load/save page.
@@ -340,6 +364,11 @@ void Editor::ToggleGroup(ParameterGroup group) {
 void Editor::HandleInput(uint8_t controller_index, uint16_t value) {
   (*page_definition_[current_page_].input_handler)(
       controller_index, value);
+}
+
+/* static */
+void Editor::HandleIncrement(int8_t direction) {
+  (*page_definition_[current_page_].increment_handler)(direction);
 }
 
 /* static */
@@ -421,6 +450,17 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
 }
 
 /* static */
+void Editor::HandleLoadSaveIncrement(int8_t direction) {
+  if (action_ == ACTION_SAVE) {
+    uint8_t value = engine.patch().name[cursor_];
+    value += direction;
+    if (value >= 32 && value <= 128) {
+      engine.mutable_patch()->name[cursor_] = value;
+    }
+  }
+}
+
+/* static */
 void Editor::DisplayLoadSavePage() {
   // 0123456789abcdef
   // load/save patch
@@ -480,6 +520,12 @@ void Editor::HandleStepSequencerInput(
       engine.mutable_patch()->set_sequence_step(cursor_, value >> 2);
       break;
   }
+}
+
+/* static */
+void Editor::HandleStepSequencerIncrement(int8_t direction) {
+  engine.mutable_patch()->set_sequence_step(cursor_, 
+      engine.patch().sequence_step(cursor_) + (direction << 4));
 }
 
 /* static */
@@ -581,24 +627,59 @@ void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
     new_value = ((value >> 3) * range) >> 7;
     new_value += parameter.min_value;
   }
-  // TODO(pichenettes): this is not a very pretty way of doing this...
-  if (parameter.unit == UNIT_TEMPO_WITH_EXTERNAL_CLOCK) {
-    if (new_value < 40) {
-      new_value = 0;
+  SetParameterWithHacks(parameter.id, new_value);
+  current_controller_ = controller_index;
+}
+
+/* static */
+void Editor::SetParameterWithHacks(uint8_t id, uint8_t value) {
+  // Set the tempo to 0 for external clock.
+  if (id == PRM_ARP_TEMPO) {
+    if (value < 40) {
+      value = 0;
     }
   }
   
-  // TODO(pichenettes): dirty hack to get the modulation page working.
+  // Dirty hack for the modulation page.
   if (current_page_ == PAGE_MOD_MATRIX) {
-    if (parameter.id == PRM_MOD_ROW) {
-      cursor_ = new_value;
+    if (id == PRM_MOD_ROW) {
+      subpage_ = value;
     } else {
-      engine.SetParameter(parameter.id + cursor_ * 3, new_value);
+      engine.SetParameter(id + subpage_ * 3, value);
     }
   } else {
-    engine.SetParameter(parameter.id, new_value);
+    engine.SetParameter(id, value);
   }
-  current_controller_ = controller_index;
+}
+
+/* static */
+uint8_t Editor::GetParameterWithHacks(uint8_t id) {
+  if (current_page_ == PAGE_MOD_MATRIX) {
+    if (id == PRM_MOD_ROW) {
+      return subpage_;
+    } else {
+      return engine.GetParameter(id + subpage_ * 3);
+    }
+  } else {
+    uint8_t value = engine.GetParameter(id);
+    if (id == PRM_ARP_TEMPO && value == 0) {
+      value = 39;
+    }
+    return value;
+  }
+}
+
+/* static */
+void Editor::HandleEditIncrement(int8_t direction) {
+  uint8_t index = parameter_definition_offset_[current_page_][
+      current_controller_];
+  const ParameterDefinition& parameter = parameter_definition(index);
+  
+  int16_t value = GetParameterWithHacks(parameter.id);
+  value += direction;
+  if (value >= parameter.min_value && value <= parameter.max_value) {
+    SetParameterWithHacks(parameter.id, value);
+  }
 }
 
 /* static */
@@ -619,17 +700,7 @@ void Editor::DisplaySplashScreen() {
 /* static */
 void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
                                        char* buffer, uint8_t width) {
-  int16_t value;
-  // TODO(pichenettes): dirty hack to get the modulation page working.
-  if (current_page_ == PAGE_MOD_MATRIX) {
-    if (parameter.id == PRM_MOD_ROW) {
-      value = cursor_ + 1;
-    } else {
-      value = engine.GetParameter(parameter.id + cursor_ * 3);
-    }
-  } else {
-    value = engine.GetParameter(parameter.id);
-  }
+  int16_t value = GetParameterWithHacks(parameter.id);
   ResourceId base = 0;
   switch (parameter.unit) {
     case UNIT_INT8:
@@ -650,6 +721,9 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
     case UNIT_RAGA:
       base = STR_RES_EQUAL;
       break;
+    case UNIT_INDEX:
+      value++;
+      break;
     case UNIT_PATTERN:
       base = STR_RES_51;
       break;
@@ -660,7 +734,8 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
       base = (width <= 4) ? STR_RES_CUT : STR_RES_CUTOFF;
       break;
     case UNIT_TEMPO_WITH_EXTERNAL_CLOCK:
-      if (value == 0) {
+      if (value == 39) {
+        value = 0;
         base = STR_RES_EXTERN;
       }
   }

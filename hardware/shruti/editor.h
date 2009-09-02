@@ -25,7 +25,8 @@ namespace hardware_shruti {
 
 enum CurrentDisplayType {
   PAGE_TYPE_SUMMARY,
-  PAGE_TYPE_DETAILS
+  PAGE_TYPE_DETAILS,
+  PAGE_TYPE_ANY,
 };
 
 enum Group {
@@ -41,7 +42,8 @@ enum Page {
   PAGE_OSC_OSC_2,
   PAGE_OSC_OSC_MIX,
   PAGE_FILTER_FILTER,
-  PAGE_MOD_ENV,
+  PAGE_MOD_ENV_1,
+  PAGE_MOD_ENV_2,
   PAGE_MOD_LFO,
   PAGE_MOD_MATRIX,
   PAGE_PLAY_ARP,
@@ -59,6 +61,7 @@ enum Unit {
   UNIT_WAVEFORM,
   UNIT_OPERATOR,
   UNIT_LFO_WAVEFORM,
+  UNIT_INDEX,
   UNIT_MODULATION_SOURCE,
   UNIT_MODULATION_DESTINATION,
   UNIT_PATTERN,
@@ -77,7 +80,7 @@ typedef uint8_t ParameterGroup;
 typedef uint8_t ParameterPage;
 typedef uint8_t ParameterUnit;
 
-static const uint8_t kNumPages = 11;
+static const uint8_t kNumPages = 12;
 static const uint8_t kNumGroups = 6;
 static const uint8_t kNumControllers = 4;
 
@@ -105,6 +108,7 @@ struct PageDefinition {
   void (*summary_page)();
   void (*details_page)();
   void (*input_handler)(uint8_t controller_index, uint16_t value);
+  void (*increment_handler)(int8_t direction);
 };
 
 class Editor {
@@ -114,6 +118,7 @@ class Editor {
   static void ToggleGroup(ParameterGroup group);
 
   static void HandleInput(uint8_t controller_index, uint16_t value);
+  static void HandleIncrement(int8_t direction);
   static void DisplaySummary();
   static void DisplayDetails();
   static void DisplaySplashScreen();
@@ -121,6 +126,7 @@ class Editor {
   static void ResetPatch();
   static inline ParameterPage current_page() { return current_page_; }
   static inline uint8_t cursor() { return cursor_; }
+  static inline uint8_t subpage() { return subpage_; }
 
  private:
   static void PrettyPrintParameterValue(const ParameterDefinition& parameter,
@@ -130,13 +136,19 @@ class Editor {
   static void DisplayEditSummaryPage();
   static void DisplayEditDetailsPage();
   static void HandleEditInput(uint8_t controller_index, uint16_t value);
+  static void HandleEditIncrement(int8_t direction);
+  // A bunch of hacks for special values/pages.
+  static void SetParameterWithHacks(uint8_t id, uint8_t value);
+  static uint8_t GetParameterWithHacks(uint8_t id);
   
   static void DisplayLoadSavePage();
   static void HandleLoadSaveInput(uint8_t controller_index, uint16_t value);
   static void EnterLoadSaveMode();
+  static void HandleLoadSaveIncrement(int8_t direction);
   
   static void DisplayStepSequencerPage();
   static void HandleStepSequencerInput(uint8_t controller_index, uint16_t value);
+  static void HandleStepSequencerIncrement(int8_t direction);
 
   static const ParameterDefinition& parameter_definition(uint8_t index);
 
@@ -155,10 +167,9 @@ class Editor {
 
   static char line_buffer_[kLcdWidth * kLcdHeight + 1];
 
-  // Load/Save related stuff. Cursor is also used for the step sequencer, and
-  // for storing the modulation matrix entry being edited. You're warned!
-  static uint16_t cursor_;
-  static uint8_t flip_;  // Used for blinking cursor.
+  // Load/Save related stuff. Cursor is also used for the step sequencer step.
+  static uint8_t cursor_;
+  static uint8_t subpage_;
   static uint8_t action_;
   static uint8_t current_patch_number_;
   static uint8_t previous_patch_number_;

@@ -27,6 +27,7 @@
 #include "hardware/shruti/shruti.h"
 
 #include "hardware/midi/midi.h"
+#include "hardware/shruti/envelope.h"
 #include "hardware/shruti/lfo.h"
 #include "hardware/shruti/parameters.h"
 #include "hardware/shruti/patch.h"
@@ -40,14 +41,6 @@ static const uint16_t kOctave = 12 * 128;
 static const uint16_t kPitchTableStart = 96 * 128;
 static const uint16_t kHighestNote = 108 * 128;
 
-enum EnvelopeStage {
-  ATTACK = 0,
-  DECAY = 1,
-  SUSTAIN = 2,
-  RELEASE = 3,
-  DEAD = 4
-};
-
 class Voice {
  public:
   Voice() { }
@@ -60,7 +53,7 @@ class Voice {
   static void Release() { TriggerEnvelope(RELEASE); }
 
   // Move this voice to the release stage.
-  static void Kill() { envelope_stage_ = DEAD; }
+  static void Kill() { TriggerEnvelope(DEAD); }
 
   static void Audio();
   static void Control();
@@ -75,20 +68,19 @@ class Voice {
   static inline uint8_t resonance()  {
     return modulation_destinations_[MOD_DST_FILTER_RESONANCE];
   }
-  static inline uint8_t dead()  { return envelope_stage_ == DEAD; }
+  static inline uint8_t dead()  {
+    return envelope_[0].dead() && envelope_[1].dead();
+  }
   static inline uint8_t signal()  { return signal_; }
   static inline uint8_t modulation_source(uint8_t i) {
-    return modulation_sources_[i - MOD_SRC_ENV];
+    return modulation_sources_[i - kNumGlobalModulationSources];
   }
-  
-  static void TriggerEnvelope(uint8_t envelope);
+  static Envelope* mutable_envelope(uint8_t i) { return &envelope_[i]; }
+  static void TriggerEnvelope(uint8_t stage);
   
  private:
   // Counters/phases for the envelope generator.
-  static uint8_t envelope_stage_;
-  static int16_t envelope_value_;
-  static int16_t envelope_increment_;
-  static int16_t envelope_target_;
+  static Envelope envelope_[2];
 
   // Counters/phases for the pitch envelope generator (portamento).
   // Pitches are stored on 14 bits, the 7 highest bits are the MIDI note value,
@@ -97,14 +89,14 @@ class Voice {
   static int16_t pitch_target_;
   static int16_t pitch_value_;
 
-  // The voice-specific modulation sources are from MOD_SRC_ENV to
+  // The voice-specific modulation sources are from MOD_SRC_ENV_1 to
   // MOD_SRC_GATE.
-  static uint8_t modulation_sources_[MOD_SRC_GATE - MOD_SRC_ENV + 1];
+  static uint8_t modulation_sources_[kNumVoiceModulationSources];
 
   // Value of all the stuff controlled by the modulators, scaled to the value
   // they will be used for. MOD_DST_FILTER_RESONANCE is the last entry
   // in the modulation destinations enum.
-  static int8_t modulation_destinations_[MOD_DST_FILTER_RESONANCE + 1];
+  static int8_t modulation_destinations_[kNumModulationDestinations];
   
   static uint8_t signal_;
   
@@ -153,6 +145,9 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static void set_assignable_controller(uint8_t controller, uint8_t value) {
     modulation_sources_[MOD_SRC_ASSIGNABLE_1 + controller] = value;
   }
+  static void set_cv(uint8_t cv, uint8_t value) {
+    modulation_sources_[MOD_SRC_CV_1 + cv] = value;
+  }
   static uint8_t oscillator_decimation() { return oscillator_decimation_; }
   static void ResetPatch();
   // Variables dependent on parameters (increments) are recomputed in
@@ -171,29 +166,22 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static inline Patch* mutable_patch() { return &patch_; }
   
   // These variables are sent to I/O pins, and are made accessible here.
-  static inline uint8_t cutoff() { return voice_.cutoff(); }
-  static inline uint8_t vca() { return voice_.vca(); }
-  static inline uint8_t resonance() { return voice_.resonance(); }
-  static inline uint8_t signal() { return voice_.signal(); }
-  static inline uint8_t modulation_source(uint8_t i) {
-    if (i < MOD_SRC_ENV) {
-      return modulation_sources_[i];
+  static inline uint8_t modulation_source(uint8_t i, uint8_t j) {
+    if (j < kNumGlobalModulationSources) {
+      return modulation_sources_[j];
     } else {
-      return voice_.modulation_source(i);
+      return voice_[i].modulation_source(j);
     }
   }
+  static const Voice& voice(uint8_t i) { return voice_[i]; }
   
  private:
-  // Increment and stage info for the envelopes.
-  static int16_t envelope_increment_[5];
-  static int16_t envelope_target_[5];
-  
   // Value of global modulation parameters, scaled to 0-255;
-  static uint8_t modulation_sources_[MOD_SRC_ASSIGNABLE_2 + 1];
+  static uint8_t modulation_sources_[kNumGlobalModulationSources];
   
   static Patch patch_;
   static Lfo lfo_[2];
-  static Voice voice_;  // Monophonic.
+  static Voice voice_[kNumVoices];
   static VoiceController controller_;
   static uint8_t oscillator_decimation_;
 

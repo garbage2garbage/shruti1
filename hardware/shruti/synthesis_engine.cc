@@ -27,67 +27,47 @@ typedef Oscillator<2, LOW_COMPLEXITY> Osc2;
 typedef Oscillator<3, SUB_OSCILLATOR> SubOsc;
 
 /* <static> */
-int16_t SynthesisEngine::envelope_increment_[5];
-int16_t SynthesisEngine::envelope_target_[5];
-uint8_t SynthesisEngine::modulation_sources_[MOD_SRC_ASSIGNABLE_2 + 1];
+uint8_t SynthesisEngine::modulation_sources_[kNumGlobalModulationSources];
 
 uint8_t SynthesisEngine::oscillator_decimation_;
 
 Patch SynthesisEngine::patch_;
-Voice SynthesisEngine::voice_;
+Voice SynthesisEngine::voice_[kNumVoices];
 VoiceController SynthesisEngine::controller_;
 Lfo SynthesisEngine::lfo_[2];
 /* </static> */
 
 /* static */
 void SynthesisEngine::Init() {
-  envelope_target_[ATTACK] = 16383;
-  envelope_target_[RELEASE] = 0;
-  envelope_target_[DEAD] = -1;
-  envelope_increment_[DEAD] = 0;
-  envelope_increment_[SUSTAIN] = 0;
-  controller_.Init(&voice_, 1);  // "Monophonic shit" - Mr Oizo.
+  controller_.Init(voice_, kNumVoices);
   ResetPatch();
   Reset();
-  voice_.Init();
+  for (uint8_t i = 0; i < kNumVoices; ++i) {
+    voice_[i].Init();
+  }
 }
 
 static const prog_char empty_patch[] PROGMEM = {
-    /*108,
-    WAVEFORM_SAW, WAVEFORM_SAW, 0, 0,
-    128, 128, 0, 0,
-    0, 0, 0, WAVEFORM_TRIANGLE,
-    120, 0, 0, 0,
-    0, 40, 100, 40,
-    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 64, 16,
-    MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
-    MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
-    MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
-    MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
-    MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 48,
-    MOD_SRC_ENV, MOD_DST_VCA, 127,
-    MOD_SRC_VELOCITY, MOD_DST_VCA, 31,
-    MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
-    120, 0, 0, 0,
-    136, 136, 136, 136, 136, 136, 136, 136,
-    128, 0, 0, 1,
-    'n', 'e', 'w', ' ', ' ', ' ', ' ', ' '};*/
-
     99,
     WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 50,
     128, 128, 0, 0,
     4, 4, 4, WAVEFORM_SQUARE,
     120, 0, 0, 0,
-    0, 40, 100, 40,
+    0, 20,
+    40, 60,
+    100, 20,
+    40, 60,
     LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 64, 16,
     MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
     MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
     MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
     MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
     MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 48,
-    MOD_SRC_ENV, MOD_DST_VCA, 127,
+    MOD_SRC_ENV_2, MOD_DST_VCA, 127,
     MOD_SRC_VELOCITY, MOD_DST_VCA, 31,
     MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
+    MOD_SRC_ASSIGNABLE_1, MOD_DST_PWM_1, 0,
+    MOD_SRC_ASSIGNABLE_2, MOD_DST_FILTER_CUTOFF, 0,
     120, 0, 0, 0,
     136, 136, 136, 136, 136, 136, 136, 136,
     128, 0, 0, 1,
@@ -172,12 +152,8 @@ void SynthesisEngine::OmniModeOn(uint8_t channel) {
 void SynthesisEngine::Reset() {
   controller_.Reset();
   controller_.AllSoundOff();
-  modulation_sources_[MOD_SRC_LFO_1] = 128;
-  modulation_sources_[MOD_SRC_LFO_2] = 128;
+  memset(modulation_sources_, 0, kNumGlobalModulationSources);
   modulation_sources_[MOD_SRC_PITCH_BEND] = 128;
-  modulation_sources_[MOD_SRC_WHEEL] = 0;
-  modulation_sources_[MOD_SRC_ASSIGNABLE_1] = 0;
-  modulation_sources_[MOD_SRC_ASSIGNABLE_2] = 0;
   lfo_[0].ResetPhase();
   lfo_[1].ResetPhase();
 }
@@ -193,7 +169,8 @@ void SynthesisEngine::SetParameter(
     uint8_t parameter_value) {
   uint8_t* base = &patch_.keep_me_at_the_top;
   base[parameter_index + 1] = parameter_value;
-  if (parameter_index >= PRM_ENV_ATTACK && parameter_index <= PRM_LFO_RATE_2) {
+  if (parameter_index >= PRM_ENV_ATTACK_1 &&
+      parameter_index <= PRM_LFO_RATE_2) {
     UpdateModulationIncrements();
   }
   if ((parameter_index <= PRM_OSC_ALGORITHM_2) ||
@@ -226,17 +203,6 @@ void SynthesisEngine::UpdateOscillatorAlgorithms() {
 }
 
 /* static */
-uint16_t SynthesisEngine::ScaleEnvelopeIncrement(uint8_t time, uint8_t scale) {
-  uint16_t increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
-      lut_res_env_portamento_increments, time);
-  increment = (uint32_t(increment) * scale) >> 8;
-  if (increment == 0) {
-    increment = 1;
-  }
-  return increment;
-};
-
-/* static */
 void SynthesisEngine::UpdateModulationIncrements() {
   // Update the LFO increments.
   for (uint8_t i = 0; i < 2; ++i) {
@@ -244,15 +210,14 @@ void SynthesisEngine::UpdateModulationIncrements() {
         patch_.lfo_wave[i],
         ResourcesManager::Lookup<uint16_t, uint8_t>(
             lut_res_lfo_increments, patch_.lfo_rate[i]));
+    for (uint8_t j = 0; j < 1; ++j) {
+      voice_[j].mutable_envelope(i)->Update(
+          patch_.env_attack[i],
+          patch_.env_decay[i],
+          patch_.env_sustain[i],
+          patch_.env_release[i]);
+    }
   }
-    
-  // Update the envelope increments and targets.
-  envelope_increment_[ATTACK] = ScaleEnvelopeIncrement(
-      patch_.env_attack, 127);
-  envelope_increment_[DECAY] = -ScaleEnvelopeIncrement(
-      patch_.env_decay,
-      127 - patch_.env_sustain);
-  envelope_target_[DECAY] = int16_t(patch_.env_sustain) << 7;
 }
 
 /* static */
@@ -261,6 +226,7 @@ void SynthesisEngine::Control() {
     lfo_[i].Increment();
     modulation_sources_[MOD_SRC_LFO_1 + i] = lfo_[i].Render();
   }
+  modulation_sources_[MOD_SRC_RANDOM] = Random::Byte();
     
   // Update the arpeggiator / step sequencer.
   controller_.Control();
@@ -270,26 +236,27 @@ void SynthesisEngine::Control() {
   modulation_sources_[MOD_SRC_STEP] = (
       controller_.has_arpeggiator_note() ? 255 : 0);
   
-  voice_.Control();
+  for (uint8_t i = 0; i < kNumVoices; ++i) {
+    voice_[i].Control();
+  }
 }
 
 /* static */
 void SynthesisEngine::Audio() {
   oscillator_decimation_++;
   controller_.Audio();
-  voice_.Audio();
+  for (uint8_t i = 0; i < kNumVoices; ++i) {
+    voice_[i].Audio();
+  }
 }
 
 /* <static> */
-uint8_t Voice::envelope_stage_;
-int16_t Voice::envelope_value_;
-int16_t Voice::envelope_increment_;
-int16_t Voice::envelope_target_;
+Envelope Voice::envelope_[2];
 int16_t Voice::pitch_increment_;
 int16_t Voice::pitch_target_;
 int16_t Voice::pitch_value_;
-uint8_t Voice::modulation_sources_[MOD_SRC_GATE - MOD_SRC_ENV + 1];
-int8_t Voice::modulation_destinations_[MOD_DST_FILTER_RESONANCE + 1];
+uint8_t Voice::modulation_sources_[kNumVoiceModulationSources];
+int8_t Voice::modulation_destinations_[kNumModulationDestinations];
 uint8_t Voice::signal_;
 uint8_t Voice::noise_sample_;
 /* </static> */
@@ -297,26 +264,15 @@ uint8_t Voice::noise_sample_;
 /* static */
 void Voice::Init() {
   pitch_value_ = 0;
-  envelope_stage_ = DEAD;
   signal_ = 128;
+  envelope_[0].Init();
+  envelope_[1].Init();
 }
 
 /* static */
 void Voice::TriggerEnvelope(uint8_t stage) {
-  envelope_stage_ = stage;
-  // The note might be released at any moment, so we need to figure out
-  // the right slope to make it reach 0 within the release time.
-  if (stage == RELEASE) {
-    envelope_increment_ = -SynthesisEngine::ScaleEnvelopeIncrement(
-        engine.patch_.env_release,
-        envelope_value_ >> 7);
-    if (envelope_increment_ == 0) {
-      envelope_increment_ = -1;
-    }
-  } else {
-    envelope_increment_ = engine.envelope_increment_[stage];
-  }
-  envelope_target_ = engine.envelope_target_[stage];
+  envelope_[0].Trigger(stage);
+  envelope_[1].Trigger(stage);
 }
 
 /* static */
@@ -326,7 +282,7 @@ void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
     Osc1::Reset();
     Osc2::Reset();
     SubOsc::Reset();
-    modulation_sources_[MOD_SRC_VELOCITY - MOD_SRC_ENV] = velocity << 1;
+    modulation_sources_[MOD_SRC_VELOCITY - kNumGlobalModulationSources] = velocity << 1;
   }
   pitch_target_ = uint16_t(note) << 7;
   if (engine.patch_.kbd_raga) {
@@ -354,11 +310,8 @@ void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
 /* static */
 void Voice::Control() {
   // Update the envelopes.
-  envelope_value_ += envelope_increment_;
-  if ((envelope_stage_ == ATTACK) ^ (envelope_value_ < envelope_target_)) {
-    envelope_value_ = envelope_target_;
-    ++envelope_stage_;
-    TriggerEnvelope(envelope_stage_);
+  for (uint8_t i = 0; i < 2; ++i) {
+    envelope_[i].Render();
   }
   pitch_value_ += pitch_increment_;
   if ((pitch_increment_ > 0) ^ (pitch_value_ < pitch_target_)) {
@@ -370,12 +323,14 @@ void Voice::Control() {
   int16_t dst[kNumModulationDestinations];
 
   // Update the pre-scaled modulation sources.
-  modulation_sources_[MOD_SRC_ENV - MOD_SRC_ENV] = 
-      envelope_value_ >> 6;
-  modulation_sources_[MOD_SRC_NOTE - MOD_SRC_ENV] =
+  modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources] = 
+      envelope_[0].value() >> 6;
+  modulation_sources_[MOD_SRC_ENV_2 - kNumGlobalModulationSources] = 
+      envelope_[1].value() >> 6;
+  modulation_sources_[MOD_SRC_NOTE - kNumGlobalModulationSources] =
       uint8_t(pitch_value_ >> 6);
-  modulation_sources_[MOD_SRC_GATE - MOD_SRC_ENV] =
-      envelope_stage_ >= RELEASE ? 0 : 255;
+  modulation_sources_[MOD_SRC_GATE - kNumGlobalModulationSources] =
+      envelope_[0].stage() >= RELEASE ? 0 : 255;
 
   // Prepare the work of the modulation matrix, by setting an initial / default
   // value to each modulated parameter.
@@ -404,7 +359,7 @@ void Voice::Control() {
       destination = engine.patch_.modulation_matrix.modulation[i].destination;
       amount = engine.patch_.modulation_matrix.modulation[i].amount;
     } else if (i == kModulationMatrixSize) {
-      source = MOD_SRC_ENV;
+      source = MOD_SRC_ENV_1;
       amount = engine.patch_.filter_env;
     } else if (i == kModulationMatrixSize + 1) {
       source = MOD_SRC_LFO_2;
@@ -413,12 +368,12 @@ void Voice::Control() {
     if (amount == 0) {
       continue;
     }
-    if (source <= MOD_SRC_ASSIGNABLE_2) {
+    if (source < kNumGlobalModulationSources) {
       // Global sources, read from the engine.
       source_value = engine.modulation_sources_[source];
     } else {
       // Voice specific sources, read from the voice.
-      source_value = modulation_sources_[source - MOD_SRC_ENV];
+      source_value = modulation_sources_[source - kNumGlobalModulationSources];
     }
     if (destination != MOD_DST_VCA) {
       int16_t modulation = dst[destination];

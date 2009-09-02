@@ -16,8 +16,7 @@ namespace hardware_shruti {
 
 const uint8_t kPatchNameSize = 8;
 const uint8_t kSerializedPatchSize = 64;
-/*const uint8_t kSerializedPatchSize = 49;*/
-const uint8_t kModulationMatrixSize = 8;
+const uint8_t kModulationMatrixSize = 10;
 
 struct Modulation {
   uint8_t source;
@@ -51,35 +50,35 @@ struct Patch {
   uint8_t filter_env;
   uint8_t filter_lfo;
   
-  // Offset: 16-20
-  uint8_t env_attack;
-  uint8_t env_decay;
-  uint8_t env_sustain;
-  uint8_t env_release;
+  // Offset: 16-24
+  uint8_t env_attack[2];
+  uint8_t env_decay[2];
+  uint8_t env_sustain[2];
+  uint8_t env_release[2];
   
-  // Offset: 20-24
+  // Offset: 24-28
   uint8_t lfo_wave[2];
   uint8_t lfo_rate[2];
   
-  // Offset: 24-48
+  // Offset: 28-58
   ModulationMatrix modulation_matrix;
   
-  // Offset: 48-52, not saved
+  // Offset: 58-62, not saved
   uint8_t arp_tempo;
   uint8_t arp_octave;
   uint8_t arp_pattern;
   uint8_t arp_swing;
   
-  // Offset: 52-60
+  // Offset: 62-70
   uint8_t sequence[8];
   
-  // Offset: 60-64, not saved
+  // Offset: 70-74, not saved
   uint8_t kbd_octave;
   uint8_t kbd_raga;
   uint8_t kbd_portamento;
   uint8_t kbd_midi_channel;
 
-  // Offset: 64-72
+  // Offset: 74-82
   uint8_t name[kPatchNameSize];
   
   // Get the value of a step in the sequence.

@@ -34,15 +34,11 @@
 #include "hardware/base/base.h"
 #include "hardware/shruti/shruti.h"
 
-#include "hardware/shruti/display.h"
-
 #include "hardware/shruti/parameters.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/utils/random.h"
 #include "hardware/utils/signal.h"
-#include "hardware/utils/string.h"
 
-using hardware_utils::NibbleToAscii;
 using hardware_utils::Signal;
 using hardware_utils::Random;
 
@@ -389,7 +385,7 @@ class Oscillator {
     // value has a low resolution (4 positions between each waveform), the
     // parameter value is smoothed to avoid rough stepping.
     int16_t target_parameter = parameter_ * 64;
-    int16_t increment = (target_parameter - data_.wt.smooth_parameter) >> 4;
+    int16_t increment = target_parameter - data_.wt.smooth_parameter >> 4;
     if (increment == 0) {
       if (target_parameter < data_.wt.smooth_parameter) {
         increment = -1;

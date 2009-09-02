@@ -18,6 +18,7 @@
 #include "hardware/shruti/editor.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/synthesis_engine.h"
+#include "hardware/utils/signal.h"
 #include "hardware/utils/task.h"
 
 using namespace hardware_base;
@@ -29,8 +30,14 @@ using namespace hardware_shruti;
 Serial<SerialPort0, 31250, BUFFERED, DISABLED> midi_input;
 
 // Input event handlers.
-typedef InputArray<AnalogInput<kPinAnalogInput>, 4, 8> Pots;
-typedef InputArray<DigitalInput<kPinDigitalInput>, 5> Switches;
+typedef InputArray<
+    AnalogInput<kPinAnalogInput>,
+    kNumEditingPots + kNumAssignablePots,
+    8> Pots;
+
+typedef InputArray<
+    DigitalInput<kPinDigitalInput>,
+    kNumGroupSwitches + 2> Switches;
 
 PwmOutput<kPinVcfCutoffOut> vcf_cutoff_out;
 PwmOutput<kPinVcfResonanceOut> vcf_resonance_out;
@@ -49,7 +56,7 @@ ShiftRegister<
 OutputArray<
     Pin<kPinOutputLatch>, 
     Pin<kPinClk>,
-    Pin<kPinData>, 11, 4, LSB_FIRST, false> leds;
+    Pin<kPinData>, kNumPages, 4, LSB_FIRST, false> leds;
 
 // Audio output on pin 3.
 AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio;
@@ -69,9 +76,9 @@ TASK_BEGIN_NEAR
       uint8_t value = 0;
       if (i == editor.current_page()) {
         if (i == PAGE_MOD_MATRIX) {
-          uint8_t current_modulation_source_value = engine.modulation_source(
+          uint8_t current_modulation_source_value = engine.modulation_source(0, 
               engine.patch().modulation_matrix.modulation[
-                  editor.cursor()].source);
+                  editor.subpage()].source);
           value = current_modulation_source_value >> 4;
         } else {
           value = 15;
@@ -94,41 +101,61 @@ TASK_END
 void InputTask() {
   Switches::Event switch_event;
   Pots::Event pot_event;
-  static uint8_t id;
+  static uint8_t idle;
+  static uint8_t target_page_type;
 TASK_BEGIN_NEAR
   while (1) {
+    idle = 0;
+    target_page_type = PAGE_TYPE_ANY;
+    
     // Read the switches.
     switch_event = switches.Read();
     
-    // Update the editor.
-    if (switch_event.event == EVENT_RAISED && switch_event.time > 100) {
-      id = switch_event.id;
-      TASK_SWITCH;
-      editor.ToggleGroup(id);
-      TASK_SWITCH;
-      editor.DisplaySummary();
+    // If a button was pressed, perform the action. Otherwise, if nothing
+    // happened for 1.5s, update the idle flag.
+    if (switch_event.event == EVENT_NONE) {
+      if (switch_event.time > 1500) {
+        idle = 1;
+      }
+    } else {
+      if (switch_event.event == EVENT_RAISED && switch_event.time > 100) {
+        uint8_t id = switch_event.id;
+        if (id < kNumGroupSwitches) {
+          editor.ToggleGroup(id);
+          target_page_type = PAGE_TYPE_SUMMARY;
+        } else {
+          editor.HandleIncrement(2 * id - 2 * kNumGroupSwitches - 1);
+          target_page_type = PAGE_TYPE_DETAILS;
+        }
+      }
     }
     TASK_SWITCH;
     
     // Select which analog/digital inputs we want to read by a write to the
     // multiplexer register.
     input_mux.Write((pots.active_input() << 3) | switches.active_input());
-    TASK_SWITCH;
-    
-    // Read the potentiometers.
     pot_event = pots.Read();
     
     // Update the editor if something happened.
+    // Revert back to the main page when nothing happened for 1.5s.
     if (pot_event.event == EVENT_NONE) {
-      // Nothing happened. If nothing happened for a long time, display the
-      // summary page instead of the details.
-      if (pot_event.time > 1500) {
-        TASK_SWITCH;
-        editor.DisplaySummary();
+      if (idle && pot_event.time > 1500) {
+        target_page_type = PAGE_TYPE_SUMMARY;
       }
     } else {
-      editor.HandleInput(pot_event.id, pot_event.value);
-      TASK_SWITCH;
+      if (pot_event.id < kNumEditingPots) {
+        editor.HandleInput(pot_event.id, pot_event.value);
+        target_page_type = PAGE_TYPE_DETAILS;
+      } else {
+        engine.set_assignable_controller(
+            pot_event.id - kNumEditingPots, pot_event.value >> 2);
+      }
+    }
+    TASK_SWITCH;
+    
+    if (target_page_type == PAGE_TYPE_SUMMARY) {
+      editor.DisplaySummary();
+    } else if (target_page_type == PAGE_TYPE_DETAILS) {
       editor.DisplayDetails();
     }
     TASK_SWITCH;
@@ -137,50 +164,46 @@ TASK_END
 }
 
 void MidiTask() {
-TASK_BEGIN_NEAR
-  while (1) {
-    if (midi_input.readable()) {
-      uint8_t first_byte = midi_parser.PushByte(midi_input.ImmediateRead());
-      // Display a status indicator on the LCD to indicate that a message has
-      // been received. This could be done as well in the synthesis engine code
-      // or in the MIDI parser, but I'd rather keep the UI code separate.
-      switch (first_byte) {
-        case 0x90:
-          display.set_status(1);
-          break;
-        case 0xb0:
-          display.set_status(4);
-          break;
-        case 0xe0:
-          display.set_status(3);
-          break;
-        case 0xf8:
-          display.set_status(2);
-          break;
-      }
+  if (midi_input.readable()) {
+    uint8_t first_byte = midi_parser.PushByte(midi_input.ImmediateRead());
+    // Display a status indicator on the LCD to indicate that a message has
+    // been received. This could be done as well in the synthesis engine code
+    // or in the MIDI parser, but I'd rather keep the UI code separate.
+    switch (first_byte) {
+      case 0x90:
+        display.set_status(1);
+        break;
+      case 0xb0:
+        display.set_status(4);
+        break;
+      case 0xe0:
+        display.set_status(3);
+        break;
+      case 0xf8:
+        display.set_status(2);
+        break;
     }
-    TASK_SWITCH;
   }
-TASK_END
 }
 
 void AudioRenderingTask() {
-TASK_BEGIN_NEAR
-  while (1) {
-    if (audio.writable_block()) {
-      rendered_blocks++;
-      engine.Control();
-      for (uint8_t i = 0; i < kAudioBlockSize; ++i) {
-        engine.Audio();
-        audio.Overwrite(engine.signal());
-      }
-      vcf_cutoff_out.Write(engine.cutoff());
-      vcf_resonance_out.Write(engine.resonance());
-      vca_out.Write(engine.vca());
+  if (audio.writable_block()) {
+    rendered_blocks++;
+    engine.Control();
+    for (uint8_t i = 0; i < kAudioBlockSize; ++i) {
+      engine.Audio();
+      audio.Overwrite(engine.voice(0).signal());
     }
-    TASK_SWITCH;
+    vcf_cutoff_out.Write(engine.voice(0).cutoff());
+    vcf_resonance_out.Write(engine.voice(0).resonance());
+    vca_out.Write(engine.voice(0).vca());
   }
-TASK_END
+}
+
+
+void CvTask() {
+  engine.set_cv(0, AnalogInput<kPinCvInput>::Read() >> 2);
+  engine.set_cv(1, AnalogInput<kPinCvInput + 1>::Read() >> 2);
 }
 
 uint16_t previous_num_glitches = 0;
@@ -209,6 +232,8 @@ void ScheduleTasks() {
     AudioRenderingTask();
     MidiTask();
     AudioRenderingTask();
+    CvTask();
+    AudioRenderingTask();
   }
 }
 
@@ -225,8 +250,8 @@ void Setup() {
   Timer<2>::set_prescaler(1);
   Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
   Timer<2>::Start();
-  /* Timer<1>::set_prescaler(1);
-  Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT); */
+  Timer<1>::set_prescaler(1);
+  Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
   
   audio.Init();
   
@@ -235,9 +260,9 @@ void Setup() {
   vca_out.Init();
   
   
-  display.SetBrightness(29);
-  display.SetCustomCharMap(character_table[0], 8);
-  editor.DisplaySplashScreen();
+  // display.SetBrightness(29);
+  // display.SetCustomCharMap(character_table[0], 8);
+  // editor.DisplaySplashScreen();
   
   midi_input.Init();
   pots.Init();
@@ -256,5 +281,3 @@ int main(void) {
   ScheduleTasks();
   return 0;
 }
-
-

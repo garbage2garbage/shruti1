@@ -21,7 +21,7 @@ Hybrid retro-digital (8 bits) / analog synthesis.
   scan, when controlled by a LFO or Envelope, or wave sequence).
 * Noise source & sub-oscillator (triangle or square).
 * 2 LFO (square, wave, triangle, sample & hold).
-* ADSR envelope.
+* 2 ADSR envelopes.
 * Assignable modulation matrix.
 * Curtis filters (analog! external signals welcome!).
 * Arpeggiator with 6 different patterns.

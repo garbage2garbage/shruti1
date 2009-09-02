@@ -38,6 +38,7 @@ prm
 rng
 op
 tun
+env
 lfo
 atk
 dec
@@ -69,7 +70,8 @@ lfo2~vcf
 osc bal
 sub osc.
 resonance
-envelope
+envelope 1
+envelope 2
 sequencer
 attack
 decay
@@ -131,7 +133,11 @@ whl
 bnd
 as1
 as2
-env
+cv1
+cv2
+rnd
+en1
+en2
 vel
 not
 gat
@@ -143,7 +149,11 @@ mwheel
 bender
 assgn1
 assgn2
-envlpe
+ cv1
+ cv2
+random
+env1
+env2
 velo
 note
 gate

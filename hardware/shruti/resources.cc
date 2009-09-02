@@ -17,6 +17,7 @@ static const prog_char str_res_prm[] PROGMEM = "prm";
 static const prog_char str_res_rng[] PROGMEM = "rng";
 static const prog_char str_res_op[] PROGMEM = "op";
 static const prog_char str_res_tun[] PROGMEM = "tun";
+static const prog_char str_res_env[] PROGMEM = "env";
 static const prog_char str_res_lfo[] PROGMEM = "lfo";
 static const prog_char str_res_atk[] PROGMEM = "atk";
 static const prog_char str_res_dec[] PROGMEM = "dec";
@@ -47,7 +48,8 @@ static const prog_char str_res_lfo2Tvcf[] PROGMEM = "lfo2~vcf";
 static const prog_char str_res_osc_bal[] PROGMEM = "osc bal";
 static const prog_char str_res_sub_osc_[] PROGMEM = "sub osc.";
 static const prog_char str_res_resonance[] PROGMEM = "resonance";
-static const prog_char str_res_envelope[] PROGMEM = "envelope";
+static const prog_char str_res_envelope_1[] PROGMEM = "envelope 1";
+static const prog_char str_res_envelope_2[] PROGMEM = "envelope 2";
 static const prog_char str_res_sequencer[] PROGMEM = "sequencer";
 static const prog_char str_res_attack[] PROGMEM = "attack";
 static const prog_char str_res_decay[] PROGMEM = "decay";
@@ -103,7 +105,11 @@ static const prog_char str_res_whl[] PROGMEM = "whl";
 static const prog_char str_res_bnd[] PROGMEM = "bnd";
 static const prog_char str_res_as1[] PROGMEM = "as1";
 static const prog_char str_res_as2[] PROGMEM = "as2";
-static const prog_char str_res_env[] PROGMEM = "env";
+static const prog_char str_res_cv1[] PROGMEM = "cv1";
+static const prog_char str_res_cv2[] PROGMEM = "cv2";
+static const prog_char str_res_rnd[] PROGMEM = "rnd";
+static const prog_char str_res_en1[] PROGMEM = "en1";
+static const prog_char str_res_en2[] PROGMEM = "en2";
 static const prog_char str_res_vel[] PROGMEM = "vel";
 static const prog_char str_res_not[] PROGMEM = "not";
 static const prog_char str_res_gat[] PROGMEM = "gat";
@@ -115,10 +121,14 @@ static const prog_char str_res_mwheel[] PROGMEM = "mwheel";
 static const prog_char str_res_bender[] PROGMEM = "bender";
 static const prog_char str_res_assgn1[] PROGMEM = "assgn1";
 static const prog_char str_res_assgn2[] PROGMEM = "assgn2";
-static const prog_char str_res_envlpe[] PROGMEM = "envlpe";
+static const prog_char str_res__cv1[] PROGMEM = " cv1";
+static const prog_char str_res__cv2[] PROGMEM = " cv2";
+static const prog_char str_res_env1[] PROGMEM = "env1";
+static const prog_char str_res_env2[] PROGMEM = "env2";
 static const prog_char str_res_velo[] PROGMEM = "velo";
 static const prog_char str_res_note[] PROGMEM = "note";
 static const prog_char str_res_gate[] PROGMEM = "gate";
+static const prog_char str_res_random[] PROGMEM = "random";
 static const prog_char str_res_cut[] PROGMEM = "cut";
 static const prog_char str_res_vca[] PROGMEM = "vca";
 static const prog_char str_res_pw1[] PROGMEM = "pw1";
@@ -257,6 +267,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_rng,
   str_res_op,
   str_res_tun,
+  str_res_env,
   str_res_lfo,
   str_res_atk,
   str_res_dec,
@@ -287,7 +298,8 @@ PROGMEM const prog_char* string_table[] = {
   str_res_osc_bal,
   str_res_sub_osc_,
   str_res_resonance,
-  str_res_envelope,
+  str_res_envelope_1,
+  str_res_envelope_2,
   str_res_sequencer,
   str_res_attack,
   str_res_decay,
@@ -343,7 +355,11 @@ PROGMEM const prog_char* string_table[] = {
   str_res_bnd,
   str_res_as1,
   str_res_as2,
-  str_res_env,
+  str_res_cv1,
+  str_res_cv2,
+  str_res_rnd,
+  str_res_en1,
+  str_res_en2,
   str_res_vel,
   str_res_not,
   str_res_gat,
@@ -355,10 +371,14 @@ PROGMEM const prog_char* string_table[] = {
   str_res_bender,
   str_res_assgn1,
   str_res_assgn2,
-  str_res_envlpe,
+  str_res__cv1,
+  str_res__cv2,
+  str_res_env1,
+  str_res_env2,
   str_res_velo,
   str_res_note,
   str_res_gate,
+  str_res_random,
   str_res_cut,
   str_res_vca,
   str_res_pw1,

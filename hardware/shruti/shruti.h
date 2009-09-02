@@ -17,6 +17,13 @@
 
 namespace hardware_shruti {
 
+// Set this flag to 6 to get a nice polysynth (humour).
+static const uint8_t kNumVoices = 1;
+
+static const uint8_t kNumEditingPots = 4;
+static const uint8_t kNumAssignablePots = 2;
+static const uint8_t kNumGroupSwitches = 5;
+
 // Rate of the main timer. For now, 1 sample is generated per tick, but we might
 // want to do something different to achieve other sample rates
 // (20kHz or 16kHz).
@@ -44,13 +51,13 @@ static const uint8_t kPinInputLatch = 7;
 static const uint8_t kPinClk = 5;
 
 // PWM/audio output.
-static const uint8_t kPinDacLatch = 10;
 static const uint8_t kPinVcoOut = 3;
 static const uint8_t kPinVcaOut = 11;
 static const uint8_t kPinVcfCutoffOut = 9;
 static const uint8_t kPinVcfResonanceOut = 10;
 
 static const uint8_t kPinAnalogInput = 0;
+static const uint8_t kPinCvInput = 1;
 
 // ---- LCD type ---------------------------------------------------------------
 

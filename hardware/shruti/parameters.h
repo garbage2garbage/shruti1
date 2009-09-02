@@ -11,6 +11,11 @@
 
 namespace hardware_shruti {
 
+static const uint8_t kNumModulationSources = 16;
+static const uint8_t kNumGlobalModulationSources = 11;
+static const uint8_t kNumVoiceModulationSources = kNumModulationSources -
+    kNumGlobalModulationSources;
+
 enum ModulationSource {
   /* First the modulation sources common to all notes. */
   MOD_SRC_LFO_1 = 0,
@@ -21,14 +26,17 @@ enum ModulationSource {
   MOD_SRC_PITCH_BEND,
   MOD_SRC_ASSIGNABLE_1,
   MOD_SRC_ASSIGNABLE_2,
+  MOD_SRC_CV_1,
+  MOD_SRC_CV_2,
+  MOD_SRC_RANDOM,
+  
   /* Then those which are different for each note. */
-  MOD_SRC_ENV,
+  MOD_SRC_ENV_1 = kNumGlobalModulationSources,
+  MOD_SRC_ENV_2,
   MOD_SRC_VELOCITY,
   MOD_SRC_NOTE,
   MOD_SRC_GATE,
 };
-
-static const uint8_t kNumModulationSources = 12;
 
 enum ModulationDestination {
   MOD_DST_FILTER_CUTOFF = 0,
@@ -65,34 +73,38 @@ enum Parameter {
   PRM_FILTER_ENV,
   PRM_FILTER_LFO,
 
-  PRM_ENV_ATTACK,
-  PRM_ENV_DECAY,
-  PRM_ENV_SUSTAIN,
-  PRM_ENV_RELEASE,
+  PRM_ENV_ATTACK_1,
+  PRM_ENV_ATTACK_2,
+  PRM_ENV_DECAY_1,
+  PRM_ENV_DECAY_2,
+  PRM_ENV_SUSTAIN_1,
+  PRM_ENV_SUSTAIN_2,
+  PRM_ENV_RELEASE_1,
+  PRM_ENV_RELEASE_2,
 
   PRM_LFO_WAVE_1,
   PRM_LFO_WAVE_2,
   PRM_LFO_RATE_1,
   PRM_LFO_RATE_2,
 
-  PRM_MOD_SOURCE = 24,
-  PRM_MOD_DESTINATION = 25,
-  PRM_MOD_AMOUNT = 26,
-  PRM_MOD_ROW = 27,
+  PRM_MOD_SOURCE = 28,
+  PRM_MOD_DESTINATION = 29,
+  PRM_MOD_AMOUNT = 30,
+  PRM_MOD_ROW = 31,
 
-  PRM_ARP_TEMPO = 48,
+  PRM_ARP_TEMPO = 58,
   PRM_ARP_OCTAVES,
   PRM_ARP_PATTERN,
   PRM_ARP_SWING,
   
-  PRM_SEQUENCE = 52,
+  PRM_SEQUENCE = 62,
 
-  PRM_KBD_OCTAVE = 60,
+  PRM_KBD_OCTAVE = 70,
   PRM_KBD_RAGA,
   PRM_KBD_PORTAMENTO,
   PRM_KBD_MIDI_CHANNEL,
   
-  PRM_NAME = 64,
+  PRM_NAME = 74,
 };
 
 enum OscillatorAlgorithm {
@@ -127,7 +139,7 @@ enum OPERATOR {
   RING_MOD = 2
 };
 
-static const uint8_t kNumEditableParameters = 36;
+static const uint8_t kNumEditableParameters = 40;
 
 }  // namespace hardware_shruti
 
