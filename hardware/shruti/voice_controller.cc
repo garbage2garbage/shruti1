@@ -264,7 +264,7 @@ void VoiceController::ArpeggioDown() {
 void VoiceController::Step() {
   uint8_t num_notes = notes_.size();
   if (mode_ == ARPEGGIO_DIRECTION_RANDOM) {
-    random_byte_ = Random::Byte();
+    random_byte_ = Random::state_msb();
     octave_step_ = random_byte_ & 0xf;
     arpeggio_step_ = (random_byte_ & 0xf0) >> 4;
     while (octave_step_ >= octaves_) {

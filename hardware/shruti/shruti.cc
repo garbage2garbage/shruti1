@@ -259,10 +259,9 @@ void Setup() {
   vcf_resonance_out.Init();
   vca_out.Init();
   
-  
-  // display.SetBrightness(29);
-  // display.SetCustomCharMap(character_table[0], 8);
-  // editor.DisplaySplashScreen();
+  display.SetBrightness(29);
+  display.SetCustomCharMap(character_table[0], 8);
+  editor.DisplaySplashScreen();
   
   midi_input.Init();
   pots.Init();

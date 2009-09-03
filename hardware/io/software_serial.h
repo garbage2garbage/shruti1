@@ -140,7 +140,7 @@ struct SoftwareSerialOutput {
     TunedDelay(delay);
   }
   // Following code from NewSoftSerial, Copyright (c) 2006 David A. Mellis.
-  static inline void TunedDelay(uint16_t delay) {
+  static void TunedDelay(uint16_t delay) {
     uint8_t tmp = 0;
 
     asm volatile(

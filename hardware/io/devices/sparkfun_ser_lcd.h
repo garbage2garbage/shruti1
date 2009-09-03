@@ -62,8 +62,10 @@ class Display {
 
   Display() { }
   static void Init() {
-    memset(local_, ' ', lcd_buffer_size);
-    memset(remote_, '?', lcd_buffer_size);
+    for (uint8_t i = 0; i < lcd_buffer_size; ++i) {
+      local_[i] = ' ';
+      remote_[i] = '?';
+    }
     scan_position_last_write_ = 255;
     blink_ = 0;
     cursor_position_ = 255;

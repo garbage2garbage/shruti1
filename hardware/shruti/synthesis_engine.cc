@@ -49,7 +49,7 @@ void SynthesisEngine::Init() {
 
 static const prog_char empty_patch[] PROGMEM = {
     99,
-    WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 50,
+    WAVEFORM_SPEECH, WAVEFORM_SQUARE, 0, 50,
     128, 128, 0, 0,
     4, 4, 4, WAVEFORM_SQUARE,
     120, 0, 0, 0,
@@ -226,7 +226,7 @@ void SynthesisEngine::Control() {
     lfo_[i].Increment();
     modulation_sources_[MOD_SRC_LFO_1 + i] = lfo_[i].Render();
   }
-  modulation_sources_[MOD_SRC_RANDOM] = Random::Byte();
+  modulation_sources_[MOD_SRC_RANDOM] = Random::state_msb();
     
   // Update the arpeggiator / step sequencer.
   controller_.Control();
@@ -244,6 +244,7 @@ void SynthesisEngine::Control() {
 /* static */
 void SynthesisEngine::Audio() {
   oscillator_decimation_++;
+  oscillator_decimation_ &= 3;
   controller_.Audio();
   for (uint8_t i = 0; i < kNumVoices; ++i) {
     voice_[i].Audio();
@@ -252,6 +253,7 @@ void SynthesisEngine::Audio() {
 
 /* <static> */
 Envelope Voice::envelope_[2];
+uint8_t Voice::dead_;
 int16_t Voice::pitch_increment_;
 int16_t Voice::pitch_target_;
 int16_t Voice::pitch_value_;
@@ -310,9 +312,12 @@ void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
 /* static */
 void Voice::Control() {
   // Update the envelopes.
+  dead_ = 1;
   for (uint8_t i = 0; i < 2; ++i) {
     envelope_[i].Render();
+    dead_ = dead_ && envelope_[i].dead();
   }
+  
   pitch_value_ += pitch_increment_;
   if ((pitch_increment_ > 0) ^ (pitch_value_ < pitch_target_)) {
     pitch_value_ = pitch_target_;
@@ -364,9 +369,6 @@ void Voice::Control() {
     } else if (i == kModulationMatrixSize + 1) {
       source = MOD_SRC_LFO_2;
       amount = engine.patch_.filter_lfo;
-    }
-    if (amount == 0) {
-      continue;
     }
     if (source < kNumGlobalModulationSources) {
       // Global sources, read from the engine.
@@ -460,9 +462,14 @@ void Voice::Control() {
 
 /* static */
 void Voice::Audio() {
-  if (dead()) {
+  if (dead_) {
     signal_ = 128;
     return;
+  }
+
+  // Do not recompute the noise sample for every sample.
+  if (engine.oscillator_decimation() == 0) {
+    Random::Update();
   }
   
   // Update the phase accumulators for the oscillators;
@@ -480,11 +487,7 @@ void Voice::Audio() {
   mix = Signal::Mix(mix, sub_osc,
                     modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
 
-  // Do not recompute the noise sample for every sample.
-  if ((engine.oscillator_decimation() & 3) == 0) {
-    noise_sample_ = Random::Byte();
-  }
-  mix = Signal::Mix(mix, noise_sample_,
+  mix = Signal::Mix(mix, Random::state_msb(),
                     modulation_destinations_[MOD_DST_MIX_NOISE]);
 
 #ifdef SOFTWARE_VCA

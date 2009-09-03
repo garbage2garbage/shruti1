@@ -29,7 +29,7 @@ class Lfo {
     switch (algorithm_) {
       case LFO_WAVEFORM_S_H:
         if (uint16_t(phase_ + phase_increment_) < phase_) {
-          value_ = Random::Byte();
+          value_ = Random::GetByte();
         }
         value = value_;
         break;

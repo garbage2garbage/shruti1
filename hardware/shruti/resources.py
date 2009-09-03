@@ -454,13 +454,6 @@ for scale, values in scales:
 # ------------------------------------------------------------------------------
 
 waveforms = []
-numpy.random.seed(21)
-# Create sine wave table.
-sine = -numpy.cos(numpy.arange(257.0) / 256.0 * 2 * numpy.pi) * 127.5 + 127.5
-sine += numpy.random.rand(257) - 0.5
-waveforms.append(
-    ('sine', sine.astype(int))
-)
 # Create amplitude modulated resonance tables.
 sine_samples = []
 square_samples = []
@@ -490,6 +483,10 @@ def Scale(array, min=0, max=255, use_min=0):
   array = array * (max - min) + min
   return numpy.round(array).astype(int)
 
+# Sine wave.
+sine = -numpy.cos(numpy.arange(257.0) / 256.0 * 2 * numpy.pi) * 127.5 + 127.5
+sine += numpy.random.rand(257) - 0.5
+
 # Band limited waveforms.
 num_zones = (107 - 24) / 16 + 2
 bl_pulse_tables = []
@@ -510,11 +507,19 @@ for zone in range(num_zones):
   bl_square_tables.append(('bandlimited_square_%d' % zone,
                           Scale(square, 0, 255)))
   triangle = numpy.cumsum(square - square.mean())
+  if zone == num_zones - 1:
+    # Since the band-limited triangle wave for the highest zone has almost no
+    # harmonics, store a pure sine wave here, which is used for other purposes
+    # (FM). Random noise is added to the sine wave so as to avoid the
+    # quantization error being correlated with the signal.
+    triangle = sine
+
   bl_tri_tables.append(('bandlimited_triangle_%d' % zone,
                         Scale(triangle, 0, 255)))
   saw = numpy.cumsum(pulse[wrap] - pulse.mean())
   bl_saw_tables.append(('bandlimited_saw_%d' % zone, Scale(saw, 0, 255)))
 
+# Blit are never generated at SR, always at SR/2.
 del bl_pulse_tables[0]
 
 waveforms.extend(bl_pulse_tables)

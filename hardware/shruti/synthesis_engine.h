@@ -68,9 +68,7 @@ class Voice {
   static inline uint8_t resonance()  {
     return modulation_destinations_[MOD_DST_FILTER_RESONANCE];
   }
-  static inline uint8_t dead()  {
-    return envelope_[0].dead() && envelope_[1].dead();
-  }
+  static inline uint8_t dead()  { return dead_; }
   static inline uint8_t signal()  { return signal_; }
   static inline uint8_t modulation_source(uint8_t i) {
     return modulation_sources_[i - kNumGlobalModulationSources];
@@ -79,8 +77,9 @@ class Voice {
   static void TriggerEnvelope(uint8_t stage);
   
  private:
-  // Counters/phases for the envelope generator.
+  // Envelope generators.
   static Envelope envelope_[2];
+  static uint8_t dead_;
 
   // Counters/phases for the pitch envelope generator (portamento).
   // Pitches are stored on 14 bits, the 7 highest bits are the MIDI note value,
@@ -191,9 +190,6 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   
   // Called whenever a parameter related to oscillators is called.
   static void UpdateOscillatorAlgorithms();
-
-  // Computes the increment for a given envelope stage.
-  static uint16_t ScaleEnvelopeIncrement(uint8_t time, uint8_t scale);
   
   DISALLOW_COPY_AND_ASSIGN(SynthesisEngine);
 };

@@ -13,10 +13,21 @@ namespace hardware_utils {
 
 class Random {
  public:
-  static uint16_t Short();
-  static inline uint8_t Byte() {
-    return uint8_t(Short() >> 8);
+  static void Update() {
+    // Galois LFSR with feedback polynomial = x^16 + x^14 + x^13 + x^11.
+    // Period: 65535.
+    rng_state_ = (rng_state_ >> 1) ^ (-(rng_state_ & 1) & 0xB400);    
   }
+
+  static inline uint16_t state() { return rng_state_; }
+
+  static inline uint8_t state_msb() { return uint8_t(rng_state_ >> 8); }
+
+  static inline uint8_t GetByte() {
+    Update();
+    return state_msb();
+  }
+
  private:
   static uint16_t rng_state_;
   

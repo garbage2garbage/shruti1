@@ -44,8 +44,9 @@ using hardware_utils::Random;
 
 namespace hardware_shruti {
 
+#define WAV_RES_SINE WAV_RES_BANDLIMITED_TRIANGLE_6
 #define HALF_SAMPLE_RATE if (engine.oscillator_decimation() & 1) return;
-#define FOURTH_SAMPLE_RATE if ((engine.oscillator_decimation() & 3) != 0) return;
+#define FOURTH_SAMPLE_RATE if (engine.oscillator_decimation()) return;
 
 enum OscillatorMode {
   FULL = 0,
@@ -504,10 +505,6 @@ class Oscillator {
   static void RenderSpeech() {
     HALF_SAMPLE_RATE;
     
-    int16_t phase_noise = 0;
-    if (data_.sp.noise_modulation) {
-      phase_noise = int8_t(Random::Byte()) * int8_t(data_.sp.noise_modulation);
-    }
     int8_t result = 0;
     for (uint8_t i = 0; i < 3; ++i) {
       data_.sp.formant_phase[i] += data_.sp.formant_increment[i];
@@ -520,6 +517,8 @@ class Oscillator {
     result = Signal::SignedMulScale8(result, 255 - (phase_ >> 8));
 
     phase_ += phase_increment_;
+    int16_t phase_noise = int8_t(Random::state_msb()) *
+        int8_t(data_.sp.noise_modulation);
     if ((phase_ + phase_noise) < phase_increment_) {
       data_.sp.formant_phase[0] = 0;
       data_.sp.formant_phase[1] = 0;

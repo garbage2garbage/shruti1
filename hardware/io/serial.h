@@ -175,7 +175,8 @@ struct SerialImplementation<SerialPort, BUFFERED, BUFFERED> {
   typedef InputOutput<InputBuffer, OutputBuffer> IO;
 };
 
-template<typename SerialPort, uint16_t baud_rate, PortMode input = POLLED, PortMode output = POLLED>
+template<typename SerialPort, uint16_t baud_rate, PortMode input = POLLED,
+         PortMode output = POLLED>
 struct Serial {
   typedef SerialImplementation<SerialPort, input, output> Impl;
   typedef uint8_t Value;
