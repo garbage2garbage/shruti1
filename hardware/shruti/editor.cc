@@ -238,43 +238,29 @@ static const prog_char raw_parameter_definition[
 };
 
 /* static */
-const PageDefinition Editor::page_definition_[] = {
-  { PAGE_OSC_OSC_1, GROUP_OSC, STR_RES_OSCILLATOR_1,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
+const UiHandler Editor::ui_handler_[] = {
+  { &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
     &Editor::HandleEditInput, &Editor::HandleEditIncrement },
-  { PAGE_OSC_OSC_2, GROUP_OSC, STR_RES_OSCILLATOR_2,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
-  { PAGE_OSC_OSC_MIX, GROUP_OSC, STR_RES_MIXER,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
-  { PAGE_FILTER_FILTER, GROUP_FILTER, STR_RES_FILTER,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
-  { PAGE_MOD_ENV_1, GROUP_MOD, STR_RES_ENVELOPE_1,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
-  { PAGE_MOD_ENV_2, GROUP_MOD, STR_RES_ENVELOPE_2,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
-  { PAGE_MOD_LFO, GROUP_MOD, STR_RES_LFOS,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
-  { PAGE_MOD_MATRIX, GROUP_MOD, STR_RES_MODULATION,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
-  { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_ARPEGGIO,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement  },
-  { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER,
-    &Editor::DisplayStepSequencerPage, &Editor::DisplayStepSequencerPage,
-    &Editor::HandleStepSequencerInput, &Editor::HandleStepSequencerIncrement  },
-  { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD,
-    &Editor::DisplayEditSummaryPage, &Editor::DisplayEditDetailsPage,
-    &Editor::HandleEditInput, &Editor::HandleEditIncrement },
-  { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_LOAD_SAVE_PATCH, 
-    &Editor::DisplayLoadSavePage, &Editor::DisplayLoadSavePage,
+  { &Editor::DisplayStepSequencerPage, &Editor::DisplayStepSequencerPage,
+    &Editor::HandleStepSequencerInput, &Editor::HandleStepSequencerIncrement },
+  { &Editor::DisplayLoadSavePage, &Editor::DisplayLoadSavePage,
     &Editor::HandleLoadSaveInput, &Editor::HandleLoadSaveIncrement },
+};
+
+/* static */
+const PageDefinition Editor::page_definition_[] = {
+  { PAGE_OSC_OSC_1, GROUP_OSC, STR_RES_OSCILLATOR_1, PARAMETER_EDITOR },
+  { PAGE_OSC_OSC_2, GROUP_OSC, STR_RES_OSCILLATOR_2, PARAMETER_EDITOR },
+  { PAGE_OSC_OSC_MIX, GROUP_OSC, STR_RES_MIXER, PARAMETER_EDITOR },
+  { PAGE_FILTER_FILTER, GROUP_FILTER, STR_RES_FILTER, PARAMETER_EDITOR },
+  { PAGE_MOD_ENV_1, GROUP_MOD, STR_RES_ENVELOPE_1, PARAMETER_EDITOR },
+  { PAGE_MOD_ENV_2, GROUP_MOD, STR_RES_ENVELOPE_2, PARAMETER_EDITOR },
+  { PAGE_MOD_LFO, GROUP_MOD, STR_RES_LFOS, PARAMETER_EDITOR },
+  { PAGE_MOD_MATRIX, GROUP_MOD, STR_RES_MODULATION, PARAMETER_EDITOR },
+  { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_ARPEGGIO, PARAMETER_EDITOR },
+  { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER, STEP_SEQUENCER },
+  { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD, PARAMETER_EDITOR },
+  { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_LOAD_SAVE_PATCH, LOAD_SAVE }
 };
 
 /* <static> */
@@ -362,13 +348,14 @@ void Editor::ToggleGroup(ParameterGroup group) {
 
 /* static */
 void Editor::HandleInput(uint8_t controller_index, uint16_t value) {
-  (*page_definition_[current_page_].input_handler)(
+  (*ui_handler_[page_definition_[current_page_].ui_type].input_handler)(
       controller_index, value);
 }
 
 /* static */
 void Editor::HandleIncrement(int8_t direction) {
-  (*page_definition_[current_page_].increment_handler)(direction);
+  (*ui_handler_[page_definition_[current_page_].ui_type].increment_handler)(
+      direction);
 }
 
 /* static */
@@ -377,14 +364,14 @@ void Editor::DisplaySummary() {
   if (current_display_type_ == PAGE_TYPE_SUMMARY) {
     return;
   }
-  (*page_definition_[current_page_].summary_page)();
+  (*ui_handler_[page_definition_[current_page_].ui_type].summary_page)();
   current_display_type_ = PAGE_TYPE_SUMMARY;
 }
 
 /* static */
 void Editor::DisplayDetails() {
   current_display_type_ = PAGE_TYPE_DETAILS;
-  (*page_definition_[current_page_].details_page)();
+  (*ui_handler_[page_definition_[current_page_].ui_type].details_page)();
 }
 
 /* static */

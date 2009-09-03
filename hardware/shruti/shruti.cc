@@ -246,15 +246,13 @@ void Setup() {
   display.Init();
   editor.Init();
 
-  // 31.25kHz, phase correct.
+  // Initialize all the PWM outputs, in 31.25kHz, phase correct mode.
+  Timer<1>::set_prescaler(1);
+  Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
   Timer<2>::set_prescaler(1);
   Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
   Timer<2>::Start();
-  Timer<1>::set_prescaler(1);
-  Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
-  
   audio.Init();
-  
   vcf_cutoff_out.Init();
   vcf_resonance_out.Init();
   vca_out.Init();

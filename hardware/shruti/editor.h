@@ -101,14 +101,24 @@ struct ParameterDefinition {
 
 class Editor;
 
+enum PageUi {
+  PARAMETER_EDITOR = 0,
+  STEP_SEQUENCER = 1,
+  LOAD_SAVE = 2,
+};
+
+struct UiHandler {
+  void (*summary_page)();
+  void (*details_page)();
+  void (*input_handler)(uint8_t controller_index, uint16_t value);
+  void (*increment_handler)(int8_t direction);  
+};
+
 struct PageDefinition {
   ParameterPage id;
   ParameterGroup group;
   ResourceId name;
-  void (*summary_page)();
-  void (*details_page)();
-  void (*input_handler)(uint8_t controller_index, uint16_t value);
-  void (*increment_handler)(int8_t direction);
+  uint8_t ui_type;
 };
 
 class Editor {
@@ -153,6 +163,7 @@ class Editor {
   static const ParameterDefinition& parameter_definition(uint8_t index);
 
   static const PageDefinition page_definition_[];
+  static const UiHandler ui_handler_[];
 
   // Parameter definitions are stored in program memory and need to be copied
   // in SRAM when read. This temporary storage space holds them.
