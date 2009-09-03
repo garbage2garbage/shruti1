@@ -481,19 +481,26 @@ void Voice::Audio() {
   if (engine.patch_.osc_option[0] == RING_MOD) {
     mix = Signal::SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
   }
-  mix = Signal::Mix(mix, osc_2, modulation_destinations_[MOD_DST_MIX_BALANCE]);
+  mix = Signal::Mix(
+      mix,
+      osc_2,
+      modulation_destinations_[MOD_DST_MIX_BALANCE]);
   
   uint8_t sub_osc = SubOsc::Render();
-  mix = Signal::Mix(mix, sub_osc,
-                    modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
+  mix = Signal::Mix(
+      mix,
+      sub_osc,
+      modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
 
-  mix = Signal::Mix(mix, Random::state_msb(),
-                    modulation_destinations_[MOD_DST_MIX_NOISE]);
+  mix = Signal::Mix(
+      mix,
+      Random::state_msb(),
+      modulation_destinations_[MOD_DST_MIX_NOISE]);
 
 #ifdef SOFTWARE_VCA
-  signal_ = Signal::SignedMulScale8(128 + mix
-                                    modulation_destinations_[MOD_DST_VCA]);
-  signal_ = signal_ + 128;
+  signal_ = Signal::SignedMulScale8(
+      128 + mix
+      modulation_destinations_[MOD_DST_VCA]) + 128;
 #else
   signal_ = mix;
 #endif

@@ -91,21 +91,11 @@ class ResourcesManager {
 
   template<typename T>
   static void Load(const prog_char* p, uint8_t i, T* destination) {
-    UntypedLoad(p, i, (uint8_t*)destination, sizeof(T));
-  }
-
- private:
-  static void UntypedLoad(const prog_char* p, uint8_t i, uint8_t* destination,
-                          uint8_t size) {
-    const uint8_t* source = (const uint8_t*)p;
-    source += size * i;
-    for (int i = 0; i < size; ++i) {
- #ifdef __TEST__
-      *destination++ = *source++;
- #else
-      *destination++ = pgm_read_byte(source++);
- #endif  // __TEST__
-    }
+#ifdef __TEST__
+    memcpy(destination, p + i * sizeof(T), sizeof(T));
+#else
+    memcpy_P(destination, p + i * sizeof(T), sizeof(T));
+#endif  // __TEST__
   }
 };
 

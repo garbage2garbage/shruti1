@@ -108,7 +108,8 @@ on
 tri
 sqr
 s&h
-ramp
+\x05
+\x06
 
 blit
 saw
@@ -484,6 +485,7 @@ def Scale(array, min=0, max=255, use_min=0):
   return numpy.round(array).astype(int)
 
 # Sine wave.
+numpy.random.seed(21)
 sine = -numpy.cos(numpy.arange(257.0) / 256.0 * 2 * numpy.pi) * 127.5 + 127.5
 sine += numpy.random.rand(257) - 0.5
 

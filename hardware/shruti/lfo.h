@@ -25,25 +25,25 @@ class Lfo {
  public:
   Lfo() { }
   uint8_t Render() {
-    uint8_t value;
     switch (algorithm_) {
       case LFO_WAVEFORM_S_H:
         if (uint16_t(phase_ + phase_increment_) < phase_) {
           value_ = Random::GetByte();
         }
-        value = value_;
-        break;
+        return value_;
       case LFO_WAVEFORM_TRIANGLE:
-        value = (phase_ & 0X8000) ? phase_ >> 7 : ~uint8_t(phase_ >> 7);
-        break;
+        return (phase_ & 0X8000) ? phase_ >> 7 : ~uint8_t(phase_ >> 7);
       case LFO_WAVEFORM_SQUARE:
-        value = (phase_ & 0x8000) ? 255 : 0;
-        break;
-      case LFO_WAVEFORM_SAW:
-        value = phase_ >> 8;
-        break;
+        return (phase_ & 0x8000) ? 255 : 0;
+      default:
+        {
+          uint8_t value = phase_ >> 8;
+          if (algorithm_ == LFO_WAVEFORM_DOWN) {
+            value = ~value;
+          }
+          return value;
+        }
     }
-    return value;
   }
   void Reset() {
     ResetPhase();
