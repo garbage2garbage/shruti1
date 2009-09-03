@@ -57,7 +57,7 @@ class OutputArray {
     Index c = 0;
     Index bit = 1;
     for (Index i = 0; i < size; ++i) {
-      if (values_[i] > cycle_) {
+      if (values_[i] > cycle_ || values_[i] == ((1 << bit_depth) - 1)) {
         c |= bit;
       }
       bit <<= 1;
@@ -132,7 +132,7 @@ class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
     for (Index i = 0; i < size; ++i) {
       Value x = values_[i >> 1];
       uint8_t value = (x & 0xf);
-      if (value > cycle_) {
+      if (value > cycle_ || value == 15) {
         c |= bit;
       }
       bit <<= 1;
@@ -141,7 +141,7 @@ class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
         break;
       }
       x >>= 4;
-      if (x > cycle_) {
+      if (x > cycle_ || x == 15) {
         c |= bit;
       }
       bit <<= 1;

@@ -133,7 +133,7 @@ TASK_BEGIN_NEAR
     
     // Select which analog/digital inputs we want to read by a write to the
     // multiplexer register.
-    input_mux.Write((pots.active_input() << 3) | switches.active_input());
+    input_mux.Write((pots.active_input() << 3) | switches.active_input());    
     pot_event = pots.Read();
     
     // Update the editor if something happened.
@@ -158,6 +158,17 @@ TASK_BEGIN_NEAR
     } else if (target_page_type == PAGE_TYPE_DETAILS) {
       editor.DisplayDetails();
     }
+    TASK_SWITCH;
+  }
+TASK_END
+}
+
+void CvTask() {
+TASK_BEGIN_NEAR
+  while (1) {
+    engine.set_cv(0, AnalogInput<kPinCvInput>::Read() >> 2);
+    TASK_SWITCH;
+    engine.set_cv(1, AnalogInput<kPinCvInput + 1>::Read() >> 2);
     TASK_SWITCH;
   }
 TASK_END
@@ -200,11 +211,6 @@ void AudioRenderingTask() {
   }
 }
 
-
-void CvTask() {
-  engine.set_cv(0, AnalogInput<kPinCvInput>::Read() >> 2);
-  engine.set_cv(1, AnalogInput<kPinCvInput + 1>::Read() >> 2);
-}
 
 uint16_t previous_num_glitches = 0;
 void HeartbeatTask() {
@@ -264,7 +270,7 @@ void Setup() {
   midi_input.Init();
   pots.Init();
   switches.Init();
-  // Set the digital input to high to enable the pull-up resistor.
+  // Enable the pull-up resistor.
   Pin<kPinDigitalInput>::High();
   input_mux.Init();
   leds.Init();  

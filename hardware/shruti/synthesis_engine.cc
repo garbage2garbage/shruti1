@@ -53,10 +53,10 @@ static const prog_char empty_patch[] PROGMEM = {
     128, 128, 0, 0,
     4, 4, 4, WAVEFORM_SQUARE,
     120, 0, 0, 0,
-    0, 20,
-    40, 60,
-    100, 20,
-    40, 60,
+    20, 0,
+    60, 40,
+    20, 100,
+    60, 40,
     LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 64, 16,
     MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
     MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
@@ -227,7 +227,7 @@ void SynthesisEngine::Control() {
     modulation_sources_[MOD_SRC_LFO_1 + i] = lfo_[i].Render();
   }
   modulation_sources_[MOD_SRC_RANDOM] = Random::state_msb();
-    
+
   // Update the arpeggiator / step sequencer.
   controller_.Control();
   
@@ -324,8 +324,9 @@ void Voice::Control() {
     pitch_increment_ = 0;
   }
   
-  // Used temporarily, then scaled to modulation_destinations_
-  int16_t dst[kNumModulationDestinations];
+  // Used temporarily, then scaled to modulation_destinations_. This does not
+  // need to be static, but if allocated on the heap, we get many push/pops.
+  static int16_t dst[kNumModulationDestinations];
 
   // Update the pre-scaled modulation sources.
   modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources] = 
@@ -352,24 +353,17 @@ void Voice::Control() {
   dst[MOD_DST_MIX_SUB_OSC] = engine.patch_.mix_sub_osc << 7;
   dst[MOD_DST_FILTER_RESONANCE] = engine.patch_.filter_resonance << 7;
   
-  // Apply the modulations in the modulation matrix + 2 hardcoded modulations
-  // for the filter (envelope and LFO2).
-  for (uint8_t i = 0; i < kModulationMatrixSize + 2; ++i) {
-    uint8_t source;
-    uint8_t destination = MOD_DST_FILTER_CUTOFF;
-    uint8_t source_value;
-    uint8_t amount;
-    if (i < kModulationMatrixSize) {
-      source = engine.patch_.modulation_matrix.modulation[i].source;
-      destination = engine.patch_.modulation_matrix.modulation[i].destination;
-      amount = engine.patch_.modulation_matrix.modulation[i].amount;
-    } else if (i == kModulationMatrixSize) {
-      source = MOD_SRC_ENV_1;
-      amount = engine.patch_.filter_env;
-    } else if (i == kModulationMatrixSize + 1) {
-      source = MOD_SRC_LFO_2;
-      amount = engine.patch_.filter_lfo;
+  // Apply the modulations in the modulation matrix.
+  for (uint8_t i = 0; i < kModulationMatrixSize; ++i) {
+    uint8_t amount = engine.patch_.modulation_matrix.modulation[i].amount;
+    if (amount == 0) {
+      continue;
     }
+    uint8_t source = engine.patch_.modulation_matrix.modulation[i].source;
+    uint8_t destination =
+        engine.patch_.modulation_matrix.modulation[i].destination;
+    uint8_t source_value;
+
     if (source < kNumGlobalModulationSources) {
       // Global sources, read from the engine.
       source_value = engine.modulation_sources_[source];
@@ -395,6 +389,19 @@ void Voice::Control() {
           Signal::Mix(255, source_value, amount << 1));
     }
   }
+  // Hardcoded filter modulations.
+  dst[MOD_DST_FILTER_CUTOFF] = Signal::Clip(
+      dst[MOD_DST_FILTER_CUTOFF] + Signal::MulScale1(
+          modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources],
+          engine.patch_.filter_env),
+      0,
+      16383);
+  dst[MOD_DST_FILTER_CUTOFF] = Signal::Clip(
+      dst[MOD_DST_FILTER_CUTOFF] + Signal::MulScale1(
+          engine.modulation_sources_[MOD_SRC_LFO_2],
+          engine.patch_.filter_lfo),
+      0,
+      16383);
   
   // Store in memory all the updated parameters.
   modulation_destinations_[MOD_DST_FILTER_CUTOFF] = \
@@ -449,13 +456,12 @@ void Voice::Control() {
     increment >>= num_shifts;
     
     // Now the oscillators can recompute all their internal variables!
+    pitch >>= 7;
     if (i == 0) {
-      Osc1::Update(modulation_destinations_[MOD_DST_PWM_1], pitch >> 7,
-                   increment);
-      SubOsc::Update(0, (pitch >> 7) - 12, increment >> 1);
+      Osc1::Update(modulation_destinations_[MOD_DST_PWM_1], pitch, increment);
+      SubOsc::Update(0, pitch - 12, increment >> 1);
     } else {
-      Osc2::Update(modulation_destinations_[MOD_DST_PWM_2], pitch >> 7,
-                   increment);
+      Osc2::Update(modulation_destinations_[MOD_DST_PWM_2], pitch, increment);
     }
   }
 }

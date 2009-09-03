@@ -249,9 +249,10 @@ class Oscillator {
   static inline uint8_t InterpolateTwoTables(
       const prog_uint8_t* table_a, const prog_uint8_t* table_b,
       uint16_t phase, uint8_t balance) {
-    return Signal::Mix(InterpolateSample(table_a, phase),
-                       InterpolateSample(table_b, phase),
-                       balance & 0xff);
+    return Signal::Mix(
+        InterpolateSample(table_a, phase),
+        InterpolateSample(table_b, phase),
+        balance);
   }
   
   // ------- Band-limited waveforms with variable pulse width -----------------.
