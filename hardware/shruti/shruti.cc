@@ -26,6 +26,9 @@ using namespace hardware_io;
 using namespace hardware_midi;
 using namespace hardware_shruti;
 
+using hardware_utils::NaiveScheduler;
+using hardware_utils::Task;
+
 // Midi input.
 Serial<SerialPort0, 31250, BUFFERED, DISABLED> midi_input;
 
@@ -64,45 +67,38 @@ uint32_t rendered_blocks = 0;
 
 MidiStreamParser<SynthesisEngine> midi_parser;
 
-void OutputTask() {
-TASK_BEGIN_NEAR
-  while (1) {
-    // Update the LED showing the active page. When the current page is the
-    // modulation matrix editor, the LED blinks according to the active
-    // modulation source.
-    // TODO(pichenettes): which class is responsible for handling that? In
-    // any case, this code does not belong here and is not readable.
-    for (uint8_t i = 0; i < kNumPages; ++i) {
-      uint8_t value = 0;
-      if (i == editor.current_page()) {
-        if (i == PAGE_MOD_MATRIX) {
-          uint8_t current_modulation_source_value = engine.modulation_source(0, 
-              engine.patch().modulation_matrix.modulation[
-                  editor.subpage()].source);
-          value = current_modulation_source_value >> 4;
-        } else {
-          value = 15;
-        }
+
+// What follows is a list of "tasks" - short functions handling a particular
+// aspect of the synth (rendering audio, updating the LCD display, etc). they
+// are called in sequence, with some tasks being more frequently called than
+// others, by the Scheduler.
+void UpdateLedsTask() {
+  for (uint8_t i = 0; i < kNumPages; ++i) {
+    uint8_t value = 0;
+    if (i == editor.current_page()) {
+      if (i == PAGE_MOD_MATRIX) {
+        uint8_t current_modulation_source_value = engine.modulation_source(0, 
+            engine.patch().modulation_matrix.modulation[
+                editor.subpage()].source);
+        value = current_modulation_source_value >> 4;
       } else {
-        value = 0;
+        value = 15;
       }
-      leds.set_value(i, value);
+    } else {
+      value = 0;
     }
-    leds.Out();
-    TASK_SWITCH;
-    
-    // Send a character to the LCD display if available.
-    display.Update();
-    TASK_SWITCH;
+    leds.set_value(i, value);
   }
-TASK_END
+  leds.Out();
+}
+
+void UpdateDisplayTask() {
+  display.Update();
 }
 
 void InputTask() {
   Switches::Event switch_event;
   Pots::Event pot_event;
-  static uint8_t idle;
-  static uint8_t target_page_type;
 TASK_BEGIN_NEAR
   while (1) {
     idle = 0;
@@ -163,15 +159,12 @@ TASK_BEGIN_NEAR
 TASK_END
 }
 
-void CvTask() {
-TASK_BEGIN_NEAR
-  while (1) {
-    engine.set_cv(0, AnalogInput<kPinCvInput>::Read() >> 2);
-    TASK_SWITCH;
-    engine.set_cv(1, AnalogInput<kPinCvInput + 1>::Read() >> 2);
-    TASK_SWITCH;
-  }
-TASK_END
+void Cv1Task() {
+  engine.set_cv(0, AnalogInput<kPinCvInput>::Read() >> 2);
+}
+
+void Cv2Task() {
+  engine.set_cv(1, AnalogInput<kPinCvInput + 1>::Read() >> 2);
 }
 
 void MidiTask() {
@@ -213,35 +206,29 @@ void AudioRenderingTask() {
 
 
 uint16_t previous_num_glitches = 0;
+
 void HeartbeatTask() {
-  uint16_t num_glitches = 0;
-TASK_BEGIN_NEAR
-  while (1) {
-    num_glitches = audio.num_glitches();
-    if (num_glitches != previous_num_glitches) {
-      previous_num_glitches = num_glitches;
-      display.set_status('!');
-    }
-    TASK_SWITCH;
+  uint16_t num_glitches = audio.num_glitches();
+  if (num_glitches != previous_num_glitches) {
+    previous_num_glitches = num_glitches;
+    display.set_status('!');
   }
-TASK_END
 }
 
-void ScheduleTasks() {
-  while (1) {
-    HeartbeatTask();
-    OutputTask();
-    AudioRenderingTask();
-    MidiTask();
-    AudioRenderingTask();
-    InputTask();
-    AudioRenderingTask();
-    MidiTask();
-    AudioRenderingTask();
-    CvTask();
-    AudioRenderingTask();
-  }
-}
+NaiveScheduler<32> scheduler;
+
+/* static */
+template<>
+Task NaiveScheduler<32>::tasks[] = {
+    { &AudioRenderingTask, 16 },
+    { &MidiTask, 7 },
+    { &UpdateLedsTask, 4 },
+    { &UpdateDisplayTask, 1 },
+    { &HeartbeatTask, 1 },
+    { &InputTask, 1 },
+    { &Cv1Task, 1 },
+    { &Cv2Task, 1 },
+};
 
 TIMER_2_TICK {
   display.Tick();
@@ -249,6 +236,7 @@ TIMER_2_TICK {
 }
 
 void Setup() {
+  scheduler.Init();
   display.Init();
   editor.Init();
 
@@ -281,6 +269,5 @@ void Setup() {
 int main(void) {
   InitArduino();
   Setup();
-  ScheduleTasks();
-  return 0;
+  scheduler.Run();
 }

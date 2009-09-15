@@ -43,7 +43,7 @@ class Adc {
   static inline void Enable() {
     AdcEnabled::set();
   }
-  static inline void Disabled() {
+  static inline void Disable() {
     AdcEnabled::clear();
   }
   // TODO(pichenettes): add function to modify sampling rate.
@@ -94,7 +94,7 @@ struct AnalogInput {
     return counter_;
   }
 };
-template<int pin> AnalogInput::counter_ = 0;
+template<int pin> AnalogInput<pin>::counter_ = 0;
 
 #endif  // !__TEST__
 
