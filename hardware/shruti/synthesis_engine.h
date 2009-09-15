@@ -29,7 +29,6 @@
 #include "hardware/midi/midi.h"
 #include "hardware/shruti/envelope.h"
 #include "hardware/shruti/lfo.h"
-#include "hardware/shruti/parameters.h"
 #include "hardware/shruti/patch.h"
 #include "hardware/shruti/voice_controller.h"
 

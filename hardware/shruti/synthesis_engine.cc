@@ -9,9 +9,7 @@
 #include <string.h>
 
 #include "hardware/resources/resources_manager.h"
-#include "hardware/shruti/lfo.h"
 #include "hardware/shruti/oscillator.h"
-#include "hardware/shruti/parameters.h"
 #include "hardware/utils/random.h"
 #include "hardware/utils/signal.h"
 
@@ -50,27 +48,31 @@ void SynthesisEngine::Init() {
 static const prog_char empty_patch[] PROGMEM = {
     99,
     WAVEFORM_SPEECH, WAVEFORM_SQUARE, 0, 50,
-    128, 128, 0, 0,
+    0, 0, 0, 0,
     4, 4, 4, WAVEFORM_SQUARE,
     120, 0, 0, 0,
     20, 0,
     60, 40,
     20, 100,
     60, 40,
-    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 64, 16,
+    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 80, 24,
     MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
     MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
     MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
     MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
-    MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 48,
-    MOD_SRC_ENV_2, MOD_DST_VCA, 127,
-    MOD_SRC_VELOCITY, MOD_DST_VCA, 31,
     MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
+    MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 23,
+    MOD_SRC_ENV_2, MOD_DST_VCA, 63,
+    MOD_SRC_VELOCITY, MOD_DST_VCA, 16,
+    MOD_SRC_PITCH_BEND, MOD_DST_VCO_1_2_FINE, 32,
+    MOD_SRC_LFO_1, MOD_DST_VCO_1_2_FINE, 16,
     MOD_SRC_ASSIGNABLE_1, MOD_DST_PWM_1, 0,
     MOD_SRC_ASSIGNABLE_2, MOD_DST_FILTER_CUTOFF, 0,
+    MOD_SRC_CV_1, MOD_DST_FILTER_CUTOFF, 0,
+    MOD_SRC_CV_2, MOD_DST_FILTER_CUTOFF, 0,
     120, 0, 0, 0,
     136, 136, 136, 136, 136, 136, 136, 136,
-    128, 0, 0, 1,
+    0, 0, 0, 1,
     'n', 'e', 'w', ' ', ' ', ' ', ' ', ' '};
 
 
@@ -344,10 +346,7 @@ void Voice::Control() {
   dst[MOD_DST_VCA] = 255;
   dst[MOD_DST_PWM_1] = engine.patch_.osc_parameter[0] << 7;
   dst[MOD_DST_PWM_2] = engine.patch_.osc_parameter[1] << 7;
-  // The connection from the pitch-bend to the oscillators is hardcoded.
-  dst[MOD_DST_VCO_1] = 8192 - 1024 + (
-      engine.modulation_sources_[MOD_SRC_PITCH_BEND] << 3);
-  dst[MOD_DST_VCO_2] = dst[MOD_DST_VCO_1];  
+  dst[MOD_DST_VCO_1_2_FINE] = dst[MOD_DST_VCO_2] = dst[MOD_DST_VCO_1] = 8192;
   dst[MOD_DST_MIX_BALANCE] = engine.patch_.mix_balance << 7;
   dst[MOD_DST_MIX_NOISE] = engine.patch_.mix_noise << 7;
   dst[MOD_DST_MIX_SUB_OSC] = engine.patch_.mix_sub_osc << 7;
@@ -355,9 +354,15 @@ void Voice::Control() {
   
   // Apply the modulations in the modulation matrix.
   for (uint8_t i = 0; i < kModulationMatrixSize; ++i) {
-    uint8_t amount = engine.patch_.modulation_matrix.modulation[i].amount;
+    int8_t amount = engine.patch_.modulation_matrix.modulation[i].amount;
     if (amount == 0) {
       continue;
+    }
+    // The last modulation amount is adjusted by the wheel.
+    if (i == kSavedModulationMatrixSize - 1) {
+      amount = Signal::SignedMulScale8(
+          amount,
+          engine.modulation_sources_[MOD_SRC_WHEEL]);
     }
     uint8_t source = engine.patch_.modulation_matrix.modulation[i].source;
     uint8_t destination =
@@ -373,33 +378,38 @@ void Voice::Control() {
     }
     if (destination != MOD_DST_VCA) {
       int16_t modulation = dst[destination];
-      modulation += Signal::MulScale1(source_value, amount);
+      modulation += Signal::SignedUnsignedMul(amount, source_value);
       // For those sources, use relative modulation.
       if (source <= MOD_SRC_LFO_2 ||
           source == MOD_SRC_PITCH_BEND ||
           source == MOD_SRC_NOTE) {
-        modulation -= amount << 6;
+        modulation -= amount << 7;
       }
       dst[destination] = Signal::Clip(modulation, 0, 16383);
     } else {
       // The VCA modulation is multiplicative, not additive. Yet another
       // Special case :(.
+      if (amount < 0) {
+        amount = -amount;
+        source_value = 255 - source_value;
+      }
       dst[MOD_DST_VCA] = Signal::MulScale8(
           dst[MOD_DST_VCA],
-          Signal::Mix(255, source_value, amount << 1));
+          Signal::Mix(255, source_value, amount << 2));
     }
   }
   // Hardcoded filter modulations.
   dst[MOD_DST_FILTER_CUTOFF] = Signal::Clip(
-      dst[MOD_DST_FILTER_CUTOFF] + Signal::MulScale1(
-          modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources],
-          engine.patch_.filter_env),
+      dst[MOD_DST_FILTER_CUTOFF] + Signal::SignedUnsignedMul(
+          engine.patch_.filter_env,
+          modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources]),
       0,
       16383);
   dst[MOD_DST_FILTER_CUTOFF] = Signal::Clip(
-      dst[MOD_DST_FILTER_CUTOFF] + Signal::MulScale1(
-          engine.modulation_sources_[MOD_SRC_LFO_2],
-          engine.patch_.filter_lfo),
+      dst[MOD_DST_FILTER_CUTOFF] + Signal::SignedUnsignedMul(
+          engine.patch_.filter_lfo,
+          engine.modulation_sources_[MOD_SRC_LFO_2]) -
+      (engine.patch_.filter_lfo << 7),
       0,
       16383);
   
@@ -425,15 +435,17 @@ void Voice::Control() {
   for (uint8_t i = 0; i < 2; ++i) {
     int16_t pitch = pitch_value_;
     // -24 / +24 semitones by the range controller.
-    pitch += (int16_t(engine.patch_.osc_range[i]) - 128) << 7;
+    pitch += int16_t(engine.patch_.osc_range[i]) << 7;
     // -24 / +24 semitones by the main octave controller.
-    pitch += int16_t(engine.patch_.kbd_octave - 128) * kOctave;
+    pitch += int16_t(engine.patch_.kbd_octave) * kOctave;
     if (i == 1) {
       // 0 / +1 semitones by the detune option for oscillator 2.
       pitch += engine.patch_.osc_option[1];
     }
     // -16 / +16 semitones by the routed modulations.
     pitch += (dst[MOD_DST_VCO_1 + i] - 8192) >> 2;
+    // -4 / +4 semitones by the vibrato and pitch bend.
+    pitch += (dst[MOD_DST_VCO_1_2_FINE] - 8192) >> 4;
 
     // Wrap pitch to a reasonable range.
     while (pitch < kLowestNote) {

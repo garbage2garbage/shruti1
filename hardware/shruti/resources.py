@@ -108,8 +108,7 @@ on
 tri
 sqr
 s&h
-\x05
-\x06
+ramp
 
 blit
 saw
@@ -165,6 +164,7 @@ pw1
 pw2
 \x041
 \x042
+\x04
 mix
 noi
 sub
@@ -176,6 +176,7 @@ pwm1
 pwm2
 osc1
 osc2
+osc1+2
  mix
 noise
 subosc

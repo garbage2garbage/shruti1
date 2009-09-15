@@ -83,8 +83,7 @@ static const prog_char str_res_on[] PROGMEM = "on";
 static const prog_char str_res_tri[] PROGMEM = "tri";
 static const prog_char str_res_sqr[] PROGMEM = "sqr";
 static const prog_char str_res_s_h[] PROGMEM = "s&h";
-static const prog_char str_res_5[] PROGMEM = "";
-static const prog_char str_res_6[] PROGMEM = "";
+static const prog_char str_res_ramp[] PROGMEM = "ramp";
 static const prog_char str_res_blit[] PROGMEM = "blit";
 static const prog_char str_res_saw[] PROGMEM = "saw";
 static const prog_char str_res_square[] PROGMEM = "square";
@@ -136,6 +135,7 @@ static const prog_char str_res_pw1[] PROGMEM = "pw1";
 static const prog_char str_res_pw2[] PROGMEM = "pw2";
 static const prog_char str_res_41[] PROGMEM = "1";
 static const prog_char str_res_42[] PROGMEM = "2";
+static const prog_char str_res_4[] PROGMEM = "";
 static const prog_char str_res_mix[] PROGMEM = "mix";
 static const prog_char str_res_noi[] PROGMEM = "noi";
 static const prog_char str_res_sub[] PROGMEM = "sub";
@@ -146,6 +146,7 @@ static const prog_char str_res_pwm1[] PROGMEM = "pwm1";
 static const prog_char str_res_pwm2[] PROGMEM = "pwm2";
 static const prog_char str_res_osc1[] PROGMEM = "osc1";
 static const prog_char str_res_osc2[] PROGMEM = "osc2";
+static const prog_char str_res_osc[] PROGMEM = "osc";
 static const prog_char str_res__mix[] PROGMEM = " mix";
 static const prog_char str_res_noise[] PROGMEM = "noise";
 static const prog_char str_res_subosc[] PROGMEM = "subosc";
@@ -334,8 +335,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_tri,
   str_res_sqr,
   str_res_s_h,
-  str_res_5,
-  str_res_6,
+  str_res_ramp,
   str_res_blit,
   str_res_saw,
   str_res_square,
@@ -387,6 +387,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_pw2,
   str_res_41,
   str_res_42,
+  str_res_4,
   str_res_mix,
   str_res_noi,
   str_res_sub,
@@ -397,6 +398,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_pwm2,
   str_res_osc1,
   str_res_osc2,
+  str_res_osc,
   str_res__mix,
   str_res_noise,
   str_res_subosc,

@@ -38,7 +38,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_PRM, STR_RES_PARAMETER,
   
   PRM_OSC_RANGE_1,
-  128 - 12, 128 + 12,
+  -12, 12,
   PAGE_OSC_OSC_1, UNIT_INT8,
   STR_RES_RNG, STR_RES_RANGE,
   
@@ -59,7 +59,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_PRM, STR_RES_PARAMETER,
   
   PRM_OSC_RANGE_2,
-  128 - 24, 128 + 24, 
+  -24, 24, 
   PAGE_OSC_OSC_2, UNIT_INT8,
   STR_RES_RNG, STR_RES_RANGE,
   
@@ -101,13 +101,13 @@ static const prog_char raw_parameter_definition[
   STR_RES_RES, STR_RES_RESONANCE,
   
   PRM_FILTER_ENV,
-  0, 127,
-  PAGE_FILTER_FILTER, UNIT_RAW_UINT8,
+  -63, 63,
+  PAGE_FILTER_FILTER, UNIT_INT8,
   STR_RES_ENV, STR_RES_ENVTVCF,
   
   PRM_FILTER_LFO,
-  0, 127,
-  PAGE_FILTER_FILTER, UNIT_RAW_UINT8,
+  -63, 63,
+  PAGE_FILTER_FILTER, UNIT_INT8,
   STR_RES_LFO, STR_RES_LFO2TVCF,
 
   // Env 1.
@@ -154,7 +154,7 @@ static const prog_char raw_parameter_definition[
 
   // Lfo.
   PRM_LFO_WAVE_1,
-  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_DOWN,
+  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_RAMP,
   PAGE_MOD_LFO, UNIT_LFO_WAVEFORM,
   STR_RES_WV1, STR_RES_LFO1_WAVE,
   
@@ -164,7 +164,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_RT1, STR_RES_LFO1_RATE,
   
   PRM_LFO_WAVE_2,
-  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_DOWN,
+  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_RAMP,
   PAGE_MOD_LFO, UNIT_LFO_WAVEFORM,
   STR_RES_WV2, STR_RES_LFO2_WAVE,
   
@@ -190,8 +190,8 @@ static const prog_char raw_parameter_definition[
   STR_RES_DST, STR_RES_DEST_,
   
   PRM_MOD_AMOUNT,
-  0, 127,
-  PAGE_MOD_MATRIX, UNIT_RAW_UINT8,
+  -63, 63,
+  PAGE_MOD_MATRIX, UNIT_INT8,
   STR_RES_AMT, STR_RES_AMOUNT,
 
   // Arpeggiator.
@@ -217,7 +217,7 @@ static const prog_char raw_parameter_definition[
   
   // Keyboard management.
   PRM_KBD_OCTAVE,
-  128 - 2, 128 + 2,
+  -2, +2,
   PAGE_PLAY_KBD, UNIT_INT8,
   STR_RES_OCT, STR_RES_OCTAVE,
   
@@ -548,7 +548,7 @@ void Editor::DisplayEditDetailsPage() {
   // OR
   //
   // mod src>dst
-  // amount       127
+  // amount        63
   if (current_page_ == PAGE_MOD_MATRIX) {
     const ParameterDefinition& current_source = parameter_definition(
         parameter_definition_offset_[PAGE_MOD_MATRIX][1]);
@@ -663,9 +663,18 @@ void Editor::HandleEditIncrement(int8_t direction) {
   const ParameterDefinition& parameter = parameter_definition(index);
   
   int16_t value = GetParameterWithHacks(parameter.id);
-  value += direction;
-  if (value >= parameter.min_value && value <= parameter.max_value) {
-    SetParameterWithHacks(parameter.id, value);
+  if (parameter.unit == UNIT_INT8) {
+    value = int16_t(int8_t(value));
+    value += direction;
+    if (value >= int8_t(parameter.min_value) &&
+        value <= int8_t(parameter.max_value)) {
+      SetParameterWithHacks(parameter.id, value);
+    }
+  } else {
+    value += direction;
+    if (value >= parameter.min_value && value <= parameter.max_value) {
+      SetParameterWithHacks(parameter.id, value);
+    }
   }
 }
 
@@ -691,7 +700,7 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
   ResourceId base = 0;
   switch (parameter.unit) {
     case UNIT_INT8:
-      value = value - 128;
+      value = int16_t(int8_t(value));
       break;
     case UNIT_BOOLEAN:
       base = STR_RES_OFF;

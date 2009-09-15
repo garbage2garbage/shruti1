@@ -99,6 +99,8 @@ void UpdateDisplayTask() {
 void InputTask() {
   Switches::Event switch_event;
   Pots::Event pot_event;
+  static uint8_t idle;
+  static uint8_t target_page_type;
 TASK_BEGIN_NEAR
   while (1) {
     idle = 0;

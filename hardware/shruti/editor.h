@@ -12,7 +12,6 @@
 #include "hardware/base/base.h"
 #include "hardware/io/devices/sparkfun_ser_lcd.h"
 #include "hardware/io/pin.h"
-#include "hardware/shruti/parameters.h"
 #include "hardware/shruti/patch.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/shruti.h"

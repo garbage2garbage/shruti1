@@ -34,7 +34,7 @@
 #include "hardware/base/base.h"
 #include "hardware/shruti/shruti.h"
 
-#include "hardware/shruti/parameters.h"
+#include "hardware/shruti/patch.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/utils/random.h"
 #include "hardware/utils/signal.h"

@@ -14,7 +14,7 @@
 #include "hardware/base/base.h"
 #include "hardware/shruti/shruti.h"
 
-#include "hardware/shruti/parameters.h"
+#include "hardware/shruti/patch.h"
 #include "hardware/utils/random.h"
 
 using hardware_utils::Random;
@@ -36,13 +36,7 @@ class Lfo {
       case LFO_WAVEFORM_SQUARE:
         return (phase_ & 0x8000) ? 255 : 0;
       default:
-        {
-          uint8_t value = phase_ >> 8;
-          if (algorithm_ == LFO_WAVEFORM_DOWN) {
-            value = ~value;
-          }
-          return value;
-        }
+        return phase_ >> 8;
     }
   }
   void Reset() {
