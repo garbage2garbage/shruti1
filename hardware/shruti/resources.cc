@@ -12,31 +12,21 @@
 
 namespace hardware_shruti {
 
-static const prog_char str_res_alg[] PROGMEM = "alg";
 static const prog_char str_res_prm[] PROGMEM = "prm";
 static const prog_char str_res_rng[] PROGMEM = "rng";
 static const prog_char str_res_op[] PROGMEM = "op";
 static const prog_char str_res_tun[] PROGMEM = "tun";
-static const prog_char str_res_env[] PROGMEM = "env";
-static const prog_char str_res_lfo[] PROGMEM = "lfo";
 static const prog_char str_res_atk[] PROGMEM = "atk";
-static const prog_char str_res_dec[] PROGMEM = "dec";
-static const prog_char str_res_sus[] PROGMEM = "sus";
-static const prog_char str_res_rel[] PROGMEM = "rel";
 static const prog_char str_res_wv1[] PROGMEM = "wv1";
 static const prog_char str_res_rt1[] PROGMEM = "rt1";
 static const prog_char str_res_wv2[] PROGMEM = "wv2";
 static const prog_char str_res_rt2[] PROGMEM = "rt2";
-static const prog_char str_res_mod[] PROGMEM = "mod";
 static const prog_char str_res_src[] PROGMEM = "src";
 static const prog_char str_res_dst[] PROGMEM = "dst";
 static const prog_char str_res_amt[] PROGMEM = "amt";
-static const prog_char str_res_oct[] PROGMEM = "oct";
-static const prog_char str_res_rag[] PROGMEM = "rag";
 static const prog_char str_res_prt[] PROGMEM = "prt";
 static const prog_char str_res_chn[] PROGMEM = "chn";
 static const prog_char str_res_bpm[] PROGMEM = "bpm";
-static const prog_char str_res_pat[] PROGMEM = "pat";
 static const prog_char str_res_swg[] PROGMEM = "swg";
 static const prog_char str_res_algorithm[] PROGMEM = "algorithm";
 static const prog_char str_res_parameter[] PROGMEM = "parameter";
@@ -146,7 +136,7 @@ static const prog_char str_res_pwm1[] PROGMEM = "pwm1";
 static const prog_char str_res_pwm2[] PROGMEM = "pwm2";
 static const prog_char str_res_osc1[] PROGMEM = "osc1";
 static const prog_char str_res_osc2[] PROGMEM = "osc2";
-static const prog_char str_res_osc[] PROGMEM = "osc";
+static const prog_char str_res_osc1S2[] PROGMEM = "osc1+2";
 static const prog_char str_res__mix[] PROGMEM = " mix";
 static const prog_char str_res_noise[] PROGMEM = "noise";
 static const prog_char str_res_subosc[] PROGMEM = "subosc";
@@ -177,6 +167,8 @@ static const prog_char str_res_76[] PROGMEM = "6";
 static const prog_char str_res__6[] PROGMEM = "?6";
 static const prog_char str_res___mutable[] PROGMEM = "> mutable";
 static const prog_char str_res___instruments___[] PROGMEM = "  instruments  <";
+static const prog_char str_res_p_orleans_21_mn[] PROGMEM = "P.ORLEANS: 21 MN";
+static const prog_char str_res_p_bercy_____S1h[] PROGMEM = "P.BERCY:     +1H";
 static const prog_char str_res_load_save_patch[] PROGMEM = "load/save patch";
 static const prog_char str_res_step_sequencer[] PROGMEM = "step sequencer";
 static const prog_char str_res_load[] PROGMEM = "load";
@@ -264,31 +256,21 @@ static const prog_char str_res_rasika[] PROGMEM = "rasika";
 
 
 PROGMEM const prog_char* string_table[] = {
-  str_res_alg,
   str_res_prm,
   str_res_rng,
   str_res_op,
   str_res_tun,
-  str_res_env,
-  str_res_lfo,
   str_res_atk,
-  str_res_dec,
-  str_res_sus,
-  str_res_rel,
   str_res_wv1,
   str_res_rt1,
   str_res_wv2,
   str_res_rt2,
-  str_res_mod,
   str_res_src,
   str_res_dst,
   str_res_amt,
-  str_res_oct,
-  str_res_rag,
   str_res_prt,
   str_res_chn,
   str_res_bpm,
-  str_res_pat,
   str_res_swg,
   str_res_algorithm,
   str_res_parameter,
@@ -398,7 +380,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_pwm2,
   str_res_osc1,
   str_res_osc2,
-  str_res_osc,
+  str_res_osc1S2,
   str_res__mix,
   str_res_noise,
   str_res_subosc,
@@ -429,6 +411,8 @@ PROGMEM const prog_char* string_table[] = {
   str_res__6,
   str_res___mutable,
   str_res___instruments___,
+  str_res_p_orleans_21_mn,
+  str_res_p_bercy_____S1h,
   str_res_load_save_patch,
   str_res_step_sequencer,
   str_res_load,

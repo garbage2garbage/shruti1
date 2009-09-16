@@ -124,6 +124,9 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static void OmniModeOn(uint8_t channel);
   static void Reset();
   static void Clock();
+  static void SysExStart();
+  static void SysExByte(uint8_t sysex_byte);
+  static void SysExEnd();
   
   static void Audio();
   static void Control();
@@ -157,9 +160,6 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
     UpdateModulationIncrements();
     UpdateOscillatorAlgorithms();
   }
-  static void set_patch(const uint8_t* packed_patch) {
-    patch_.Unpack(packed_patch);
-  }
   static inline const Patch& patch() { return patch_; }
   static inline Patch* mutable_patch() { return &patch_; }
   
@@ -172,7 +172,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
     }
   }
   static const Voice& voice(uint8_t i) { return voice_[i]; }
-  
+  static inline uint8_t zobi() { return qux_[1]; }
  private:
   // Value of global modulation parameters, scaled to 0-255;
   static uint8_t modulation_sources_[kNumGlobalModulationSources];
@@ -182,6 +182,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static Voice voice_[kNumVoices];
   static VoiceController controller_;
   static uint8_t oscillator_decimation_;
+  static uint8_t qux_[2];
 
   // Called whenever a parameter related to LFOs/envelopes is modified (for now
   // everytime a parameter is modified by the user).

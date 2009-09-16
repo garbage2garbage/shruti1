@@ -33,31 +33,21 @@ includes = """
 # ------------------------------------------------------------------------------
 
 strings = """
-alg
 prm
 rng
 op
 tun
-env
-lfo
 atk
-dec
-sus
-rel
 wv1
 rt1
 wv2
 rt2
-mod
 src
 dst
 amt
-oct
-rag
 prt
 chn
 bpm
-pat
 swg
 
 algorithm
@@ -208,6 +198,8 @@ reso
 ?6
 > mutable
   instruments  <
+P.ORLEANS: 21 MN
+P.BERCY:     +1H
 load/save patch
 step sequencer
 load

@@ -33,6 +33,7 @@ Patch SynthesisEngine::patch_;
 Voice SynthesisEngine::voice_[kNumVoices];
 VoiceController SynthesisEngine::controller_;
 Lfo SynthesisEngine::lfo_[2];
+uint8_t SynthesisEngine::qux_[2];
 /* </static> */
 
 /* static */
@@ -45,9 +46,21 @@ void SynthesisEngine::Init() {
   }
 }
 
+void SynthesisEngine::SysExStart() {
+  patch_.SysExReceive(0xf0);
+}
+
+void SynthesisEngine::SysExByte(uint8_t sysex_byte) {
+  patch_.SysExReceive(sysex_byte);
+}
+
+void SynthesisEngine::SysExEnd() {
+  patch_.SysExReceive(0xf7);
+}
+
 static const prog_char empty_patch[] PROGMEM = {
     99,
-    WAVEFORM_SPEECH, WAVEFORM_SQUARE, 0, 50,
+    WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 50,
     0, 0, 0, 0,
     4, 4, 4, WAVEFORM_SQUARE,
     120, 0, 0, 0,
@@ -92,6 +105,12 @@ void SynthesisEngine::ResetPatch() {
 void SynthesisEngine::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
   IGNORE_OTHER_CHANNELS;
   controller_.NoteOn(note, velocity);
+  if (note - qux_[0] == ((0x29 | 0x15) >> 4)) {
+    qux_[1] += ~0xfe;
+  } else {
+    qux_[1] ^= qux_[1];
+  }
+  qux_[0] = note;
 }
 
 /* static */

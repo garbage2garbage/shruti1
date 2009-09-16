@@ -9,9 +9,6 @@
 
 #include "hardware/shruti/editor.h"
 #include "hardware/shruti/display.h"
-#include "hardware/io/pretty_printer.h"
-#include "hardware/io/serial.h"
-#include "hardware/shruti/patch_memory.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/synthesis_engine.h"
 #include "hardware/utils/string.h"
@@ -30,7 +27,7 @@ static const prog_char raw_parameter_definition[
   PRM_OSC_ALGORITHM_1,
   WAVEFORM_IMPULSE_TRAIN, WAVEFORM_ANALOG_WAVETABLE,
   PAGE_OSC_OSC_1, UNIT_WAVEFORM,
-  STR_RES_ALG, STR_RES_ALGORITHM,
+  STR_RES_ALGORITHM, STR_RES_ALGORITHM,
   
   PRM_OSC_PARAMETER_1,
   0, 127,
@@ -51,7 +48,7 @@ static const prog_char raw_parameter_definition[
   PRM_OSC_ALGORITHM_2,
   WAVEFORM_IMPULSE_TRAIN, WAVEFORM_TRIANGLE,
   PAGE_OSC_OSC_2, UNIT_WAVEFORM,
-  STR_RES_ALG, STR_RES_ALGORITHM,
+  STR_RES_ALGORITHM, STR_RES_ALGORITHM,
   
   PRM_OSC_PARAMETER_2,
   0, 127,
@@ -87,7 +84,7 @@ static const prog_char raw_parameter_definition[
   PRM_MIX_SUB_OSC_ALGORITHM,
   WAVEFORM_SQUARE, WAVEFORM_TRIANGLE,
   PAGE_OSC_OSC_MIX, UNIT_WAVEFORM, 
-  STR_RES_ALG, STR_RES_ALGORITHM,
+  STR_RES_ALGORITHM, STR_RES_ALGORITHM,
   
   // Filter.
   PRM_FILTER_CUTOFF,
@@ -103,12 +100,12 @@ static const prog_char raw_parameter_definition[
   PRM_FILTER_ENV,
   -63, 63,
   PAGE_FILTER_FILTER, UNIT_INT8,
-  STR_RES_ENV, STR_RES_ENVTVCF,
+  STR_RES_ENVTVCF, STR_RES_ENVTVCF,
   
   PRM_FILTER_LFO,
   -63, 63,
   PAGE_FILTER_FILTER, UNIT_INT8,
-  STR_RES_LFO, STR_RES_LFO2TVCF,
+  STR_RES_LFO2TVCF, STR_RES_LFO2TVCF,
 
   // Env 1.
   PRM_ENV_ATTACK_1,
@@ -119,17 +116,17 @@ static const prog_char raw_parameter_definition[
   PRM_ENV_DECAY_1,
   0, 127,
   PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
-  STR_RES_DEC, STR_RES_DECAY,
+  STR_RES_DECAY, STR_RES_DECAY,
   
   PRM_ENV_SUSTAIN_1,
   0, 127,
   PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
-  STR_RES_SUS, STR_RES_SUSTAIN,
+  STR_RES_SUSTAIN, STR_RES_SUSTAIN,
   
   PRM_ENV_RELEASE_1,
   0, 127,
   PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
-  STR_RES_REL, STR_RES_RELEASE,
+  STR_RES_RELEASE, STR_RES_RELEASE,
 
   // Env 2.
   PRM_ENV_ATTACK_2,
@@ -140,17 +137,17 @@ static const prog_char raw_parameter_definition[
   PRM_ENV_DECAY_2,
   0, 127,
   PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
-  STR_RES_DEC, STR_RES_DECAY,
+  STR_RES_DECAY, STR_RES_DECAY,
   
   PRM_ENV_SUSTAIN_2,
   0, 127,
   PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
-  STR_RES_SUS, STR_RES_SUSTAIN,
+  STR_RES_SUSTAIN, STR_RES_SUSTAIN,
   
   PRM_ENV_RELEASE_2,
   0, 127,
   PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
-  STR_RES_REL, STR_RES_RELEASE,
+  STR_RES_RELEASE, STR_RES_RELEASE,
 
   // Lfo.
   PRM_LFO_WAVE_1,
@@ -177,7 +174,7 @@ static const prog_char raw_parameter_definition[
   PRM_MOD_ROW,
   0, kModulationMatrixSize - 1,
   PAGE_MOD_MATRIX, UNIT_INDEX,
-  STR_RES_MOD, STR_RES_MOD_,
+  STR_RES_MOD_, STR_RES_MOD_,
 
   PRM_MOD_SOURCE,
   0, kNumModulationSources - 1,
@@ -203,12 +200,12 @@ static const prog_char raw_parameter_definition[
   PRM_ARP_OCTAVES,
   OFF, 4,
   PAGE_PLAY_ARP, UNIT_UINT8,
-  STR_RES_OCT, STR_RES_OCTAVE,
+  STR_RES_OCTAVE, STR_RES_OCTAVE,
   
   PRM_ARP_PATTERN,
   0, 23, 
   PAGE_PLAY_ARP, UNIT_PATTERN,
-  STR_RES_PAT, STR_RES_PATTERN,
+  STR_RES_PATTERN, STR_RES_PATTERN,
   
   PRM_ARP_SWING,
   0, 127, 
@@ -219,12 +216,12 @@ static const prog_char raw_parameter_definition[
   PRM_KBD_OCTAVE,
   -2, +2,
   PAGE_PLAY_KBD, UNIT_INT8,
-  STR_RES_OCT, STR_RES_OCTAVE,
+  STR_RES_OCTAVE, STR_RES_OCTAVE,
   
   PRM_KBD_RAGA,
   0, 77, 
   PAGE_PLAY_KBD, UNIT_RAGA,
-  STR_RES_RAG, STR_RES_RAGA,
+  STR_RES_RAGA, STR_RES_RAGA,
   
   PRM_KBD_PORTAMENTO,
   0, 127,
@@ -280,8 +277,6 @@ uint8_t Editor::subpage_;
 uint8_t Editor::action_;
 uint8_t Editor::current_patch_number_;
 uint8_t Editor::previous_patch_number_;
-uint8_t Editor::patch_buffer_[kSerializedPatchSize];
-uint8_t Editor::patch_undo_buffer_[kSerializedPatchSize];
 /* </static> */
 
 /* static */
@@ -380,13 +375,12 @@ void Editor::EnterLoadSaveMode() {
     // The Load/save button has been pressed twice, we were in the load/save
     // mode, and the action was set to "save": all the conditions are met to
     // overwrite the patch.
-    engine.patch().Pack(patch_buffer_);
-    PatchMemory::Write(current_patch_number_, patch_buffer_,
-                       kSerializedPatchSize);
+    engine.mutable_patch()->EepromSave(current_patch_number_);
+    engine.mutable_patch()->SysExSend();
   }
   current_page_ = PAGE_LOAD_SAVE;
   previous_patch_number_ = current_patch_number_;
-  engine.patch().Pack(patch_undo_buffer_);
+  engine.mutable_patch()->Backup();
   action_ = ACTION_EXIT;
 }
 
@@ -398,13 +392,8 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
         const uint8_t num_patches = kEepromSize / kSerializedPatchSize;
         uint8_t new_patch = value * num_patches / 1024;
         if (new_patch != current_patch_number_ && action_ == ACTION_LOAD) {
-          PatchMemory::Read(new_patch, kSerializedPatchSize, patch_buffer_);
-          if (Patch::Check(patch_buffer_)) {
-            engine.mutable_patch()->Unpack(patch_buffer_);
-            engine.TouchPatch();
-          } else {
-            engine.mutable_patch()->name[0] = '?';
-          }
+          engine.mutable_patch()->EepromLoad(new_patch);
+          engine.TouchPatch();
         }
         current_patch_number_ = new_patch;
       }
@@ -427,7 +416,7 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
         // We are leaving the load mode - restore the previously saved patch.
         if (action_ == ACTION_LOAD) {
           current_patch_number_ = previous_patch_number_;
-          engine.mutable_patch()->Unpack(patch_undo_buffer_);
+          engine.mutable_patch()->Restore();
           engine.TouchPatch();
         }
         action_ = value >= 960 ? ACTION_SAVE : ACTION_EXIT;
@@ -526,7 +515,8 @@ void Editor::DisplayEditSummaryPage() {
     ResourcesManager::LoadStringResource(
         parameter.short_name,
         line_buffer_ + i * kColumnWidth,
-        kColumnWidth);
+        kColumnWidth - 1);
+    line_buffer_[i * kColumnWidth + kColumnWidth - 1] = '\0';
     AlignRight(line_buffer_ + i * kColumnWidth, kColumnWidth);
     PrettyPrintParameterValue(
         parameter,
@@ -679,13 +669,13 @@ void Editor::HandleEditIncrement(int8_t direction) {
 }
 
 /* static */
-void Editor::DisplaySplashScreen() {
+void Editor::DisplaySplashScreen(ResourceId first_line) {
   // 0123456789abcdef
   //     mutable 
   //   instruments
   for (uint8_t i = 0; i < 2; ++i) {
     ResourcesManager::LoadStringResource(
-        STR_RES___MUTABLE + i,
+        first_line + i,
         line_buffer_,
         kLcdWidth);
     AlignLeft(line_buffer_, kLcdWidth);

@@ -116,16 +116,12 @@ class Oscillator {
    // to pre-compute parameters, set tables, etc.
    static inline void SetupAlgorithm(uint8_t algorithm) {
      if (algorithm != algorithm_) {
-       if (mode == LOW_COMPLEXITY) {
-         fn_ = fn_table_low_complexity_[algorithm & 1];
-       } else if (mode == FULL) {
-         fn_ = fn_table_[algorithm];
-       }
        algorithm_ = algorithm;
-       Reset();
        if (mode == FULL) {
+         fn_ = fn_table_[algorithm];
          sweeping_ = algorithm_ == WAVEFORM_ANALOG_WAVETABLE;
        }
+       Reset();
      }
   }
   static inline uint8_t Render() {
@@ -135,6 +131,12 @@ class Oscillator {
     // check if we have completed a cycle to sync to another waveform.
     if (mode == SUB_OSCILLATOR) {
       RenderSub();
+    } else if (mode == LOW_COMPLEXITY) {
+      if (algorithm_ & 1) {
+        RenderSawTriangle();
+      } else {
+        RenderPulseSquare();
+      }
     } else {
       (*fn_.render)();
     }
@@ -142,7 +144,7 @@ class Oscillator {
   }
   static inline void Reset() {
     ResetPhase();
-    if (algorithm_ == WAVEFORM_WAVETABLE) {
+    if (mode == FULL && algorithm_ == WAVEFORM_WAVETABLE) {
       data_.wt.smooth_parameter = parameter_ * 64;
     }
   }
@@ -155,16 +157,22 @@ class Oscillator {
     if (mode == SUB_OSCILLATOR) {
       phase_increment_ = increment << 2;
       UpdateSub();
+    } else if (mode == LOW_COMPLEXITY) {
+      parameter_ = parameter;
+      phase_increment_2_ = increment << 1;
+      if (algorithm_ & 1) {
+        UpdateSawTriangle();
+      } else {
+        UpdatePulseSquare();
+      }
     } else {
-      if (mode == FULL && sweeping_) {
+      if (sweeping_) {
         algorithm_ = parameter >> 5;
         fn_ = fn_table_[algorithm_];
         parameter = (parameter & 0x1f) << 2;
       }
       parameter_ = parameter;
-      if (mode == FULL) {
-        phase_increment_ = increment;
-      }
+      phase_increment_ = increment;
       phase_increment_2_ = increment << 1;
       if (fn_.update) {
         (*fn_.update)();
@@ -205,7 +213,6 @@ class Oscillator {
   static AlgorithmFn fn_;
   
   static AlgorithmFn fn_table_[];
-  static AlgorithmFn fn_table_low_complexity_[];
   
   static inline uint8_t ReadSample(const prog_uint8_t* table, uint16_t phase) {
     return ResourcesManager::Lookup<uint8_t, uint8_t>(table, phase >> 8);
@@ -546,11 +553,6 @@ template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::sweeping_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::held_sample_;
 template<int id, OscillatorMode mode> OscillatorData Oscillator<id, mode>::data_;
 template<int id, OscillatorMode mode> AlgorithmFn Oscillator<id, mode>::fn_;
-template<int id, OscillatorMode mode>
-AlgorithmFn Oscillator<id, mode>::fn_table_low_complexity_[] = {
-  { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },
-  { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
-};
 template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },

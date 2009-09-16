@@ -130,7 +130,7 @@ class Editor {
   static void HandleIncrement(int8_t direction);
   static void DisplaySummary();
   static void DisplayDetails();
-  static void DisplaySplashScreen();
+  static void DisplaySplashScreen(ResourceId first_line);
   
   static void ResetPatch();
   static inline ParameterPage current_page() { return current_page_; }
@@ -154,6 +154,7 @@ class Editor {
   static void HandleLoadSaveInput(uint8_t controller_index, uint16_t value);
   static void EnterLoadSaveMode();
   static void HandleLoadSaveIncrement(int8_t direction);
+  static void DumpCurrentPatch();
   
   static void DisplayStepSequencerPage();
   static void HandleStepSequencerInput(uint8_t controller_index, uint16_t value);
@@ -183,11 +184,7 @@ class Editor {
   static uint8_t action_;
   static uint8_t current_patch_number_;
   static uint8_t previous_patch_number_;
-  static uint8_t patch_buffer_[kSerializedPatchSize];
-  // Buffer used to allow the user to undo the loading of a patch (similar to
-  // the "compare" function on some synths).
-  static uint8_t patch_undo_buffer_[kSerializedPatchSize];
-  
+
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };
 

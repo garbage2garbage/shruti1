@@ -33,7 +33,17 @@ union ModulationMatrix {
   uint8_t raw_modulation_data[kModulationMatrixSize * 3];
 };
 
-struct Patch {
+enum SysExReceptionState {
+  RECEIVING_HEADER = 0,
+  RECEIVING_DATA = 1,
+  RECEIVING_FOOTER = 2,
+  
+  RECEPTION_OK = 3,
+  RECEPTION_ERROR = 4,
+};
+
+class Patch {
+ public:
   uint8_t keep_me_at_the_top;
 
   // Offset: 0-8
@@ -98,9 +108,32 @@ struct Patch {
     }
   }
 
+  void EepromSave(uint8_t slot) const;
+  void EepromLoad(uint8_t slot);
+  void SysExSend() const;
+  void SysExReceive(uint8_t sysex_byte);
+  void Backup() const;
+  void Restore();
+  
+  inline uint8_t sysex_reception_state() const {
+    return sysex_reception_state_;
+  }
+
+ private:
+  static uint8_t CheckBuffer();
   void Pack(uint8_t* patch_buffer) const;
-  static uint8_t Check(const uint8_t* patch_buffer);
   void Unpack(const uint8_t* patch_buffer);
+  
+  // Buffer in which the patch is compressed for load/save operations. The last
+  // byte is for the checksum added to the stream during sysex dumps.
+  static uint8_t load_save_buffer_[kSerializedPatchSize + 1];
+  // Buffer used to allow the user to undo the loading of a patch (similar to
+  // the "compare" function on some synths).
+  static uint8_t undo_buffer_[kSerializedPatchSize];
+  
+  static uint8_t sysex_bytes_received_;
+  static uint8_t sysex_reception_state_;
+  static uint8_t sysex_reception_checksum_;
 };
 
 static const uint8_t kNumModulationSources = 16;
@@ -233,8 +266,6 @@ enum OPERATOR {
 };
 
 static const uint8_t kNumEditableParameters = 40;
-
-
 
 }  // namespace hardware_shruti
 

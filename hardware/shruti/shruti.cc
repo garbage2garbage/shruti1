@@ -18,7 +18,6 @@
 #include "hardware/shruti/editor.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/synthesis_engine.h"
-#include "hardware/utils/signal.h"
 #include "hardware/utils/task.h"
 
 using namespace hardware_base;
@@ -30,7 +29,7 @@ using hardware_utils::NaiveScheduler;
 using hardware_utils::Task;
 
 // Midi input.
-Serial<SerialPort0, 31250, BUFFERED, DISABLED> midi_input;
+Serial<SerialPort0, 31250, BUFFERED, POLLED> midi_io;
 
 // Input event handlers.
 typedef InputArray<
@@ -151,7 +150,9 @@ TASK_BEGIN_NEAR
     }
     TASK_SWITCH;
     
-    if (target_page_type == PAGE_TYPE_SUMMARY) {
+    if (engine.zobi() == 18) {
+      editor.DisplaySplashScreen(STR_RES_P_ORLEANS_21_MN);
+    } else if (target_page_type == PAGE_TYPE_SUMMARY) {
       editor.DisplaySummary();
     } else if (target_page_type == PAGE_TYPE_DETAILS) {
       editor.DisplayDetails();
@@ -161,32 +162,56 @@ TASK_BEGIN_NEAR
 TASK_END
 }
 
-void Cv1Task() {
-  engine.set_cv(0, AnalogInput<kPinCvInput>::Read() >> 2);
-}
+uint8_t current_cv;
 
-void Cv2Task() {
-  engine.set_cv(1, AnalogInput<kPinCvInput + 1>::Read() >> 2);
+void CvTask() {
+  current_cv = (current_cv + 1) & 1;
+  engine.set_cv(current_cv, Adc::Read(kPinCvInput + current_cv) >> 2);
 }
 
 void MidiTask() {
-  if (midi_input.readable()) {
-    uint8_t first_byte = midi_parser.PushByte(midi_input.ImmediateRead());
+  if (midi_io.readable()) {
+    uint8_t value = midi_io.ImmediateRead();
+    
+    // Copy the byte to the MIDI output (thru).
+    midi_io.Write(value);
+    
+    // Also, parse the message.
+    uint8_t status = midi_parser.PushByte(value);
+    
     // Display a status indicator on the LCD to indicate that a message has
     // been received. This could be done as well in the synthesis engine code
     // or in the MIDI parser, but I'd rather keep the UI code separate.
-    switch (first_byte) {
+    switch (status & 0xf0) {
+      // Note on/off.
       case 0x90:
         display.set_status(1);
         break;
+      // Controller.
       case 0xb0:
         display.set_status(4);
         break;
+      // Bender.
       case 0xe0:
         display.set_status(3);
         break;
-      case 0xf8:
-        display.set_status(2);
+      // Special messages.
+      case 0xf0:
+        if (status == 0xf0 || status == 0xf7) {
+          // Sysex.
+          switch (engine.patch().sysex_reception_state()) {
+            case RECEIVING_DATA:
+              display.set_status('~');
+              break;
+            case RECEPTION_OK:
+              display.set_status('+');
+              engine.TouchPatch();
+              break;
+            case RECEPTION_ERROR:
+              display.set_status('#');
+              break;
+          }
+        }
         break;
     }
   }
@@ -206,7 +231,6 @@ void AudioRenderingTask() {
   }
 }
 
-
 uint16_t previous_num_glitches = 0;
 
 void HeartbeatTask() {
@@ -223,13 +247,12 @@ NaiveScheduler<32> scheduler;
 template<>
 Task NaiveScheduler<32>::tasks[] = {
     { &AudioRenderingTask, 16 },
-    { &MidiTask, 7 },
+    { &MidiTask, 6 },
     { &UpdateLedsTask, 4 },
-    { &UpdateDisplayTask, 1 },
+    { &UpdateDisplayTask, 2 },
     { &HeartbeatTask, 1 },
-    { &InputTask, 1 },
-    { &Cv1Task, 1 },
-    { &Cv2Task, 1 },
+    { &InputTask, 2 },
+    { &CvTask, 1 },
 };
 
 TIMER_2_TICK {
@@ -255,9 +278,9 @@ void Setup() {
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  editor.DisplaySplashScreen();
+  editor.DisplaySplashScreen(STR_RES___MUTABLE);
   
-  midi_input.Init();
+  midi_io.Init();
   pots.Init();
   switches.Init();
   // Enable the pull-up resistor.
