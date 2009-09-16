@@ -197,7 +197,7 @@ struct Serial {
   }
   static inline void Write(Value v) { Impl::IO::Write(v); }
   static inline uint8_t writable() { return Impl::IO::writable(); }
-  static inline uint8_t NonBlockingWrite(Value v ) {
+  static inline uint8_t NonBlockingWrite(Value v) {
     return Impl::IO::NonBlockingWrite(v);
   }
   static inline void Overwrite(Value v) { Impl::IO::Overwrite(v); }

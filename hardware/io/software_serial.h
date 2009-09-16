@@ -49,7 +49,9 @@ class BufferedSoftwareSerialOutput {
     TxPin::set_mode(DIGITAL_OUTPUT);
     TxPin::High();
   }
-  static inline void Write(Value v) { OutputBuffer::Write(v); }
+  static inline void Write(Value v) __attribute__((noinline)) {
+    OutputBuffer::Write(v);
+  }
   static inline uint8_t writable() { return OutputBuffer::writable(); }
   static inline uint8_t NonBlockingWrite(Value v ) {
     return OutputBuffer::NonBlockingWrite(v);
@@ -127,20 +129,26 @@ uint8_t BufferedSoftwareSerialOutput<TxPin, timer_rate, baud_rate,
 // baud_rate: target baud rate. must be a divisor of timer_rate.
 template<typename TxPin, uint16_t baud_rate>
 struct SoftwareSerialOutput {
-  static void Write(uint8_t tx_byte) {
+  static void Write(uint8_t tx_byte) __attribute__((noinline)) {
+    uint8_t oldSREG = SREG;
+    cli();  // turn off interrupts for a clean txmit
+
     TxPin::set_mode(DIGITAL_OUTPUT);
     uint16_t delay = (F_CPU / baud_rate) / 7;
+    uint16_t tx_delay = delay - 5;
     TxPin::Low();
     TunedDelay(delay);
     for (uint8_t mask = 1; mask; mask <<= 1) {
       TxPin::set_value(tx_byte & mask);
-      TunedDelay(delay);
+      TunedDelay(tx_delay);
     }
     TxPin::High();
+    SREG = oldSREG; // turn interrupts back on. hooray!
     TunedDelay(delay);
   }
+  
   // Following code from NewSoftSerial, Copyright (c) 2006 David A. Mellis.
-  static void TunedDelay(uint16_t delay) {
+  static inline void TunedDelay(uint16_t delay) {
     uint8_t tmp = 0;
 
     asm volatile(

@@ -26,11 +26,13 @@
 #define HARDWARE_IO_DEVICES_SPARKFUN_SER_LCD_H_
 
 #include "hardware/base/base.h"
+#include "hardware/base/time.h"
 #include "hardware/io/log2.h"
 #include "hardware/io/software_serial.h"
 #include "hardware/resources/resources_manager.h"
 #include "hardware/utils/logging.h"
 
+using hardware_base::Delay;
 using hardware_resources::SimpleResourcesManager;
 
 namespace hardware_io {
@@ -73,25 +75,22 @@ class Display {
     // bauds mode. Send this message to switch to the target baud rate.
     // At worst, if the baud rate is already set, this will display glitchy
     // characters for a short amount of time.
+    Delay(250);
+    DisplayPanicSerialOutput::Write(124);
     if (baud_rate == 2400) {
-      DisplayPanicSerialOutput::Write(124);
       DisplayPanicSerialOutput::Write(11);
     } else if (baud_rate == 4800) {
-      DisplayPanicSerialOutput::Write(124);
       DisplayPanicSerialOutput::Write(12);
     } else if (baud_rate == 9600) {
-      DisplayPanicSerialOutput::Write(124);
       DisplayPanicSerialOutput::Write(13);
     } else if (baud_rate == 14400) {
-      DisplayPanicSerialOutput::Write(124);
       DisplayPanicSerialOutput::Write(14);
     } else if (baud_rate == 19200) {
-      DisplayPanicSerialOutput::Write(124);
       DisplayPanicSerialOutput::Write(15);
     } else if (baud_rate == 19200) {
-      DisplayPanicSerialOutput::Write(124);
       DisplayPanicSerialOutput::Write(16);
     }
+    Delay(250);
     DisplaySerialOutput::Init();
   }
   
@@ -120,21 +119,26 @@ class Display {
   }
   
   static void SetBrightness(uint8_t brightness) {  // 0 to 29.
-    WriteCommand(0x7c, 128 + brightness);
+    DisplaySerialOutput::Write(0x7c);
+    DisplaySerialOutput::Write(128 + brightness);
   }
 
   static void SetCustomCharMap(const uint8_t* characters,
                                uint8_t num_characters) {
-   WriteCommand(0xfe, 0x01);
+   DisplaySerialOutput::Write(0xfe);
+   DisplaySerialOutput::Write(0x01);
    for (uint8_t i = 0; i < num_characters; ++i) {
-     WriteCommand(0xfe, 0x40 + i * 8);
+     DisplaySerialOutput::Write(0xfe);
+     DisplaySerialOutput::Write(0x40 + i * 8);
      for (uint8_t j = 0; j < 8; ++j) {
        // The 6th bit is not used, so it is set to prevent character definition
        // data to be misunderstood with special commands.
-       WriteCommand(0, 0x20 |  SimpleResourcesManager::Lookup<uint8_t, uint8_t>(
-           characters, i * 8 + j));
+       DisplaySerialOutput::Write(0x20 |
+           SimpleResourcesManager::Lookup<uint8_t, uint8_t>(
+               characters, i * 8 + j));
      }
-     WriteCommand(0xfe, 0x01);
+     DisplaySerialOutput::Write(0xfe);
+     DisplaySerialOutput::Write(0x01);
    }                               
   }
 
@@ -143,7 +147,7 @@ class Display {
     cursor_position_ = cursor;
   }
 
-  static inline void set_status(uint8_t status) {
+  static inline void set_status(uint8_t status) __attribute__((noinline)) {
     // TODO(pichenettes): we're using the same clock for blinking the cursor
     // and clearing the status indicator. ewwww...
     blink_clock_ = 0;
@@ -215,15 +219,6 @@ class Display {
   }
 
  private:
-  // Writes a pair of related bytes (command/argument). The main purpose of
-  // this function is simply to avoid the write function to be inlined too
-  // often.
-  static void WriteCommand(uint8_t command, uint8_t argument) {
-    if (command) {
-      DisplaySerialOutput::Write(command);
-    }
-    DisplaySerialOutput::Write(argument);
-  }
   // Character pages storing what the display currently shows (remote), and
   // what it ought to show (local).
   static uint8_t local_[width * height];

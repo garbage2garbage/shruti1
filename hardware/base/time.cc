@@ -42,6 +42,11 @@ TIMER_0_TICK {
   timer0_overflow_count++;
 }
 
+unsigned long Delay(unsigned long delay) {
+  unsigned long t = milliseconds();
+  while (milliseconds() - t < delay);
+}
+
 unsigned long milliseconds() {
   unsigned long m;
   uint8_t oldSREG = SREG;

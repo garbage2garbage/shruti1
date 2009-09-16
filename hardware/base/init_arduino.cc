@@ -43,4 +43,4 @@ void InitArduino() {
   *UCSR0BRegister::ptr() = 0;
 }
 
-}  // namespace hardware_base;
+}  // namespace hardware_base

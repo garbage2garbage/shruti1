@@ -11,6 +11,8 @@ namespace hardware_base {
 
 unsigned long milliseconds();
 
+unsigned long Delay(unsigned long delay);
+
 void SetupClock();
 
 }  // namespace hardware_base;
