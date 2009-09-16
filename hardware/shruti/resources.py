@@ -98,7 +98,7 @@ on
 tri
 sqr
 s&h
-ramp
+\x05
 
 blit
 saw

@@ -197,8 +197,8 @@ void MidiTask() {
         break;
       // Special messages.
       case 0xf0:
+        // Display a status indicator to monitor SysEx patch reception.
         if (status == 0xf0 || status == 0xf7) {
-          // Sysex.
           switch (engine.patch().sysex_reception_state()) {
             case RECEIVING_DATA:
               display.set_status('~');

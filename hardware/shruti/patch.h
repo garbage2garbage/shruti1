@@ -120,7 +120,7 @@ class Patch {
   }
 
  private:
-  static uint8_t CheckBuffer();
+  static uint8_t CheckBuffer() __attribute__((noinline));
   void Pack(uint8_t* patch_buffer) const;
   void Unpack(const uint8_t* patch_buffer);
   

@@ -127,11 +127,12 @@ uint8_t BufferedSoftwareSerialOutput<TxPin, timer_rate, baud_rate,
 // Parameters:
 // TxPin: digital pin used for transmission.
 // baud_rate: target baud rate. must be a divisor of timer_rate.
+// Following code from NewSoftSerial, Copyright (c) 2006 David A. Mellis.
 template<typename TxPin, uint16_t baud_rate>
 struct SoftwareSerialOutput {
   static void Write(uint8_t tx_byte) __attribute__((noinline)) {
     uint8_t oldSREG = SREG;
-    cli();  // turn off interrupts for a clean txmit
+    cli();
 
     TxPin::set_mode(DIGITAL_OUTPUT);
     uint16_t delay = (F_CPU / baud_rate) / 7;
@@ -143,14 +144,12 @@ struct SoftwareSerialOutput {
       TunedDelay(tx_delay);
     }
     TxPin::High();
-    SREG = oldSREG; // turn interrupts back on. hooray!
+    SREG = oldSREG;
     TunedDelay(delay);
   }
   
-  // Following code from NewSoftSerial, Copyright (c) 2006 David A. Mellis.
   static inline void TunedDelay(uint16_t delay) {
     uint8_t tmp = 0;
-
     asm volatile(
       "sbiw %0, 0x01"  "\n\t"
       "ldi %1, 0xff"   "\n\t"

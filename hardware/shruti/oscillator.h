@@ -18,12 +18,12 @@
 // Pulse    sr/2      sr/2             n/a
 // Saw      sr        sr/2             n/a
 // Triangle sr        sr/2             sr/4
-// CZ       sr/2      n/a              n/a
-// FM       sr/2      n/a              n/a
+// CZ       sr        n/a              n/a
+// FM       sr        n/a              n/a
 // 8-bits   sr        n/a              n/a
 // Voice    sr/2      n/a              n/a
 // Table    sr/2      n/a              n/a
-// Sweep    sr/2      n/a              n/a
+// Sweep    ?         n/a              n/a
 //
 // TODO(pichenettes): This code is horrible, find a way to get the generate the
 // 3 specialized variants in a more efficient way.
@@ -422,14 +422,12 @@ class Oscillator {
   
   // ------- Casio CZ-like synthesis ------------------------------------------.
   static void UpdateCz() {
-    data_.cz.formant_phase_increment = phase_increment_2_ + (
-        (phase_increment_2_ * uint32_t(parameter_)) >> 3);
+    data_.cz.formant_phase_increment = phase_increment_ + (
+        (phase_increment_ * uint32_t(parameter_)) >> 3);
   }
   static void RenderCz() {
-    HALF_SAMPLE_RATE;
-    
     uint16_t last_phase = phase_;
-    phase_ += phase_increment_2_;
+    phase_ += phase_increment_;
     if (phase_ < last_phase) {
       data_.cz.formant_phase = 0;
     }
@@ -444,7 +442,7 @@ class Oscillator {
   
   // ------- FM ---------------------------------------------------------------.
   static void UpdateFm() {
-    uint16_t increment = phase_increment_2_;
+    uint16_t increment = phase_increment_;
     uint8_t triangle = parameter_ & 0x1f;
     if (parameter_ & 0x10) { 
       triangle ^= 0x1f;
@@ -453,14 +451,13 @@ class Oscillator {
     data_.fm.modulator_phase_increment = increment >> 3;
   }
   static void RenderFm() {
-    HALF_SAMPLE_RATE
-    
+    phase_ += phase_increment_;
     data_.fm.modulator_phase += data_.fm.modulator_phase_increment;
     int8_t modulator = ReadSample(waveform_table[WAV_RES_SINE],
                                   data_.fm.modulator_phase) - 128;
-    int16_t modulation = Signal::SignedMulScale4(modulator, parameter_);
-    phase_ += phase_increment_2_ + modulation;
-    held_sample_ = InterpolateSample(waveform_table[WAV_RES_SINE], phase_);
+    int16_t modulation = Signal::SignedUnsignedMul(modulator, parameter_);
+    held_sample_ = InterpolateSample(waveform_table[WAV_RES_SINE],
+        phase_ + modulation);
   }
   
   // ------- 8-bit land -------------------------------------------------------.
