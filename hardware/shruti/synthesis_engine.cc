@@ -11,9 +11,9 @@
 #include "hardware/resources/resources_manager.h"
 #include "hardware/shruti/oscillator.h"
 #include "hardware/utils/random.h"
-#include "hardware/utils/signal.h"
+#include "hardware/utils/op.h"
 
-using hardware_utils::Signal;
+using hardware_utils::Op;
 
 namespace hardware_shruti {
 
@@ -84,7 +84,7 @@ static const prog_char empty_patch[] PROGMEM = {
     MOD_SRC_CV_1, MOD_DST_FILTER_CUTOFF, 0,
     MOD_SRC_CV_2, MOD_DST_FILTER_CUTOFF, 0,
     120, 0, 0, 0,
-    136, 136, 136, 136, 136, 136, 136, 136,
+    0x00, 0x00, 0xff, 0xff, 0xcc, 0xcc, 0x44, 0x44,
     0, 0, 0, 1,
     'n', 'e', 'w', ' ', ' ', ' ', ' ', ' '};
 
@@ -379,7 +379,7 @@ void Voice::Control() {
     }
     // The last modulation amount is adjusted by the wheel.
     if (i == kSavedModulationMatrixSize - 1) {
-      amount = Signal::SignedMulScale8(
+      amount = Op::SignedMulScale8(
           amount,
           engine.modulation_sources_[MOD_SRC_WHEEL]);
     }
@@ -397,14 +397,14 @@ void Voice::Control() {
     }
     if (destination != MOD_DST_VCA) {
       int16_t modulation = dst[destination];
-      modulation += Signal::SignedUnsignedMul(amount, source_value);
+      modulation += Op::SignedUnsignedMul(amount, source_value);
       // For those sources, use relative modulation.
       if (source <= MOD_SRC_LFO_2 ||
           source == MOD_SRC_PITCH_BEND ||
           source == MOD_SRC_NOTE) {
         modulation -= amount << 7;
       }
-      dst[destination] = Signal::Clip(modulation, 0, 16383);
+      dst[destination] = Op::Clip(modulation, 0, 16383);
     } else {
       // The VCA modulation is multiplicative, not additive. Yet another
       // Special case :(.
@@ -412,20 +412,20 @@ void Voice::Control() {
         amount = -amount;
         source_value = 255 - source_value;
       }
-      dst[MOD_DST_VCA] = Signal::MulScale8(
+      dst[MOD_DST_VCA] = Op::MulScale8(
           dst[MOD_DST_VCA],
-          Signal::Mix(255, source_value, amount << 2));
+          Op::Mix(255, source_value, amount << 2));
     }
   }
   // Hardcoded filter modulations.
-  dst[MOD_DST_FILTER_CUTOFF] = Signal::Clip(
-      dst[MOD_DST_FILTER_CUTOFF] + Signal::SignedUnsignedMul(
+  dst[MOD_DST_FILTER_CUTOFF] = Op::Clip(
+      dst[MOD_DST_FILTER_CUTOFF] + Op::SignedUnsignedMul(
           engine.patch_.filter_env,
           modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources]),
       0,
       16383);
-  dst[MOD_DST_FILTER_CUTOFF] = Signal::Clip(
-      dst[MOD_DST_FILTER_CUTOFF] + Signal::SignedUnsignedMul(
+  dst[MOD_DST_FILTER_CUTOFF] = Op::Clip(
+      dst[MOD_DST_FILTER_CUTOFF] + Op::SignedUnsignedMul(
           engine.patch_.filter_lfo,
           engine.modulation_sources_[MOD_SRC_LFO_2]) -
       (engine.patch_.filter_lfo << 7),
@@ -454,7 +454,11 @@ void Voice::Control() {
   for (uint8_t i = 0; i < 2; ++i) {
     int16_t pitch = pitch_value_;
     // -24 / +24 semitones by the range controller.
-    pitch += int16_t(engine.patch_.osc_range[i]) << 7;
+    if (i == 0 && engine.patch_.osc_algorithm[0] == WAVEFORM_FM) {
+      Osc1::UpdateSecondaryParameter(engine.patch_.osc_range[i] + 12);
+    } else {
+      pitch += int16_t(engine.patch_.osc_range[i]) << 7;
+    }
     // -24 / +24 semitones by the main octave controller.
     pitch += int16_t(engine.patch_.kbd_octave) * kOctave;
     if (i == 1) {
@@ -516,32 +520,32 @@ void Voice::Audio() {
   
   uint8_t osc_2 = Osc2::Render();
   if (engine.patch_.osc_option[0] == RING_MOD) {
-    mix = Signal::SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
+    mix = Op::SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
   }
-  mix = Signal::Mix(
+  mix = Op::Mix(
       mix,
       osc_2,
       modulation_destinations_[MOD_DST_MIX_BALANCE]);
   
   uint8_t sub_osc = SubOsc::Render();
-  mix = Signal::Mix(
+  mix = Op::Mix(
       mix,
       sub_osc,
       modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
 
-  mix = Signal::Mix(
+  mix = Op::Mix(
       mix,
       Random::state_msb(),
       modulation_destinations_[MOD_DST_MIX_NOISE]);
 
 #ifdef SOFTWARE_VCA
-  signal_ = Signal::SignedMulScale8(
+  signal_ = Op::SignedMulScale8(
       128 + mix
       modulation_destinations_[MOD_DST_VCA]) + 128;
 #else
   signal_ = mix;
 #endif
- 
+
   // If the phase of oscillator 1 has wrapped and if sync is enabled, reset the
   // phase of the second oscillator.
   if (engine.patch_.osc_option[0] == SYNC && Osc1::phase() < previous_phase) {

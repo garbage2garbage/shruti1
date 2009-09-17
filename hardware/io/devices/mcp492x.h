@@ -8,9 +8,9 @@
 #define HARDWARE_IO_DEVICES_MCP492X_H_
 
 #include "hardware/io/spi.h"
-#include "hardware/utils/signal.h"
+#include "hardware/utils/op.h"
 
-using hardware_utils::Signal;
+using hardware_utils::Op;
 
 namespace hardware_io {
 
@@ -42,7 +42,7 @@ class Dac {
   }
 
   static void Write(uint8_t value, uint8_t channel) {
-    value = Signal::Swap4(value);
+    value = Op::Swap4(value);
     uint8_t command = (value & 0xf) | 0x10;
     if (channel) {
       command |= 0x80;

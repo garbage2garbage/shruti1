@@ -28,9 +28,10 @@ includes = """
 #endif
 """
 
-# ------------------------------------------------------------------------------
-# Strings
-# ------------------------------------------------------------------------------
+
+"""----------------------------------------------------------------------------
+Strings used in the UI
+----------------------------------------------------------------------------"""
 
 strings = """
 prm
@@ -98,7 +99,7 @@ on
 tri
 sqr
 s&h
-\x05
+\x03
 
 blit
 saw
@@ -152,9 +153,9 @@ cut
 vca
 pw1
 pw2
-\x041
-\x042
-\x04
+\x051
+\x052
+\x05
 mix
 noi
 sub
@@ -172,32 +173,32 @@ noise
 subosc
 reso
 
-\x051
-\x061
-\x071
-?1
-\x052
-\x062
-\x072
-?2
-\x053
-\x063
-\x073
-?3
-\x054
-\x064
-\x074
-?4
-\x055
-\x065
-\x075
-?5
-\x056
-\x066
-\x076
-?6
-> mutable
-  instruments  <
+\x03 1
+\x04 1
+\x05 1
+? 1
+\x03 2
+\x04 2
+\x05 2
+? 2
+\x03 3
+\x04 3
+\x05 3
+? 3
+\x03 4
+\x04 4
+\x05 4
+? 4
+\x03 5
+\x04 5
+\x05 5
+? 5
+\x03 6
+\x04 6
+\x05 6
+? 6
+mutable
+instruments \x06\x07-1
 P.ORLEANS: 21 MN
 P.BERCY:     +1H
 load/save patch
@@ -209,9 +210,10 @@ extern
 equal
 """
 
-# ------------------------------------------------------------------------------
-# Lookup tables for pitch / LFOs / env
-# ------------------------------------------------------------------------------
+
+"""----------------------------------------------------------------------------
+Lookup tables for pitch / LFOs / env
+----------------------------------------------------------------------------"""
 
 # Create lookup table for LFO increments (logarithmic frequency).
 lookup_tables = []
@@ -261,10 +263,54 @@ lookup_tables.append(
     ('oscillator_increments', increments.astype(int))
 )
 
-"""List of 22 shrutis with different notation schemes.
 
-The most common scheme is in the 3th column.
-"""
+"""----------------------------------------------------------------------------
+Table with FM modulation frequency ratios. This is taken from the
+DX21 manual (http://www.maths.abdn.ac.uk/~bensondj/dx7/manuals/dx21-man.pdf),
+with less details in the highest frequencies. Added: slight variations in
+pitch to create phasing/detune effects, low octaves, and 7/4, 9/4 that I really
+like.
+----------------------------------------------------------------------------"""
+
+fm_frequency_ratios = numpy.array([
+  0.25,
+  0.5,
+  0.5 * 2 ** (16 / 1200.0),
+  numpy.sqrt(2) / 2,
+  numpy.pi / 4,
+  1.0,
+  1.0 * 2 ** (8 / 1200.0),
+  numpy.sqrt(2),
+  numpy.pi / 2,
+  7.0 / 4,
+  2,
+  2 * 2 ** (8 / 1200.0),
+  9.0 / 4,
+  11.0 / 4,
+  2 * numpy.sqrt(2),
+  3,
+  numpy.pi,
+  numpy.sqrt(3) * 2,
+  4,
+  numpy.sqrt(2) * 3,
+  numpy.pi * 3 / 2,
+  5,
+  numpy.sqrt(2) * 4,
+  6,
+  8,
+])
+
+lookup_tables.append(
+    ('fm_frequency_ratios', (fm_frequency_ratios * 256).astype(int))
+)
+
+
+"""----------------------------------------------------------------------------
+List of 22 shrutis with different notation schemes.
+
+The most common notation scheme is in the 3th column.
+----------------------------------------------------------------------------"""
+
 shrutis = [
   # Swara ref 1, Swara ref 2, Swara, Swara (carnatic, common), Just, Ratio
   ('S', 'sa', 's', 'C', 1),
@@ -291,11 +337,13 @@ shrutis = [
   ('N2', 'ne', 'n4', 'pB', 243.0/128.0),
 ]
 
-"""A recommended key on the keyboard for each of the swara.
+
+"""----------------------------------------------------------------------------
+A recommended key on the keyboard for each of the swara.
 
 From:
 http://commons.wikimedia.org/wiki/Melakarta_ragams_(svg)
-"""
+----------------------------------------------------------------------------"""
 recommended_keys = {
   's': 0,
   'r1': 1,
@@ -443,12 +491,13 @@ for scale, values in scales:
   strings += '\n' + scale[:6]
   lookup_tables.append(('scale_%s' % scale, values))
 
-# ------------------------------------------------------------------------------
-# Waveforms
-# ------------------------------------------------------------------------------
+
+"""----------------------------------------------------------------------------
+Waveforms for speech synthesis
+----------------------------------------------------------------------------"""
 
 waveforms = []
-# Create amplitude modulated resonance tables.
+# Create amplitude modulated sine/square tables for formants.
 sine_samples = []
 square_samples = []
 sine = numpy.sin(numpy.arange(16.0) / 16.0 * 2 * numpy.pi)
@@ -468,6 +517,11 @@ waveforms.extend([
     ('formant_square', square_samples)
 ])
 
+
+"""----------------------------------------------------------------------------
+Band-limited waveforms
+----------------------------------------------------------------------------"""
+
 def Scale(array, min=0, max=255, use_min=0):
   if use_min != 0:
     m = use_min
@@ -479,7 +533,7 @@ def Scale(array, min=0, max=255, use_min=0):
 
 # Sine wave.
 numpy.random.seed(21)
-sine = -numpy.cos(numpy.arange(257.0) / 256.0 * 2 * numpy.pi) * 127.5 + 127.5
+sine = -numpy.sin(numpy.arange(257.0) / 256.0 * 2 * numpy.pi) * 127.5 + 127.5
 sine += numpy.random.rand(257) - 0.5
 
 # Band limited waveforms.
@@ -488,8 +542,14 @@ bl_pulse_tables = []
 bl_square_tables = []
 bl_saw_tables = []
 bl_tri_tables = []
+
+# The Juno-6 / Juno-60 waveforms have a brighter harmonic content, which can be
+# recreated by adding to the signal a 1-pole high-pass filtered version of
+# itself.
+juniness = 1.0
+
 for zone in range(num_zones):
-  f0 = 440.0 * 2.0 ** ((24 + 16 * (zone + 1) - 69) / 12.0)
+  f0 = 440.0 * 2.0 ** ((24 + 16 * zone - 69) / 12.0)
   period = sample_rate / f0
   m = 2 * numpy.floor(period / 2) + 1.0
   wrap = numpy.fmod(numpy.arange(257) + 128, 256)
@@ -498,21 +558,28 @@ for zone in range(num_zones):
   pulse[128] = 1.0
   bl_pulse_tables.append(('bandlimited_pulse_%d' % zone,
                           Scale(pulse, 0, 255, -1.0)))
+
   square = numpy.cumsum(pulse - pulse[wrap])
+  triangle = -numpy.cumsum(square[::-1] - square.mean()) / 256
+
+  square -= juniness * triangle
+  if zone == num_zones - 1:
+    square = sine
   bl_square_tables.append(('bandlimited_square_%d' % zone,
                           Scale(square, 0, 255)))
-  triangle = numpy.cumsum(square - square.mean())
+  
+  triangle = triangle[numpy.fmod(numpy.arange(257) + 64, 256)]
   if zone == num_zones - 1:
-    # Since the band-limited triangle wave for the highest zone has almost no
-    # harmonics, store a pure sine wave here, which is used for other purposes
-    # (FM). Random noise is added to the sine wave so as to avoid the
-    # quantization error being correlated with the signal.
     triangle = sine
-
   bl_tri_tables.append(('bandlimited_triangle_%d' % zone,
                         Scale(triangle, 0, 255)))
-  saw = numpy.cumsum(pulse[wrap] - pulse.mean())
-  bl_saw_tables.append(('bandlimited_saw_%d' % zone, Scale(saw, 0, 255)))
+
+  saw = -numpy.cumsum(pulse[wrap] - pulse.mean())
+  saw -= juniness * numpy.cumsum(saw - saw.mean()) / 256
+  if zone == num_zones - 1:
+    saw = sine
+  bl_saw_tables.append(('bandlimited_saw_%d' % zone,
+                       Scale(saw, 0, 255)))
 
 # Blit are never generated at SR, always at SR/2.
 del bl_pulse_tables[0]
@@ -527,26 +594,27 @@ waveforms.append((
 ))
 
 
-# ------------------------------------------------------------------------------
-# Speech data
-# ------------------------------------------------------------------------------
+"""----------------------------------------------------------------------------
+Speech data
+----------------------------------------------------------------------------"""
 
 speech_data = [
-27,40,89,253,16,
-18,51,62,220,96,
-15,69,93,236,112,
-10,84,110,218,128,
-23,44,87,252,16,
-13,29,80,216,0,
-6,46,81,195,0,
-9, 51, 95, 243, 3,
-6, 73, 99, 122, 233]
+27, 40,  89, 253, 16,
+18, 51,  62, 220, 96,
+15, 69,  93, 236, 112,
+10, 84, 110, 218, 128,
+23, 44,  87, 252, 16,
+13, 29,  80, 216, 0,
+ 6, 46,  81, 195, 0,
+ 9, 51,  95, 243, 3,
+ 6, 73,  99, 122, 233]
 
 waveforms.append(('speech_data', speech_data))
 
-# ------------------------------------------------------------------------------
-# Arpeggiator patterns
-# ------------------------------------------------------------------------------
+
+"""----------------------------------------------------------------------------
+Arpeggiator patterns
+----------------------------------------------------------------------------"""
 
 def XoxTo16BitInt(pattern):
   uint16 = 0
@@ -574,9 +642,10 @@ lookup_tables.append(
       'o--o --o- -o-- o-o-',
       'o--o o--- o-o- o-oo'])))
 
-# ------------------------------------------------------------------------------
-# Custom characters for LCD
-# ------------------------------------------------------------------------------
+
+"""----------------------------------------------------------------------------
+Custom characters for LCD display
+----------------------------------------------------------------------------"""
 
 def StringImageToBytes(string_image):
   rows = [row.strip() for row in string_image.split('\n') if row.strip()]
@@ -618,16 +687,6 @@ XXXX.
 .....
 .....
 .....
-.XXX.
-X.X.X
-X.XXX
-X...X
-.XXX.
-""",
-"""
-.....
-.....
-.....
 ..X..
 ..X..
 .XXX.
@@ -635,16 +694,6 @@ X...X
 XXXXX
 """,
 """
-.....
-.....
-.....
-.X...
-X.X.X
-...X.
-.....
-.....
-""",
-"""
 ..X..
 .XXX.
 X.X.X
@@ -665,23 +714,45 @@ X.X.X
 ..X..
 """,
 """
+.....
+.....
+.....
 .X...
-XXX..
-.X...
-.X.X.
-.X.X.
+X.X.X
 ...X.
-..XXX
-...X.
+.....
+.....
+""",
+"""
+.X... 
+X.X..
+.X..X 
+X.X.X 
+...XX 
+..X.X 
+X...X 
+.XXX. 
+""",
+"""
+.XXX.
+X...X
+XXXXX
+X...X
+X.XXX
+X.X.X
+X.X.X
+.....
 """]
 
 bytes = sum([StringImageToBytes(image) for image in special_characters], [])
 characters = [
     ('special_characters', bytes)
 ]
-# ------------------------------------------------------------------------------
-# Summary of all resources
-# ------------------------------------------------------------------------------
+
+
+"""----------------------------------------------------------------------------
+Summary of all resources
+----------------------------------------------------------------------------"""
 
 # multi-line string or list of tuples | table name | prefix | type | python type
 # store index in RAM

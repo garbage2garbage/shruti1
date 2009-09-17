@@ -10,7 +10,7 @@
 #include <inttypes.h>
 
 #ifndef __TEST__
-#define FAST_SIGNAL_PROCESSING
+#define USE_OPTIMIZED_OP
 #endif  // !__TEST__
 
 #ifndef NULL

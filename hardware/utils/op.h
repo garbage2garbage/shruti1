@@ -4,14 +4,14 @@
 //
 // Signal processing functions for the synthesis engine.
 
-#ifndef HARDWARE_UTILS_SIGNAL_H_
-#define HARDWARE_UTILS_SIGNAL_H_
+#ifndef HARDWARE_UTILS_OP_H_
+#define HARDWARE_UTILS_OP_H_
 
 #include "hardware/base/base.h"
 
 namespace hardware_utils {
   
-struct Signal {
+struct Op {
   static inline int16_t Clip(int16_t value, int16_t min, int16_t max) {
     return value < min ? min : (value > max ? max : value);
   }
@@ -25,7 +25,7 @@ struct Signal {
   }
   
   
-#ifdef FAST_SIGNAL_PROCESSING
+#ifdef USE_OPTIMIZED_OP
   static inline uint8_t Clip8(int16_t value) {
     uint8_t result;
     asm(
@@ -212,6 +212,32 @@ struct Signal {
     );
     return result;
   }
+  
+  static inline uint16_t Mul16Scale8(uint16_t a, uint16_t b) {
+    uint16_t result;
+    uint32_t product;
+    asm(
+      "mul %A2, %A3"    "\n\t"
+      "movw %A1, r0"    "\n\t"
+      "mul %B2, %B3"    "\n\t"
+      "movw %C1, r0"    "\n\t"
+      "mul %B3, %A2"    "\n\t"
+      "add %B1, r0"     "\n\t"
+      "adc %C1, r1"     "\n\t"
+      "eor r1, r1"      "\n\t"
+      "adc %D1, r1"     "\n\t"
+      "mul %B2, %A3"    "\n\t"
+      "add %B1, r0"     "\n\t"
+      "adc %C1, r1"     "\n\t"
+      "eor r1, r1"      "\n\t"
+      "adc %D1, r1"     "\n\t"
+      "mov %A0, %B1"   "\n\t"
+      "mov %B0, %C1"   "\n\t"
+      : "=r" (result), "=&r" (product)
+      : "a" (a), "a" (b)
+    );
+    return result;
+  }
 
 #else
 
@@ -267,9 +293,13 @@ struct Signal {
     return int16_t(int8_t(a) * uint8_t(b)) >> 4;
   }
   
-#endif  // FAST_SIGNAL_PROCESSING
+  static inline uint16_t Mul16Scale8(uint16_t a, uint16_t b) {
+    return (unsigned long)a * b >> 8;
+  }
+  
+#endif  // USE_OPTIMIZED_OP
 };
 
 }  // namespace hardware_utils
 
-#endif  // HARDWARE_UTILS_SIGNAL_H_
+#endif  // HARDWARE_UTILS_OP_H_

@@ -185,15 +185,15 @@ void MidiTask() {
     switch (status & 0xf0) {
       // Note on/off.
       case 0x90:
-        display.set_status(1);
+        display.set_status('\x01');
         break;
       // Controller.
       case 0xb0:
-        display.set_status(4);
+        display.set_status('\x05');
         break;
       // Bender.
       case 0xe0:
-        display.set_status(3);
+        display.set_status('\x02');
         break;
       // Special messages.
       case 0xf0:
@@ -278,7 +278,7 @@ void Setup() {
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  editor.DisplaySplashScreen(STR_RES___MUTABLE);
+  editor.DisplaySplashScreen(STR_RES_MUTABLE);
   
   midi_io.Init();
   pots.Init();

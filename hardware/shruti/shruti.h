@@ -10,7 +10,7 @@
 #include "hardware/base/base.h"
 
 #ifndef __TEST__
-#define FAST_SIGNAL_PROCESSING
+#define USE_OPTIMIZED_OP
 #endif  // !__TEST__
 
 // #define SOFTWARE_VCA

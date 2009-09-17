@@ -35,7 +35,7 @@
 namespace hardware_shruti {
 
 // Used for MIDI -> oscillator increment conversion.
-static const uint16_t kLowestNote = 24 * 128;
+static const uint16_t kLowestNote = 12 * 128;
 static const uint16_t kOctave = 12 * 128;
 static const uint16_t kPitchTableStart = 96 * 128;
 static const uint16_t kHighestNote = 108 * 128;

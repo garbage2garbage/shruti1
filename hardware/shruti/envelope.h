@@ -10,9 +10,9 @@
 
 #include "hardware/shruti/patch.h"
 #include "hardware/shruti/resources.h"
-#include "hardware/utils/signal.h"
+#include "hardware/utils/op.h"
 
-using hardware_utils::Signal;
+using hardware_utils::Op;
 
 namespace hardware_shruti {
 

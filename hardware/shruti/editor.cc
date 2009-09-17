@@ -711,7 +711,7 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
       value++;
       break;
     case UNIT_PATTERN:
-      base = STR_RES_51;
+      base = STR_RES_3_1;
       break;
     case UNIT_MODULATION_SOURCE:
       base = (width <= 4) ? STR_RES_LF1 : STR_RES_LFO1;
