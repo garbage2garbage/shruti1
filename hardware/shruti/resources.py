@@ -548,16 +548,18 @@ bl_tri_tables = []
 # itself.
 juniness = 1.0
 
+wrap = numpy.fmod(numpy.arange(257) + 128, 256)
+quadrature = numpy.fmod(numpy.arange(257) + 64, 256)
+
 for zone in range(num_zones):
   f0 = 440.0 * 2.0 ** ((24 + 16 * zone - 69) / 12.0)
   period = sample_rate / f0
   m = 2 * numpy.floor(period / 2) + 1.0
-  wrap = numpy.fmod(numpy.arange(257) + 128, 256)
   i = wrap / 256.0
   pulse = numpy.sin(numpy.pi * i * m) / (m * numpy.sin(numpy.pi * i) + 1e-9)
   pulse[128] = 1.0
   bl_pulse_tables.append(('bandlimited_pulse_%d' % zone,
-                          Scale(pulse, 0, 255, -1.0)))
+                          Scale(pulse[quadrature], 0, 255, -1.0)))
 
   square = numpy.cumsum(pulse - pulse[wrap])
   triangle = -numpy.cumsum(square[::-1] - square.mean()) / 256
@@ -566,20 +568,20 @@ for zone in range(num_zones):
   if zone == num_zones - 1:
     square = sine
   bl_square_tables.append(('bandlimited_square_%d' % zone,
-                          Scale(square, 0, 255)))
+                          Scale(square[quadrature], 0, 255)))
   
-  triangle = triangle[numpy.fmod(numpy.arange(257) + 64, 256)]
+  triangle = triangle[quadrature]
   if zone == num_zones - 1:
     triangle = sine
   bl_tri_tables.append(('bandlimited_triangle_%d' % zone,
-                        Scale(triangle, 0, 255)))
+                        Scale(triangle[quadrature], 0, 255)))
 
   saw = -numpy.cumsum(pulse[wrap] - pulse.mean())
   saw -= juniness * numpy.cumsum(saw - saw.mean()) / 256
   if zone == num_zones - 1:
     saw = sine
   bl_saw_tables.append(('bandlimited_saw_%d' % zone,
-                       Scale(saw, 0, 255)))
+                       Scale(saw[quadrature], 0, 255)))
 
 # Blit are never generated at SR, always at SR/2.
 del bl_pulse_tables[0]

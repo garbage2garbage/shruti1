@@ -527,16 +527,18 @@ void Voice::Audio() {
       osc_2,
       modulation_destinations_[MOD_DST_MIX_BALANCE]);
   
-  uint8_t sub_osc = SubOsc::Render();
-  mix = Op::Mix(
-      mix,
-      sub_osc,
-      modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
+  if (engine.patch_.osc_algorithm[0] != WAVEFORM_SPEECH) {
+    uint8_t sub_osc = SubOsc::Render();
+    mix = Op::Mix(
+        mix,
+        sub_osc,
+        modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
 
-  mix = Op::Mix(
-      mix,
-      Random::state_msb(),
-      modulation_destinations_[MOD_DST_MIX_NOISE]);
+    mix = Op::Mix(
+        mix,
+        Random::state_msb(),
+        modulation_destinations_[MOD_DST_MIX_NOISE]);
+  }
 
 #ifdef SOFTWARE_VCA
   signal_ = Op::SignedMulScale8(

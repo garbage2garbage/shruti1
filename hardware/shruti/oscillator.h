@@ -14,10 +14,10 @@
 //
 //          full      low complexity   sub oscillator
 // Blit     sr/2      sr/2             n/a
-// Square   sr        sr/2             sr/4
+// Square   sr        sr               sr/4
 // Pulse    sr/2      sr/2             n/a
-// Saw      sr        sr/2             n/a
-// Triangle sr        sr/2             sr/4
+// Saw      sr        sr               n/a
+// Triangle sr        sr               sr/4
 // CZ       sr        n/a              n/a
 // FM       sr        n/a              n/a
 // 8-bits   sr        n/a              n/a
@@ -157,25 +157,25 @@ class Oscillator {
     if (mode == SUB_OSCILLATOR) {
       phase_increment_ = increment << 2;
       UpdateSub();
-    } else if (mode == LOW_COMPLEXITY) {
-      parameter_ = parameter;
-      phase_increment_2_ = increment << 1;
-      if (algorithm_ & 1) {
-        UpdateSawTriangle();
-      } else {
-        UpdatePulseSquare();
-      }
     } else {
-      if (sweeping_) {
-        algorithm_ = parameter >> 5;
-        fn_ = fn_table_[algorithm_];
-        parameter = (parameter & 0x1f) << 2;
-      }
       parameter_ = parameter;
       phase_increment_ = increment;
       phase_increment_2_ = increment << 1;
-      if (fn_.update) {
-        (*fn_.update)();
+      if (mode == LOW_COMPLEXITY) {
+        if (algorithm_ & 1) {
+          UpdateSawTriangle();
+        } else {
+          UpdatePulseSquare();
+        }
+      } else {
+        if (sweeping_) {
+          algorithm_ = parameter >> 5;
+          fn_ = fn_table_[algorithm_];
+          parameter_ = (parameter & 0x1f) << 2;
+        }
+        if (fn_.update) {
+          (*fn_.update)();
+        }
       }
     }
   }
@@ -281,9 +281,6 @@ class Oscillator {
           waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
       data_.bl.shift = uint16_t(parameter_ + 127) << 8;
     } else {
-      if (mode == LOW_COMPLEXITY) {
-        wave_index = Op::AddClip(wave_index, 1, kNumZonesFullSampleRate);
-      }
       data_.bl.wave[0] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
       wave_index = Op::AddClip(wave_index, 1, kNumZonesFullSampleRate);
@@ -297,13 +294,10 @@ class Oscillator {
     }
   }
   static void RenderPulseSquare() {
-    if (data_.bl.leak == 0 && mode == FULL) {
-      phase_ += phase_increment_;
-    } else {
+    if (data_.bl.leak) {
       HALF_SAMPLE_RATE;
       phase_ += phase_increment_2_;
-    }
-    if (data_.bl.leak) {
+      
       int16_t blit = InterpolateSample(data_.bl.wave[0], phase_);
       blit -= InterpolateSample(data_.bl.wave[0], phase_ + data_.bl.shift);
       if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
@@ -315,6 +309,7 @@ class Oscillator {
         held_sample_ = square + 128;
       }
     } else {
+      phase_ += phase_increment_;
       held_sample_ = InterpolateTwoTables(
           data_.bl.wave[0], data_.bl.wave[1],
           phase_, data_.bl.balance);
@@ -351,21 +346,13 @@ class Oscillator {
         WAV_RES_BANDLIMITED_SAW_0 :
         WAV_RES_BANDLIMITED_TRIANGLE_0;
       
-    if (mode == LOW_COMPLEXITY) {
-      wave_index = Op::AddClip(wave_index, 1, kNumZonesFullSampleRate);
-    }
     data_.wv.wave[0] = waveform_table[base_resource_id + wave_index];
     wave_index = Op::AddClip(wave_index, 1, kNumZonesFullSampleRate);
     data_.wv.wave[1] = waveform_table[base_resource_id + wave_index];
     data_.wv.balance = note & 0xf0;
   }
   static void RenderSawTriangle() {
-    if (mode == FULL) {
-      phase_ += phase_increment_;
-    } else {
-      HALF_SAMPLE_RATE;
-      phase_ += phase_increment_2_;
-    }
+    phase_ += phase_increment_;
     held_sample_ = InterpolateTwoTables(
         data_.wv.wave[0], data_.wv.wave[1],
         phase_, data_.wv.balance);
@@ -412,6 +399,7 @@ class Oscillator {
   static void RenderWavetable64() {
     HALF_SAMPLE_RATE;
     phase_ += phase_increment_2_;
+    
     uint8_t p = data_.wt.smooth_parameter >> 8;
     uint16_t offset_a = (p << 6) + p;  // p * 65
     offset_a += phase_ >> 10;
@@ -532,7 +520,7 @@ class Oscillator {
       data_.sp.formant_phase[1] = 0;
       data_.sp.formant_phase[2] = 0;
     }
-    held_sample_ = result + 128;
+    held_sample_ = Op::SignedClip8(4 * result) + 128;
   }
   
   DISALLOW_COPY_AND_ASSIGN(Oscillator);
