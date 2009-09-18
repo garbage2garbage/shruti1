@@ -478,7 +478,8 @@ void Editor::DisplayStepSequencerPage() {
   display.Print(0, line_buffer_);
   for (uint8_t i = 0; i < 16; ++i) {
     uint8_t value = engine.patch().sequence_step(i) >> 4;
-    line_buffer_[i] = NibbleToAscii(value);
+    line_buffer_[i] = i < engine.patch().pattern_size ?
+        NibbleToAscii(value) : ' ';
   }
   display.Print(1, line_buffer_);
   display.set_cursor_position(kLcdWidth + cursor_);
@@ -490,10 +491,25 @@ void Editor::HandleStepSequencerInput(
     uint16_t value) {
   switch (controller_index) {
     case 1:
-      cursor_ = value >> 6;
+      {
+        cursor_ = value >> 6;
+        uint8_t max_position = engine.GetParameter(PRM_ARP_PATTERN_SIZE) - 1;
+        if (cursor_ > max_position) {
+          cursor_ = max_position;
+        }
+      }
       break;
     case 2:
       engine.mutable_patch()->set_sequence_step(cursor_, value >> 2);
+      break;
+    case 3:
+      {
+        uint8_t new_size = (value >> 6) + 1;
+        if (cursor_ >= new_size) {
+          cursor_ = new_size - 1;
+        }
+        engine.SetParameter(PRM_ARP_PATTERN_SIZE, new_size);
+      }
       break;
   }
 }

@@ -36,6 +36,7 @@ uint8_t VoiceController::num_voices_;
   
 uint8_t VoiceController::tempo_;
 uint8_t VoiceController::swing_;
+uint8_t VoiceController::pattern_size_;
 /* </static> */
 
 /* static */
@@ -171,7 +172,7 @@ void VoiceController::Control() {
   // Move to the next step in the x-o-x pattern.
   pattern_mask_ <<= 1;
   pattern_step_ += 1;
-  if (pattern_step_ == 16) {
+  if (pattern_step_ >= pattern_size_) {
     pattern_mask_ = 1;
     pattern_step_ = 0;
   }

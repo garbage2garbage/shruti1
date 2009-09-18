@@ -95,6 +95,9 @@ class Patch {
   // Offset: 86-94
   uint8_t name[kPatchNameSize];
   
+  // Offset: 94, not saved
+  uint8_t pattern_size;
+  
   // Get the value of a step in the sequence.
   uint8_t sequence_step(uint8_t step) const {
     return (step & 1) ? sequence[step >> 1] << 4 : sequence[step >> 1] & 0xf0;
@@ -231,6 +234,8 @@ enum Parameter {
   PRM_KBD_MIDI_CHANNEL,
   
   PRM_NAME = 3 * kModulationMatrixSize + 28 + 16,
+  
+  PRM_ARP_PATTERN_SIZE = 94
 };
 
 enum OscillatorAlgorithm {

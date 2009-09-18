@@ -86,7 +86,7 @@ static const prog_char empty_patch[] PROGMEM = {
     120, 0, 0, 0,
     0x00, 0x00, 0xff, 0xff, 0xcc, 0xcc, 0x44, 0x44,
     0, 0, 0, 1,
-    'n', 'e', 'w', ' ', ' ', ' ', ' ', ' '};
+    'n', 'e', 'w', ' ', ' ', ' ', ' ', ' ', 16};
 
 
 /* static */
@@ -212,6 +212,9 @@ void SynthesisEngine::SetParameter(
       break;
     case PRM_ARP_SWING:
       controller_.SetSwing(parameter_value);
+      break;
+    case PRM_ARP_PATTERN_SIZE:
+      controller_.set_pattern_size(parameter_value);
       break;
   }
 }

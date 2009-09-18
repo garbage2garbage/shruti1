@@ -55,6 +55,9 @@ class VoiceController {
     return pattern_mask_ & pattern_;
   }
   static void Control();
+  static void set_pattern_size(uint8_t pattern_size) {
+    pattern_size_ = pattern_size;
+  }
 
  private:
   static void RecomputeStepDurations();
@@ -90,6 +93,7 @@ class VoiceController {
   
   static uint8_t tempo_;
   static uint8_t swing_;
+  static uint8_t pattern_size_;
   
   DISALLOW_COPY_AND_ASSIGN(VoiceController);
 };
