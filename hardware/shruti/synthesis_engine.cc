@@ -34,6 +34,7 @@ Voice SynthesisEngine::voice_[kNumVoices];
 VoiceController SynthesisEngine::controller_;
 Lfo SynthesisEngine::lfo_[2];
 uint8_t SynthesisEngine::qux_[2];
+uint8_t SynthesisEngine::nrpn_parameter_number_ = 0xff;
 /* </static> */
 
 /* static */
@@ -123,10 +124,36 @@ void SynthesisEngine::NoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
 void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
                                     uint8_t value) {
   IGNORE_OTHER_CHANNELS;
+
+static uint8_t parameter_number = 0;
+
   switch (controller) {
     case hardware_midi::kModulationWheelMsb:
-      // TODO(pichenettes): improve the MIDI implementation.
       modulation_sources_[MOD_SRC_WHEEL] = (value << 1);
+      break;
+    case hardware_midi::kPortamentoTimeMsb:
+      patch_.kbd_portamento = value;
+      TouchPatch();
+      break;
+    case hardware_midi::kHarmonicIntensity:
+      patch_.filter_resonance = value;
+      break;
+    case hardware_midi::kBrightness:
+      patch_.filter_cutoff = value;
+      break;
+    case hardware_midi::kRelease:
+      patch_.env_release[1] = value;
+      break;
+    case hardware_midi::kAttack:
+      patch_.env_attack[1] = value;
+      break;
+    case hardware_midi::kNrpnMsb:
+      nrpn_parameter_number_ = value;
+      break;
+    case hardware_midi::kDataEntryMsb:
+      if (nrpn_parameter_number_ != 0xff) {
+        SetParameter(nrpn_parameter_number_, value);
+      }
       break;
   }
 }

@@ -1,4 +1,8 @@
-import numpy
+#!/usr/bin/python2.5
+#
+# Copyright 2009 Olivier Gillet (ol.gillet@gmail.com). All rights reserved
+#
+# Master resources file.
 
 header = """// Copyright 2009 Olivier Gillet. All rights reserved
 //
@@ -14,7 +18,6 @@ namespace = 'hardware_shruti'
 target = 'hardware/shruti'
 modifier = 'PROGMEM'
 types = ['uint8_t', 'uint16_t']
-
 includes = """
 #include "hardware/base/base.h"
 
@@ -27,6 +30,8 @@ includes = """
 #include <avr/pgmspace.h>
 #endif
 """
+create_specialized_manager = True
+
 
 import characters
 import lookup_tables
@@ -41,5 +46,3 @@ resources = [
   (waveforms.waveforms, 'waveform', 'WAV_RES', 'prog_uint8_t', int, True),
   (characters.characters, 'character', 'CHR_RES', 'prog_uint8_t', int, True),
 ]
-
-create_specialized_manager = True

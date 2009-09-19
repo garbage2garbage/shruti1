@@ -183,6 +183,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static VoiceController controller_;
   static uint8_t oscillator_decimation_;
   static uint8_t qux_[2];
+  static uint8_t nrpn_parameter_number_;
 
   // Called whenever a parameter related to LFOs/envelopes is modified (for now
   // everytime a parameter is modified by the user).
