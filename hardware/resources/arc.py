@@ -48,14 +48,11 @@ def CheckDups(collection):
 
 
 def GenerateHeader(base_name, res):
-  strings = res.strings
-  lookup_tables = res.lookup_tables
   max_num_resources = 0
   for resource in res.resources:
     max_num_resources = max(max_num_resources, len(resource[0]))
 
   f = file(os.path.join(res.target, base_name + '.h'), 'w')
-  base_name = os.path.split(base_name)[-1]
   f.write(res.header + '\n\n')
   f.write('#ifndef %s_%s_H_\n' % (res.namespace.upper(), base_name.upper()))
   f.write('#define %s_%s_H_\n\n' % (res.namespace.upper(), base_name.upper()))
@@ -106,9 +103,6 @@ def GenerateHeader(base_name, res):
 
 
 def GenerateCc(base_name, res):
-  strings = res.strings
-  lookup_tables = res.lookup_tables
-  
   f = file(os.path.join(res.target, base_name + '.cc'), 'w')
   f.write(res.header + '\n\n')
   f.write('#include "%s.h"\n' % base_name)
@@ -172,13 +166,14 @@ def Compile(path):
   for i, resource_tuple in enumerate(res.resources):
     if resource_tuple[-2] == str:
       resource_tuple = list(resource_tuple)
-      resource_tuple[0] = [x for x in res.strings.split('\n') if x]
+      resource_tuple[0] = [x for x in resource_tuple[0].split('\n') if x]
       if CheckDups(resource_tuple[0]):
         return
       if CheckDups([Canonicalize(x) for x in resource_tuple[0]]):
         return
       res.resources[i] = tuple(resource_tuple)
-
+  
+  base_name = os.path.split(base_name)[-1]
   GenerateHeader(base_name, res)
   GenerateCc(base_name, res)
 

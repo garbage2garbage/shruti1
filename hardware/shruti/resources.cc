@@ -8,7 +8,7 @@
 // python arc.py resources.py
 
 
-#include "hardware/shruti/resources.h"
+#include "resources.h"
 
 namespace hardware_shruti {
 
