@@ -62,7 +62,7 @@ static const prog_char empty_patch[] PROGMEM = {
     99,
     WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 50,
     0, 0, 0, 0,
-    4, 4, 4, WAVEFORM_SQUARE,
+    0, 0, 0, WAVEFORM_SQUARE,
     120, 0, 0, 0,
     20, 0,
     60, 40,

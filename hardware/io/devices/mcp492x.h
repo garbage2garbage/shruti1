@@ -14,7 +14,7 @@ using hardware_utils::Op;
 
 namespace hardware_io {
 
-static const uint8_t kDacSpeed = 4;
+static const uint8_t kDacSpeed = 2;
 
 enum DacVoltageReference {
   BUFFERED_REFERENCE,
@@ -23,8 +23,7 @@ enum DacVoltageReference {
 
 template<uint8_t slave_select_pin,
          DacVoltageReference voltage_reference = UNBUFFERED_REFERENCE,
-         uint8_t gain = 2,
-         bool safe = true>
+         uint8_t gain = 1>
 class Dac {
  public:
   enum {
@@ -43,7 +42,8 @@ class Dac {
 
   static void Write(uint8_t value, uint8_t channel) {
     value = Op::Swap4(value);
-    uint8_t command = (value & 0xf) | 0x10;
+    uint8_t command;
+    command = (value & 0xf) | 0x10;
     if (channel) {
       command |= 0x80;
     }
@@ -53,38 +53,9 @@ class Dac {
     if (gain == 1) {
       command |= 0x20;
     }
-    if (safe) {
-      DacInterface::NonBlockingWrite(command);
-      DacInterface::NonBlockingWrite(uint8_t(value & 0xff));
-      DacInterface::NonBlockingTransmit();
-    }
-    DacInterface::Overwrite(command);
-    DacInterface::Overwrite(value & 0xf0);
-    DacInterface::ImmediateTransmit();
+    DacInterface::Write(command, value & 0xf0);
   }
 
-  static void Write(uint16_t value, uint8_t channel) {
-    uint8_t command;
-    command = (value >> 8) | 0x10;
-    if (channel) {
-      command |= 0x80;
-    }
-    if (voltage_reference == BUFFERED) {
-      command |= 0x40;
-    }
-    if (gain == 1) {
-      command |= 0x20;
-    }
-    if (safe) {
-      DacInterface::NonBlockingWrite(command);
-      DacInterface::NonBlockingWrite(uint8_t(value & 0xff));
-      DacInterface::NonBlockingTransmit();
-    }
-    DacInterface::Overwrite(command);
-    DacInterface::Overwrite(uint8_t(value & 0xff));
-    DacInterface::ImmediateTransmit();
-  }
-  
  private:
   typedef Spi<slave_select_pin, MSB_FIRST, kDacSpeed> DacInterface;
 };

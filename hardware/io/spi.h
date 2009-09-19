@@ -34,12 +34,6 @@ IORegister(SPSR);
 typedef BitInRegister<SPSRRegister, SPI2X> DoubleSpeed;
 typedef BitInRegister<SPSRRegister, SPIF> TransferComplete;
 
-// Those callbacks pointers are used in the interrupt handler.
-extern void (*end_of_transmission_cback)();
-extern int16_t (*buffer_read_cback)();
-// Flag to check whether a transmission is already in progress.
-extern volatile uint8_t transmission_in_progress;
-
 template<uint8_t slave_select_pin = 10,
          DataOrder order = MSB_FIRST,
          uint8_t speed = 4>
@@ -59,9 +53,9 @@ class Spi {
     DataOut::set_mode(DIGITAL_OUTPUT);
     SlaveSelect::set_mode(DIGITAL_OUTPUT);
     
-    EndTransmission();
+    SlaveSelect::High();
     
-    uint8_t configuration = _BV(SPIE) | _BV(SPE) | _BV(MSTR);
+    uint8_t configuration = _BV(SPE) | _BV(MSTR);
     if (order == LSB_FIRST) {
       configuration |= _BV(DORD);
     }
@@ -88,31 +82,20 @@ class Spi {
     *SPCRRegister::ptr() = configuration;
   }
   
-  static inline void Write(uint8_t v) { while (!writable()); Overwrite(v); }
-  static inline void Overwrite(uint8_t v) { OutputBuffer::Overwrite(v); }
-  static inline uint8_t writable() { return OutputBuffer::writable(); }
-  static inline uint8_t NonBlockingWrite(uint8_t v) {
-    if (!writable()) {
-      return 0;
-    }
-    Overwrite(v);
-    return 1;
-  }
-  static uint8_t NonBlockingTransmit() {
-    if (transmission_in_progress || !OutputBuffer::readable()) {
-      return 0;
-    }
-    ImmediateTransmit();
-    return 1;
-  }
-  
-  static uint8_t ImmediateTransmit() {
-    transmission_in_progress = 1;
-    end_of_transmission_cback = &EndTransmission;
-    buffer_read_cback = &OutputBuffer::NonBlockingRead;
-    uint8_t value = OutputBuffer::ImmediateRead();
+  static inline void Write(uint8_t v) {
     SlaveSelect::Low();
-    *SPDRRegister::ptr() = value;
+    *SPDRRegister::ptr() = v;
+    while (!TransferComplete::value());
+    SlaveSelect::High();
+  }
+
+  static inline void Write(uint8_t a, uint8_t b) {
+    SlaveSelect::Low();
+    *SPDRRegister::ptr() = a;
+    while (!TransferComplete::value());
+    *SPDRRegister::ptr() = b;
+    while (!TransferComplete::value());
+    SlaveSelect::High();
   }
   
  private:
@@ -120,13 +103,6 @@ class Spi {
   typedef Pin<kSpiDataOutPin> DataOut;
   typedef Pin<kSpiDataInPin> DataIn;
   typedef Pin<kSpiClockPin> Clock;
-  
-  static void EndTransmission() {
-    SlaveSelect::High();
-    end_of_transmission_cback = NULL;
-    buffer_read_cback = NULL;
-    transmission_in_progress = 0;
-  }
 };
 
 }  // namespace hardware_io

@@ -55,6 +55,7 @@ void VoiceController::Init(Voice* voices, uint8_t num_voices) {
   mode_ = 0;
   internal_clock_counter_ = step_duration_[0];
   midi_clock_counter_ = 6;
+  pattern_size_ = 16;
   Reset();
 }
 
