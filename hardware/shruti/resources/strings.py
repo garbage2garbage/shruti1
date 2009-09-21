@@ -72,6 +72,7 @@ sqr
 s&h
 \x03
 
+none
 blit
 saw
 square

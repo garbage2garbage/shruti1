@@ -10,13 +10,13 @@
 namespace hardware_midi {
   
 const uint8_t kModulationWheelMsb = 0x1;
+const uint8_t kDataEntryMsb = 0x06;
 const uint8_t kPortamentoTimeMsb = 0x5;
 const uint8_t kHarmonicIntensity = 0x47;
 const uint8_t kRelease = 0x48;
 const uint8_t kAttack = 0x49;
 const uint8_t kBrightness = 0x4a;
 const uint8_t kNrpnMsb = 0x63;
-const uint8_t kDataEntryMsb = 0x06;
 
 // A device that responds to MIDI messages should implement this interface.
 // Everything is static - this is because the main synth class is a "static

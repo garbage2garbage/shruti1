@@ -37,6 +37,11 @@ uint8_t VoiceController::num_voices_;
 uint8_t VoiceController::tempo_;
 uint8_t VoiceController::swing_;
 uint8_t VoiceController::pattern_size_;
+
+uint16_t VoiceController::step_duration_estimator_num_;
+uint8_t VoiceController::step_duration_estimator_den_;
+uint16_t VoiceController::estimated_beat_duration_;
+
 /* </static> */
 
 /* static */
@@ -56,6 +61,9 @@ void VoiceController::Init(Voice* voices, uint8_t num_voices) {
   internal_clock_counter_ = step_duration_[0];
   midi_clock_counter_ = 6;
   pattern_size_ = 16;
+  step_duration_estimator_num_ = 0;
+  step_duration_estimator_den_ = 0;
+  estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
   Reset();
 }
 
@@ -65,7 +73,7 @@ void VoiceController::Reset() {
   pattern_step_ = 15;
   direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1; 
   internal_clock_counter_ = 0;
-  midi_clock_counter_ = 6;
+  midi_clock_counter_ = kMidiClockPrescaler;
   if (mode_ == ARPEGGIO_DIRECTION_DOWN) {
     // Move to the first note, so that we'll start from the last note at the
     // next clock tick.
@@ -107,17 +115,12 @@ void VoiceController::SetSwing(uint8_t swing) {
 
 /* static */
 void VoiceController::RecomputeStepDurations() {
-  if (tempo_) {
-    step_duration_[0] = (kSampleRate * 60L / 4) / long(tempo_);
-    step_duration_[1] = step_duration_[0];
-    int16_t swing = (step_duration_[0] * long(swing_)) >> 9;
-    step_duration_[0] += swing;
-    step_duration_[1] -= swing;
-  } else {
-    // We work at 4ppqn, while the MIDI real-time clock uses 24 ppqn.
-    step_duration_[0] = kMidiClockPrescaler;
-    step_duration_[1] = kMidiClockPrescaler;
-  }
+  step_duration_[0] = (kSampleRate * 60L / 4) / long(tempo_);
+  step_duration_[1] = step_duration_[0];
+  estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
+  int16_t swing = (step_duration_[0] * long(swing_)) >> 9;
+  step_duration_[0] += swing;
+  step_duration_[1] -= swing;
 }
 
 /* static */
@@ -166,10 +169,13 @@ void VoiceController::NoteOff(uint8_t note) {
 
 /* static */
 void VoiceController::Control() {
+  ++step_duration_estimator_num_;
   if ((tempo_ && internal_clock_counter_ > 0) ||
       (!tempo_ && midi_clock_counter_ > 0)) {
     return;
   }
+  ++step_duration_estimator_den_;
+  
   // Move to the next step in the x-o-x pattern.
   pattern_mask_ <<= 1;
   pattern_step_ += 1;
@@ -187,9 +193,14 @@ void VoiceController::Control() {
       internal_clock_counter_ += step_duration_[0];
     }
   } else {
-    midi_clock_counter_ += 6;
+    midi_clock_counter_ += kMidiClockPrescaler;
   }
-  
+  if (step_duration_estimator_den_ == 4) {
+    estimated_beat_duration_ = step_duration_estimator_num_;
+    step_duration_estimator_den_ = 0;
+    step_duration_estimator_num_ = 0;
+  }
+
   if (notes_.size() == 0 || octaves_ == 0) {
     return;
   }

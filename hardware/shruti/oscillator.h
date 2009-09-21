@@ -133,9 +133,9 @@ class Oscillator {
       RenderSub();
     } else if (mode == LOW_COMPLEXITY) {
       if (algorithm_ & 1) {
-        RenderSawTriangle();
-      } else {
         RenderPulseSquare();
+      } else {
+        RenderSawTriangle();
       }
     } else {
       (*fn_.render)();
@@ -163,13 +163,13 @@ class Oscillator {
       phase_increment_2_ = increment << 1;
       if (mode == LOW_COMPLEXITY) {
         if (algorithm_ & 1) {
-          UpdateSawTriangle();
-        } else {
           UpdatePulseSquare();
+        } else {
+          UpdateSawTriangle();
         }
       } else {
         if (sweeping_) {
-          algorithm_ = parameter >> 5;
+          algorithm_ = (parameter >> 5) + 1;
           fn_ = fn_table_[algorithm_];
           parameter_ = (parameter & 0x1f) << 2;
         }
@@ -265,6 +265,11 @@ class Oscillator {
         InterpolateSample(table_a, phase),
         InterpolateSample(table_b, phase),
         balance);
+  }
+  
+  // ------- Silence (useful when processing external signals) ----------------.
+  static void RenderSilence() {
+    held_sample_ = 128;
   }
   
   // ------- Band-limited waveforms with variable pulse width -----------------.
@@ -543,6 +548,7 @@ template<int id, OscillatorMode mode> OscillatorData Oscillator<id, mode>::data_
 template<int id, OscillatorMode mode> AlgorithmFn Oscillator<id, mode>::fn_;
 template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
+  { NULL, &Os::RenderSilence },
   { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },
   { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
   { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },

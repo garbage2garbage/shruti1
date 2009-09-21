@@ -25,7 +25,7 @@ static const prog_char raw_parameter_definition[
     kNumEditableParameters * sizeof(ParameterDefinition)] PROGMEM = {
   // Osc 1.
   PRM_OSC_ALGORITHM_1,
-  WAVEFORM_IMPULSE_TRAIN, WAVEFORM_ANALOG_WAVETABLE,
+  WAVEFORM_NONE, WAVEFORM_ANALOG_WAVETABLE,
   PAGE_OSC_OSC_1, UNIT_WAVEFORM,
   STR_RES_ALGORITHM, STR_RES_ALGORITHM,
   
@@ -98,12 +98,12 @@ static const prog_char raw_parameter_definition[
   STR_RES_RES, STR_RES_RESONANCE,
   
   PRM_FILTER_ENV,
-  -63, 63,
+  0, 64,
   PAGE_FILTER_FILTER, UNIT_INT8,
   STR_RES_ENVTVCF, STR_RES_ENVTVCF,
   
   PRM_FILTER_LFO,
-  -63, 63,
+  0, 64,
   PAGE_FILTER_FILTER, UNIT_INT8,
   STR_RES_LFO2TVCF, STR_RES_LFO2TVCF,
 
@@ -156,8 +156,8 @@ static const prog_char raw_parameter_definition[
   STR_RES_WV1, STR_RES_LFO1_WAVE,
   
   PRM_LFO_RATE_1,
-  0, 127,
-  PAGE_MOD_LFO, UNIT_RAW_UINT8,
+  0, 127 + 16,
+  PAGE_MOD_LFO, UNIT_LFO_RATE,
   STR_RES_RT1, STR_RES_LFO1_RATE,
   
   PRM_LFO_WAVE_2,
@@ -166,8 +166,8 @@ static const prog_char raw_parameter_definition[
   STR_RES_WV2, STR_RES_LFO2_WAVE,
   
   PRM_LFO_RATE_2,
-  0, 127,
-  PAGE_MOD_LFO, UNIT_RAW_UINT8,
+  0, 127 + 16,
+  PAGE_MOD_LFO, UNIT_LFO_RATE,
   STR_RES_RT2, STR_RES_LFO2_RATE,
   
   // Modulation
@@ -187,7 +187,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_DST, STR_RES_DEST_,
   
   PRM_MOD_AMOUNT,
-  -63, 63,
+  -64, 64,
   PAGE_MOD_MATRIX, UNIT_INT8,
   STR_RES_AMT, STR_RES_AMOUNT,
 
@@ -704,6 +704,7 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
                                        char* buffer, uint8_t width) {
   int16_t value = GetParameterWithHacks(parameter.id);
   ResourceId base = 0;
+  char prefix = '\0';
   switch (parameter.unit) {
     case UNIT_INT8:
       value = int16_t(int8_t(value));
@@ -715,7 +716,7 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
       base = STR_RES_1S2;
       break;
     case UNIT_WAVEFORM:
-      base = STR_RES_BLIT;
+      base = STR_RES_NONE;
       break;
     case UNIT_LFO_WAVEFORM:
       base = STR_RES_TRI;
@@ -735,11 +736,22 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
     case UNIT_MODULATION_DESTINATION:
       base = (width <= 4) ? STR_RES_CUT : STR_RES_CUTOFF;
       break;
+    case UNIT_LFO_RATE:
+      if (value >= 16) {
+        value = value - 16;
+      } else {
+        ++value;
+        prefix = '/';
+      }
+      break;
     case UNIT_TEMPO_WITH_EXTERNAL_CLOCK:
       if (value == 39) {
         value = 0;
         base = STR_RES_EXTERN;
       }
+  }
+  if (prefix) {
+    *buffer++ = prefix;
   }
   if (base) {
     ResourcesManager::LoadStringResource(base + value, buffer, width);

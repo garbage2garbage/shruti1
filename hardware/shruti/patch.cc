@@ -36,7 +36,7 @@ void Patch::Pack(uint8_t* patch_buffer) const {
 }
 
 uint8_t Patch::CheckBuffer() {
-  for (uint8_t i = 6; i < 28; ++i) {
+  for (uint8_t i = 6; i < 26; ++i) {
     if (load_save_buffer_[i] > 128) {
       return 0;
     }

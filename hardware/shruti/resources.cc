@@ -74,6 +74,7 @@ static const prog_char str_res_tri[] PROGMEM = "tri";
 static const prog_char str_res_sqr[] PROGMEM = "sqr";
 static const prog_char str_res_s_h[] PROGMEM = "s&h";
 static const prog_char str_res_3[] PROGMEM = "";
+static const prog_char str_res_none[] PROGMEM = "none";
 static const prog_char str_res_blit[] PROGMEM = "blit";
 static const prog_char str_res_saw[] PROGMEM = "saw";
 static const prog_char str_res_square[] PROGMEM = "square";
@@ -318,6 +319,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_sqr,
   str_res_s_h,
   str_res_3,
+  str_res_none,
   str_res_blit,
   str_res_saw,
   str_res_square,

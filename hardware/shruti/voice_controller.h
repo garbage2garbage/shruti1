@@ -58,6 +58,9 @@ class VoiceController {
   static void set_pattern_size(uint8_t pattern_size) {
     pattern_size_ = pattern_size;
   }
+  static uint16_t estimated_beat_duration() {
+    return estimated_beat_duration_;
+  }
 
  private:
   static void RecomputeStepDurations();
@@ -77,6 +80,7 @@ class VoiceController {
   static uint16_t pattern_mask_;
   // Increment by 1 every 1/16th note, with swing.
   static uint8_t pattern_step_;
+  static uint8_t pattern_size_;
   
   // Incremented/decremented by 1 for up/down pattern.
   static int8_t arpeggio_step_;
@@ -93,7 +97,13 @@ class VoiceController {
   
   static uint8_t tempo_;
   static uint8_t swing_;
-  static uint8_t pattern_size_;
+  
+  // In order to sync the LFOs to an external MIDI clock, we need to estimate at
+  // which BPM the master MIDI clock is running. This attemps to track this by
+  // counting the number of control rate cycles in a beat.
+  static uint16_t step_duration_estimator_num_;
+  static uint8_t step_duration_estimator_den_;
+  static uint16_t estimated_beat_duration_;
   
   DISALLOW_COPY_AND_ASSIGN(VoiceController);
 };

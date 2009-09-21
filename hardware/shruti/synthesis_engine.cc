@@ -75,7 +75,10 @@ static const prog_char empty_patch[] PROGMEM = {
     MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
     MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
     MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
-    MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 23,
+    // By default, the resonance tracks the note. This value was empirically
+    // obtained and it is not clear whether it depends on the positive supply
+    // voltage, and if it varies from chip to chip.
+    MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 58,
     MOD_SRC_ENV_2, MOD_DST_VCA, 63,
     MOD_SRC_VELOCITY, MOD_DST_VCA, 16,
     MOD_SRC_PITCH_BEND, MOD_DST_VCO_1_2_FINE, 32,
@@ -124,22 +127,17 @@ void SynthesisEngine::NoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
 void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
                                     uint8_t value) {
   IGNORE_OTHER_CHANNELS;
-
-static uint8_t parameter_number = 0;
-
   switch (controller) {
     case hardware_midi::kModulationWheelMsb:
       modulation_sources_[MOD_SRC_WHEEL] = (value << 1);
       break;
+    case hardware_midi::kDataEntryMsb:
+      if (nrpn_parameter_number_ < sizeof(Patch) - 1) {
+        SetParameter(nrpn_parameter_number_, value);
+      }
+      break;
     case hardware_midi::kPortamentoTimeMsb:
       patch_.kbd_portamento = value;
-      TouchPatch();
-      break;
-    case hardware_midi::kHarmonicIntensity:
-      patch_.filter_resonance = value;
-      break;
-    case hardware_midi::kBrightness:
-      patch_.filter_cutoff = value;
       break;
     case hardware_midi::kRelease:
       patch_.env_release[1] = value;
@@ -147,13 +145,14 @@ static uint8_t parameter_number = 0;
     case hardware_midi::kAttack:
       patch_.env_attack[1] = value;
       break;
+    case hardware_midi::kHarmonicIntensity:
+      patch_.filter_resonance = value;
+      break;
+    case hardware_midi::kBrightness:
+      patch_.filter_cutoff = value;
+      break;
     case hardware_midi::kNrpnMsb:
       nrpn_parameter_number_ = value;
-      break;
-    case hardware_midi::kDataEntryMsb:
-      if (nrpn_parameter_number_ != 0xff) {
-        SetParameter(nrpn_parameter_number_, value);
-      }
       break;
   }
 }
@@ -230,6 +229,7 @@ void SynthesisEngine::SetParameter(
   switch (parameter_index) {
     case PRM_ARP_TEMPO:
       controller_.SetTempo(parameter_value);
+      UpdateModulationIncrements();
       break;
     case PRM_ARP_OCTAVES:
       controller_.SetOctaves(parameter_value);
@@ -257,11 +257,17 @@ void SynthesisEngine::UpdateOscillatorAlgorithms() {
 void SynthesisEngine::UpdateModulationIncrements() {
   // Update the LFO increments.
   for (uint8_t i = 0; i < 2; ++i) {
-    lfo_[i].Update(
-        patch_.lfo_wave[i],
-        ResourcesManager::Lookup<uint16_t, uint8_t>(
-            lut_res_lfo_increments, patch_.lfo_rate[i]));
-    for (uint8_t j = 0; j < 1; ++j) {
+    uint16_t increment;
+    if (patch_.lfo_rate[i] < 16) {
+      increment = 65536 / (controller_.estimated_beat_duration() *
+                           (1 + patch_.lfo_rate[i]) / 4);
+    } else {
+      increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
+          lut_res_lfo_increments, patch_.lfo_rate[i] - 16);
+    }
+    lfo_[i].Update(patch_.lfo_wave[i], increment);
+
+    for (uint8_t j = 0; j < kNumVoices; ++j) {
       voice_[j].mutable_envelope(i)->Update(
           patch_.env_attack[i],
           patch_.env_decay[i],

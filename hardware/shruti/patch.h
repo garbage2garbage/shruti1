@@ -61,8 +61,8 @@ class Patch {
   // Offset: 12-16
   uint8_t filter_cutoff;
   uint8_t filter_resonance;
-  uint8_t filter_env;
-  uint8_t filter_lfo;
+  int8_t filter_env;
+  int8_t filter_lfo;
   
   // Offset: 16-24
   uint8_t env_attack[2];
@@ -239,6 +239,7 @@ enum Parameter {
 };
 
 enum OscillatorAlgorithm {
+  WAVEFORM_NONE,
   WAVEFORM_IMPULSE_TRAIN,
   WAVEFORM_SAW,
   WAVEFORM_SQUARE,
