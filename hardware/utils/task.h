@@ -66,51 +66,51 @@ class NaiveScheduler {
 
     // For a given task, occupy $priority available slots, spaced apart by
     // #total slots / $priority.
-    for (uint8_t i = 0; i < sizeof(slots); ++i) {
-      slots[i] = 0;
+    for (uint8_t i = 0; i < sizeof(slots_); ++i) {
+      slots_[i] = 0;
     }
 
-    for (uint8_t i = 0; i < sizeof(tasks) / sizeof(Task); ++i) {
-      for (uint8_t j = 0; j < tasks[i].priority; ++j) {
+    for (uint8_t i = 0; i < sizeof(tasks_) / sizeof(Task); ++i) {
+      for (uint8_t j = 0; j < tasks_[i].priority; ++j) {
         // Search for the next available slot.
         while (1) {
-          if (slot >= sizeof(slots)) {
+          if (slot >= sizeof(slots_)) {
             slot = 0;
           }
-          if (slots[slot] == 0) {
+          if (slots_[slot] == 0) {
             break;
           }
           slot++;
         }
-        slots[slot] = i + 1;
-        slot += sizeof(slots) / tasks[i].priority;
+        slots_[slot] = i + 1;
+        slot += sizeof(slots_) / tasks_[i].priority;
       }
     }
   }
 
   void Run() {
     while (1) {
-      if (slots[current_slot]) {
-        tasks[slots[current_slot] - 1].code();
+      if (slots_[current_slot_]) {
+        tasks_[slots_[current_slot_] - 1].code();
       }
-      current_slot++;
-      if (current_slot >= sizeof(slots)) {
-        current_slot = 0;
+      current_slot_++;
+      if (current_slot_ >= sizeof(slots_)) {
+        current_slot_ = 0;
       }
     }
   }
 
  private:
-  static Task tasks[];
-  static uint8_t slots[num_slots];
-  static uint8_t current_slot;
+  static Task tasks_[];
+  static uint8_t slots_[num_slots];
+  static uint8_t current_slot_;
 };
 
 template<uint8_t num_slots>
-uint8_t NaiveScheduler<num_slots>::slots[num_slots];
+uint8_t NaiveScheduler<num_slots>::slots_[num_slots];
 
 template<uint8_t num_slots>
-uint8_t NaiveScheduler<num_slots>::current_slot = 0;
+uint8_t NaiveScheduler<num_slots>::current_slot_ = 0;
 
 }  // namespace
 

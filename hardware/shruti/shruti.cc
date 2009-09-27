@@ -252,7 +252,7 @@ Scheduler scheduler;
 
 /* static */
 template<>
-Task Scheduler::tasks[] = {
+Task Scheduler::tasks_[] = {
     { &AudioRenderingTask, 16 },
     { &MidiTask, 6 },
     { &UpdateLedsTask, 4 },
