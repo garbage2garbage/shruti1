@@ -84,7 +84,7 @@ extern const prog_uint8_t wav_res_bandlimited_triangle_3[] PROGMEM;
 extern const prog_uint8_t wav_res_bandlimited_triangle_4[] PROGMEM;
 extern const prog_uint8_t wav_res_bandlimited_triangle_5[] PROGMEM;
 extern const prog_uint8_t wav_res_wavetable[] PROGMEM;
-extern const prog_uint8_t wav_res_speech_data[] PROGMEM;
+extern const prog_uint8_t wav_res_vowel_data[] PROGMEM;
 extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_PRM 0  // prm
 #define STR_RES_RNG 1  // rng
@@ -552,8 +552,8 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define WAV_RES_BANDLIMITED_TRIANGLE_6_SIZE 257
 #define WAV_RES_WAVETABLE 29
 #define WAV_RES_WAVETABLE_SIZE 2145
-#define WAV_RES_SPEECH_DATA 30
-#define WAV_RES_SPEECH_DATA_SIZE 45
+#define WAV_RES_VOWEL_DATA 30
+#define WAV_RES_VOWEL_DATA_SIZE 45
 #define CHR_RES_SPECIAL_CHARACTERS 0
 #define CHR_RES_SPECIAL_CHARACTERS_SIZE 64
 typedef hardware_resources::ResourcesManager<

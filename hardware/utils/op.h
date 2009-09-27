@@ -231,8 +231,8 @@ struct Op {
       "adc %C1, r1"     "\n\t"
       "eor r1, r1"      "\n\t"
       "adc %D1, r1"     "\n\t"
-      "mov %A0, %B1"   "\n\t"
-      "mov %B0, %C1"   "\n\t"
+      "mov %A0, %B1"    "\n\t"
+      "mov %B0, %C1"    "\n\t"
       : "=r" (result), "=&r" (product)
       : "a" (a), "a" (b)
     );

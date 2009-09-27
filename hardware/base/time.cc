@@ -12,23 +12,22 @@ using hardware_io::TIMER_FAST_PWM;
 
 namespace hardware_base {
 
-const unsigned long microseconds_per_timer0_overflow =
+const uint32_t microseconds_per_timer0_overflow =
     (64 * 256) / (F_CPU / 1000000L);
-const unsigned long milliseconds_increment =
+const uint32_t milliseconds_increment =
     microseconds_per_timer0_overflow / 1000;
 
-const unsigned long fractional_increment = (
+const uint32_t fractional_increment = (
     microseconds_per_timer0_overflow % 1000) >> 3;
 
-const unsigned long fractional_max = 1000 >> 3;
+const uint32_t fractional_max = 1000 >> 3;
 
-volatile unsigned long timer0_overflow_count = 0;
-volatile unsigned long timer0_milliseconds = 0;
-static unsigned char timer0_fractional = 0;
+volatile uint32_t timer0_milliseconds = 0;
+static uint8_t timer0_fractional = 0;
 
 TIMER_0_TICK {
-  unsigned long m = timer0_milliseconds;
-  unsigned char f = timer0_fractional;
+  uint32_t m = timer0_milliseconds;
+  uint8_t f = timer0_fractional;
 
   m += milliseconds_increment;
   f += fractional_increment;
@@ -39,21 +38,19 @@ TIMER_0_TICK {
 
   timer0_fractional = f;
   timer0_milliseconds = m;
-  timer0_overflow_count++;
 }
 
-unsigned long Delay(unsigned long delay) {
-  unsigned long t = milliseconds();
+uint32_t Delay(uint32_t delay) {
+  uint32_t t = milliseconds();
   while (milliseconds() - t < delay);
 }
 
-unsigned long milliseconds() {
-  unsigned long m;
+uint32_t milliseconds() {
+  uint32_t m;
   uint8_t oldSREG = SREG;
   cli();
   m = timer0_milliseconds;
   SREG = oldSREG;
-
   return m;
 }
 

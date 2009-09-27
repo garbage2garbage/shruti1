@@ -54,7 +54,7 @@ enum OscillatorMode {
   SUB_OSCILLATOR = 2
 };
 
-static const uint8_t kSpeechControlRateDecimation = 4;
+static const uint8_t kVowelControlRateDecimation = 4;
 static const uint8_t kNumZonesFullSampleRate = 6;
 static const uint8_t kNumZonesHalfSampleRate = 5;
 
@@ -87,12 +87,12 @@ struct FmOscillatorData {
   uint16_t modulator_phase_increment;
 };
 
-struct SpeechSynthesizerData {
+struct VowelSynthesizerData {
   uint16_t formant_increment[3];
   uint16_t formant_phase[3];
   uint8_t formant_amplitude[3];
   uint8_t noise_modulation;
-  uint8_t update;  // Update only every kSpeechControlRateDecimation-th call.
+  uint8_t update;  // Update only every kVowelControlRateDecimation-th call.
 };
 
 union OscillatorData {
@@ -100,7 +100,7 @@ union OscillatorData {
   SawTriangleOscillatorData wv;
   CzOscillatorData cz;
   FmOscillatorData fm;
-  SpeechSynthesizerData sp;
+  VowelSynthesizerData sp;
   Wavetable64OscillatorData wt;
 };
 
@@ -463,10 +463,10 @@ class Oscillator {
     held_sample_ = (((phase_ >> 8) ^ (x << 1)) & (~x)) + (x >> 1);
   }
   
-  // ------- Speech -----------------------------------------------------------.
-  static void UpdateSpeech() {
+  // ------- Vowel -----------------------------------------------------------.
+  static void UpdateVowel() {
     data_.sp.update++;
-    if (data_.sp.update == kSpeechControlRateDecimation) {
+    if (data_.sp.update == kVowelControlRateDecimation) {
       data_.sp.update = 255;
     } else {
       return;
@@ -479,18 +479,18 @@ class Oscillator {
     for (uint8_t i = 0; i < 3; ++i) {
       data_.sp.formant_increment[i] = Op::UnscaledMix4(
           ResourcesManager::Lookup<uint8_t, uint8_t>(
-              waveform_table[WAV_RES_SPEECH_DATA], offset_1 + i),
+              waveform_table[WAV_RES_VOWEL_DATA], offset_1 + i),
           ResourcesManager::Lookup<uint8_t, uint8_t>(
-              waveform_table[WAV_RES_SPEECH_DATA], offset_2 + i),
+              waveform_table[WAV_RES_VOWEL_DATA], offset_2 + i),
           balance);
       data_.sp.formant_increment[i] <<= 3;
     }
     for (uint8_t i = 0; i < 2; ++i) {
       uint8_t amplitude_a = ResourcesManager::Lookup<uint8_t, uint8_t>(
-          waveform_table[WAV_RES_SPEECH_DATA],
+          waveform_table[WAV_RES_VOWEL_DATA],
           offset_1 + 3 + i);
       uint8_t amplitude_b = ResourcesManager::Lookup<uint8_t, uint8_t>(
-          waveform_table[WAV_RES_SPEECH_DATA],
+          waveform_table[WAV_RES_VOWEL_DATA],
           offset_2 + 3 + i);
 
       data_.sp.formant_amplitude[2 * i + 1] = Op::Mix4(
@@ -503,7 +503,7 @@ class Oscillator {
           amplitude_b, balance);
     }
   }
-  static void RenderSpeech() {
+  static void RenderVowel() {
     HALF_SAMPLE_RATE;
     
     int8_t result = 0;
@@ -556,7 +556,7 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { &Os::UpdateCz, &Os::RenderCz },
   { &Os::UpdateFm, &Os::RenderFm },
   { NULL, &Os::Render8BitLand },
-  { &Os::UpdateSpeech, &Os::RenderSpeech },
+  { &Os::UpdateVowel, &Os::RenderVowel },
   { &Os::UpdateWavetable64, &Os::RenderWavetable64 },
   { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
 };

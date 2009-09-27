@@ -7,7 +7,7 @@
 import numpy
 
 """----------------------------------------------------------------------------
-Waveforms for speech synthesis
+Waveforms for vowel synthesis
 ----------------------------------------------------------------------------"""
 
 sample_rate = 31250.0
@@ -116,7 +116,7 @@ waveforms.append((
 Vowel data (formant amplitudes)
 -----------------------------------------------------------------------------"""
 
-speech_data = [
+vowel_data = [
 27, 40,  89, 253, 16,
 18, 51,  62, 220, 96,
 15, 69,  93, 236, 112,
@@ -127,4 +127,4 @@ speech_data = [
  9, 51,  95, 243, 3,
  6, 73,  99, 122, 233]
 
-waveforms.append(('speech_data', speech_data))
+waveforms.append(('vowel_data', vowel_data))

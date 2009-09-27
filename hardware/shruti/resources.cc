@@ -2001,7 +2001,7 @@ const prog_uint8_t wav_res_wavetable[] PROGMEM = {
      153,    144,    119,     92,     72,     68,     82,    146, 
      181, 
 };
-const prog_uint8_t wav_res_speech_data[] PROGMEM = {
+const prog_uint8_t wav_res_vowel_data[] PROGMEM = {
       27,     40,     89,    253,     16,     18,     51,     62, 
      220,     96,     15,     69,     93,    236,    112,     10, 
       84,    110,    218,    128,     23,     44,     87,    252, 
@@ -2042,7 +2042,7 @@ const prog_uint8_t* waveform_table[] = {
   wav_res_bandlimited_triangle_5,
   wav_res_bandlimited_square_6,
   wav_res_wavetable,
-  wav_res_speech_data,
+  wav_res_vowel_data,
 };
 
 const prog_uint8_t chr_res_special_characters[] PROGMEM = {

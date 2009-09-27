@@ -7,13 +7,11 @@
 // a user-definable pin for slave selection.
 //
 // This is a fairly basic implementation:
-// - everything is buffered, no option for a "Write it now I can wait" mode.
+// - nothing is buffered, since the overhead of managing a circular buffer is
+//   around 15 cycles (not including the interrupt prelude/postlude), which is
+//   close to the transmission time.
 // - the arduino is always configured as a master.
 // - no support for input.
-//
-// This implementation supports basic concurrency. You may have two "instances"
-// of this class with different slaves. In this case, writes to a slave will be
-// buffered if the other slave is in use.
 
 #ifndef HARDWARE_IO_SPI_H_
 #define HARDWARE_IO_SPI_H_

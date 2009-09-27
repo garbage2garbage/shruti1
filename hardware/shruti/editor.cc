@@ -318,7 +318,7 @@ void Editor::ToggleGroup(ParameterGroup group) {
     uint8_t last_in_group = 255;
   
     // Get the first and last page in the requested group.
-    for (uint8_t i = 0; i < kNumPages; i++) {
+    for (uint8_t i = 0; i < kNumPages; ++i) {
       if (page_definition_[i].group == group) {
         if (first_in_group == 255) {
           first_in_group = i;

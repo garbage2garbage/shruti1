@@ -233,7 +233,12 @@ void AudioRenderingTask() {
 
 uint16_t previous_num_glitches = 0;
 
-void HeartbeatTask() {
+// This tasks displays a '!' in the status area of the LCD displays whenever
+// a discontinuity occurred in the audio rendering. Even if the code will be
+// eventually optimized in such a way that it never occurs, I'd rather keep it
+// here in case new features are implemented and need performance monitoring.
+// This code uses 42 bytes.
+void AudioGlitchMonitoringTask() {
   uint16_t num_glitches = audio.num_glitches();
   if (num_glitches != previous_num_glitches) {
     previous_num_glitches = num_glitches;
@@ -241,16 +246,18 @@ void HeartbeatTask() {
   }
 }
 
-NaiveScheduler<32> scheduler;
+typedef NaiveScheduler<kSchedulerNumSlots> Scheduler;
+
+Scheduler scheduler;
 
 /* static */
 template<>
-Task NaiveScheduler<32>::tasks[] = {
+Task Scheduler::tasks[] = {
     { &AudioRenderingTask, 16 },
     { &MidiTask, 6 },
     { &UpdateLedsTask, 4 },
     { &UpdateDisplayTask, 2 },
-    { &HeartbeatTask, 1 },
+    { &AudioGlitchMonitoringTask, 1 },
     { &InputTask, 2 },
     { &CvTask, 1 },
 };

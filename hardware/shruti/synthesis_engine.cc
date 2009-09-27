@@ -563,7 +563,7 @@ void Voice::Audio() {
       osc_2,
       modulation_destinations_[MOD_DST_MIX_BALANCE]);
   
-  if (engine.patch_.osc_algorithm[0] != WAVEFORM_SPEECH) {
+  if (engine.patch_.osc_algorithm[0] != WAVEFORM_VOWEL) {
     uint8_t sub_osc = SubOsc::Render();
     mix = Op::Mix(
         mix,
@@ -576,13 +576,7 @@ void Voice::Audio() {
         modulation_destinations_[MOD_DST_MIX_NOISE]);
   }
 
-#ifdef SOFTWARE_VCA
-  signal_ = Op::SignedMulScale8(
-      128 + mix
-      modulation_destinations_[MOD_DST_VCA]) + 128;
-#else
   signal_ = mix;
-#endif
 
   // If the phase of oscillator 1 has wrapped and if sync is enabled, reset the
   // phase of the second oscillator.

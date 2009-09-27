@@ -13,8 +13,6 @@
 #define USE_OPTIMIZED_OP
 #endif  // !__TEST__
 
-// #define SOFTWARE_VCA
-
 namespace hardware_shruti {
 
 // Set this flag to 6 to get a nice polysynth (humour).
@@ -32,7 +30,11 @@ static const uint16_t kSampleRate = 31250;
 
 static const uint16_t kDisplayBaudRate = 2400;
 
+
+// One control signal sample is generated for each 32 audio sample.
 static const uint8_t kControlRate = 32;
+
+// The latency is 1ms, with a buffer storing 4ms of audio.
 static const uint8_t kAudioBlockSize = kControlRate;
 static const uint8_t kAudioBufferSize = kAudioBlockSize * 4;
 
@@ -59,11 +61,14 @@ static const uint8_t kPinVcfResonanceOut = 10;
 static const uint8_t kPinAnalogInput = 0;
 static const uint8_t kPinCvInput = 1;
 
-// ---- LCD type ---------------------------------------------------------------
+// ---- LCD display type -------------------------------------------------------
 
 static const uint8_t kLcdWidth = 16;
-static const uint8_t kLcdWidthLog2 = 4;
 static const uint8_t kLcdHeight = 2;
+
+// ---- Scheduler configuration ------------------------------------------------
+
+static const uint8_t kSchedulerNumSlots = 32;
 
 }  // namespace hardware_shruti
 

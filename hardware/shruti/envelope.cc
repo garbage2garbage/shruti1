@@ -29,7 +29,7 @@ void Envelope::Trigger(uint8_t stage) {
   }
   target_ = stage_target_[stage];
 }
-   
+
 void Envelope::Update(
   uint8_t attack, uint8_t decay, uint8_t sustain, uint8_t release) {
   // Update the envelope increments and targets.
