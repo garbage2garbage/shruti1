@@ -195,7 +195,7 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
       Device::Aftertouch(lo, data_[0]);
       break;
     case 0xe0:
-      Device::PitchBend(lo, (uint16_t(data_[1]) << 7) + data_[0]);
+      Device::PitchBend(lo, (static_cast<uint16_t>(data_[1]) << 7) + data_[0]);
       break;
     case 0xf0:
       switch(lo) {

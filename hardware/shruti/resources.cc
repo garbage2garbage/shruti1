@@ -82,7 +82,7 @@ static const prog_char str_res_triang[] PROGMEM = "triang";
 static const prog_char str_res_cz[] PROGMEM = "cz";
 static const prog_char str_res_fm[] PROGMEM = "fm";
 static const prog_char str_res_8bits[] PROGMEM = "8bits";
-static const prog_char str_res_voice[] PROGMEM = "voice";
+static const prog_char str_res_vowel[] PROGMEM = "vowel";
 static const prog_char str_res_table[] PROGMEM = "table";
 static const prog_char str_res_sweep[] PROGMEM = "sweep";
 static const prog_char str_res_1S2[] PROGMEM = "1+2";
@@ -327,7 +327,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_cz,
   str_res_fm,
   str_res_8bits,
-  str_res_voice,
+  str_res_vowel,
   str_res_table,
   str_res_sweep,
   str_res_1S2,

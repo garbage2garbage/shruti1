@@ -222,7 +222,7 @@ enum Parameter {
   PRM_MOD_ROW = 31,
 
   PRM_ARP_TEMPO = 3 * kModulationMatrixSize + 28,
-  PRM_ARP_OCTAVES,
+  PRM_ARP_OCTAVE,
   PRM_ARP_PATTERN,
   PRM_ARP_SWING,
   

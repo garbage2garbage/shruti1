@@ -80,7 +80,7 @@ triang
 cz
 fm
 8bits
-voice
+vowel
 table
 sweep
 

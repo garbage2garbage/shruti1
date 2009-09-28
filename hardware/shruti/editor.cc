@@ -72,12 +72,12 @@ static const prog_char raw_parameter_definition[
   STR_RES_MIX, STR_RES_OSC_BAL,
 
   PRM_MIX_SUB_OSC,
-  0, 127,
+  0, 63,
   PAGE_OSC_OSC_MIX, UNIT_UINT8,
   STR_RES_SUB, STR_RES_SUB_OSC_,
   
   PRM_MIX_NOISE,
-  0, 127,
+  0, 63,
   PAGE_OSC_OSC_MIX, UNIT_UINT8,
   STR_RES_NOI, STR_RES_NOISE,
 
@@ -93,17 +93,17 @@ static const prog_char raw_parameter_definition[
   STR_RES_CUT, STR_RES_CUTOFF,
   
   PRM_FILTER_RESONANCE,
-  0, 127,
+  0, 63,
   PAGE_FILTER_FILTER, UNIT_RAW_UINT8,
   STR_RES_RES, STR_RES_RESONANCE,
   
   PRM_FILTER_ENV,
-  0, 64,
+  0, 63,
   PAGE_FILTER_FILTER, UNIT_INT8,
   STR_RES_ENVTVCF, STR_RES_ENVTVCF,
   
   PRM_FILTER_LFO,
-  0, 64,
+  0, 63,
   PAGE_FILTER_FILTER, UNIT_INT8,
   STR_RES_LFO2TVCF, STR_RES_LFO2TVCF,
 
@@ -187,7 +187,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_DST, STR_RES_DEST_,
   
   PRM_MOD_AMOUNT,
-  -64, 64,
+  -63, 63,
   PAGE_MOD_MATRIX, UNIT_INT8,
   STR_RES_AMT, STR_RES_AMOUNT,
 
@@ -197,7 +197,7 @@ static const prog_char raw_parameter_definition[
   PAGE_PLAY_ARP, UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
   STR_RES_BPM, STR_RES_TEMPO,
   
-  PRM_ARP_OCTAVES,
+  PRM_ARP_OCTAVE,
   OFF, 4,
   PAGE_PLAY_ARP, UNIT_UINT8,
   STR_RES_OCTAVE, STR_RES_OCTAVE,
@@ -670,10 +670,10 @@ void Editor::HandleEditIncrement(int8_t direction) {
   
   int16_t value = GetParameterWithHacks(parameter.id);
   if (parameter.unit == UNIT_INT8) {
-    value = int16_t(int8_t(value));
+    value = static_cast<int16_t>(static_cast<int8_t>(value));
     value += direction;
-    if (value >= int8_t(parameter.min_value) &&
-        value <= int8_t(parameter.max_value)) {
+    if (value >= static_cast<int8_t>(parameter.min_value) &&
+        value <= static_cast<int8_t>(parameter.max_value)) {
       SetParameterWithHacks(parameter.id, value);
     }
   } else {

@@ -156,7 +156,7 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_CZ 67  // cz
 #define STR_RES_FM 68  // fm
 #define STR_RES_8BITS 69  // 8bits
-#define STR_RES_VOICE 70  // voice
+#define STR_RES_VOWEL 70  // vowel
 #define STR_RES_TABLE 71  // table
 #define STR_RES_SWEEP 72  // sweep
 #define STR_RES_1S2 73  // 1+2

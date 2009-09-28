@@ -61,20 +61,20 @@ void SynthesisEngine::SysExEnd() {
 
 static const prog_char empty_patch[] PROGMEM = {
     99,
-    WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 50,
-    0, 0, 0, 0,
+    WAVEFORM_SAW, WAVEFORM_SAW, 0, 0,
+    0, 0, 1, 0,
     0, 0, 0, WAVEFORM_SQUARE,
-    120, 0, 0, 0,
+    120, 0, 1, 1,
     20, 0,
     60, 40,
     20, 100,
     60, 40,
     LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 80, 24,
-    MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
-    MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
-    MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
-    MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
-    MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
+    MOD_SRC_LFO_1, MOD_DST_VCO_1, 1,
+    MOD_SRC_LFO_1, MOD_DST_VCO_2, 1,
+    MOD_SRC_LFO_2, MOD_DST_PWM_1, 1,
+    MOD_SRC_LFO_2, MOD_DST_PWM_2, 1,
+    MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 1,
     // By default, the resonance tracks the note. This value was empirically
     // obtained and it is not clear whether it depends on the positive supply
     // voltage, and if it varies from chip to chip.
@@ -83,11 +83,11 @@ static const prog_char empty_patch[] PROGMEM = {
     MOD_SRC_VELOCITY, MOD_DST_VCA, 16,
     MOD_SRC_PITCH_BEND, MOD_DST_VCO_1_2_FINE, 32,
     MOD_SRC_LFO_1, MOD_DST_VCO_1_2_FINE, 16,
-    MOD_SRC_ASSIGNABLE_1, MOD_DST_PWM_1, 0,
-    MOD_SRC_ASSIGNABLE_2, MOD_DST_FILTER_CUTOFF, 0,
-    MOD_SRC_CV_1, MOD_DST_FILTER_CUTOFF, 0,
-    MOD_SRC_CV_2, MOD_DST_FILTER_CUTOFF, 0,
-    120, 0, 0, 0,
+    MOD_SRC_ASSIGNABLE_1, MOD_DST_PWM_1, 1,
+    MOD_SRC_ASSIGNABLE_2, MOD_DST_FILTER_CUTOFF, 1,
+    MOD_SRC_CV_1, MOD_DST_FILTER_CUTOFF, 1,
+    MOD_SRC_CV_2, MOD_DST_FILTER_CUTOFF, 1,
+    120, 2, 0, 0,
     0x00, 0x00, 0xff, 0xff, 0xcc, 0xcc, 0x44, 0x44,
     0, 0, 0, 1,
     'n', 'e', 'w', ' ', ' ', ' ', ' ', ' ', 16};
@@ -160,7 +160,7 @@ void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
 /* static */
 void SynthesisEngine::PitchBend(uint8_t channel, uint16_t pitch_bend) {
   IGNORE_OTHER_CHANNELS;
-  modulation_sources_[MOD_SRC_PITCH_BEND] = pitch_bend >> 6;
+  modulation_sources_[MOD_SRC_PITCH_BEND] = Op::ShiftRight6(pitch_bend);
 }
 
 /* static */
@@ -231,7 +231,7 @@ void SynthesisEngine::SetParameter(
       controller_.SetTempo(parameter_value);
       UpdateModulationIncrements();
       break;
-    case PRM_ARP_OCTAVES:
+    case PRM_ARP_OCTAVE:
       controller_.SetOctaves(parameter_value);
       break;
     case PRM_ARP_PATTERN:
@@ -288,7 +288,10 @@ void SynthesisEngine::Control() {
   // Update the arpeggiator / step sequencer.
   controller_.Control();
   
-  // Read/shift the value of the step sequencer only when it has changed.
+  // TODO(pichenettes): if we have moved back to step 0, update the modulation
+  // increments (for external tempo sync).
+  
+  // Read/shift the value of the step sequencer.
   modulation_sources_[MOD_SRC_SEQ] = patch_.sequence_step(controller_.step());
   modulation_sources_[MOD_SRC_STEP] = (
       controller_.has_arpeggiator_note() ? 255 : 0);
@@ -300,8 +303,13 @@ void SynthesisEngine::Control() {
 
 /* static */
 void SynthesisEngine::Audio() {
-  oscillator_decimation_++;
+  // Tick the noise generator.
+  oscillator_decimation_ = (oscillator_decimation_ + 1) & 3;
   oscillator_decimation_ &= 3;
+  if (!oscillator_decimation_) {
+    Random::Update();
+  }
+  
   controller_.Audio();
   for (uint8_t i = 0; i < kNumVoices; ++i) {
     voice_[i].Audio();
@@ -343,7 +351,7 @@ void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
     SubOsc::Reset();
     modulation_sources_[MOD_SRC_VELOCITY - kNumGlobalModulationSources] = velocity << 1;
   }
-  pitch_target_ = uint16_t(note) << 7;
+  pitch_target_ = static_cast<uint16_t>(note) << 7;
   if (engine.patch_.kbd_raga) {
     pitch_target_ += ResourcesManager::Lookup<int8_t, uint8_t>(
         ResourceId(LUT_RES_SCALE_JUST + engine.patch_.kbd_raga - 1),
@@ -382,37 +390,41 @@ void Voice::Control() {
   }
   
   // Used temporarily, then scaled to modulation_destinations_. This does not
-  // need to be static, but if allocated on the heap, we get many push/pops.
+  // need to be static, but if allocated on the heap, we get many push/pops,
+  // and the resulting code is slower.
   static int16_t dst[kNumModulationDestinations];
 
-  // Update the pre-scaled modulation sources.
+  // Rescale the value of each modulation sources. Envelopes are in the
+  // 0-16383 range ; just like pitch. All are scaled to 0-255.
   modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources] = 
-      envelope_[0].value() >> 6;
+      Op::ShiftRight6(envelope_[0].value());
   modulation_sources_[MOD_SRC_ENV_2 - kNumGlobalModulationSources] = 
-      envelope_[1].value() >> 6;
+      Op::ShiftRight6(envelope_[1].value());
   modulation_sources_[MOD_SRC_NOTE - kNumGlobalModulationSources] =
-      uint8_t(pitch_value_ >> 6);
+      Op::ShiftRight6(pitch_value_);
   modulation_sources_[MOD_SRC_GATE - kNumGlobalModulationSources] =
       envelope_[0].stage() >= RELEASE ? 0 : 255;
+      
+  modulation_destinations_[MOD_DST_VCA] = 255;
 
-  // Prepare the work of the modulation matrix, by setting an initial / default
-  // value to each modulated parameter.
+  // Load and scale to 0-16383 the initial value of each modulated parameter.
   dst[MOD_DST_FILTER_CUTOFF] = engine.patch_.filter_cutoff << 7;
-  dst[MOD_DST_VCA] = 255;
   dst[MOD_DST_PWM_1] = engine.patch_.osc_parameter[0] << 7;
   dst[MOD_DST_PWM_2] = engine.patch_.osc_parameter[1] << 7;
   dst[MOD_DST_VCO_1_2_FINE] = dst[MOD_DST_VCO_2] = dst[MOD_DST_VCO_1] = 8192;
-  dst[MOD_DST_MIX_BALANCE] = engine.patch_.mix_balance << 7;
-  dst[MOD_DST_MIX_NOISE] = engine.patch_.mix_noise << 7;
-  dst[MOD_DST_MIX_SUB_OSC] = engine.patch_.mix_sub_osc << 7;
-  dst[MOD_DST_FILTER_RESONANCE] = engine.patch_.filter_resonance << 7;
+  dst[MOD_DST_MIX_BALANCE] = engine.patch_.mix_balance << 8;
+  dst[MOD_DST_MIX_NOISE] = engine.patch_.mix_noise << 8;
+  dst[MOD_DST_MIX_SUB_OSC] = engine.patch_.mix_sub_osc << 8;
+  dst[MOD_DST_FILTER_RESONANCE] = engine.patch_.filter_resonance << 8;
   
   // Apply the modulations in the modulation matrix.
   for (uint8_t i = 0; i < kModulationMatrixSize; ++i) {
     int8_t amount = engine.patch_.modulation_matrix.modulation[i].amount;
-    if (amount == 0) {
+    // TODO(pichenettes): a simple change that will improve responsivity a bit.
+    /*if (!amount) {
       continue;
-    }
+    }*/
+
     // The last modulation amount is adjusted by the wheel.
     if (i == kSavedModulationMatrixSize - 1) {
       amount = Op::SignedMulScale8(
@@ -448,8 +460,8 @@ void Voice::Control() {
         amount = -amount;
         source_value = 255 - source_value;
       }
-      dst[MOD_DST_VCA] = Op::MulScale8(
-          dst[MOD_DST_VCA],
+      modulation_destinations_[MOD_DST_VCA] = Op::MulScale8(
+          modulation_destinations_[MOD_DST_VCA],
           Op::Mix(255, source_value, amount << 2));
     }
   }
@@ -469,20 +481,17 @@ void Voice::Control() {
       16383);
   
   // Store in memory all the updated parameters.
-  modulation_destinations_[MOD_DST_FILTER_CUTOFF] = \
-      dst[MOD_DST_FILTER_CUTOFF] >> 6;
+  modulation_destinations_[MOD_DST_FILTER_CUTOFF] = Op::ShiftRight6(
+      dst[MOD_DST_FILTER_CUTOFF]);
 
-  modulation_destinations_[MOD_DST_FILTER_RESONANCE] = \
-      dst[MOD_DST_FILTER_RESONANCE] >> 6;
+  modulation_destinations_[MOD_DST_FILTER_RESONANCE] = Op::ShiftRight6(
+      dst[MOD_DST_FILTER_RESONANCE]);
 
-  modulation_destinations_[MOD_DST_PWM_1] = \
-      dst[MOD_DST_PWM_1] >> 7;
+  modulation_destinations_[MOD_DST_PWM_1] = dst[MOD_DST_PWM_1] >> 7;
+  modulation_destinations_[MOD_DST_PWM_2] = dst[MOD_DST_PWM_2] >> 7;
 
-  modulation_destinations_[MOD_DST_PWM_2] = \
-      dst[MOD_DST_PWM_2] >> 7;
-
-  modulation_destinations_[MOD_DST_VCA] = dst[MOD_DST_VCA];
-  modulation_destinations_[MOD_DST_MIX_BALANCE] = dst[MOD_DST_MIX_BALANCE] >> 6;
+  modulation_destinations_[MOD_DST_MIX_BALANCE] = Op::ShiftRight6(
+      dst[MOD_DST_MIX_BALANCE]);
   modulation_destinations_[MOD_DST_MIX_NOISE] = dst[MOD_DST_MIX_NOISE] >> 8;
   modulation_destinations_[MOD_DST_MIX_SUB_OSC] = dst[MOD_DST_MIX_SUB_OSC] >> 7;
   
@@ -493,10 +502,10 @@ void Voice::Control() {
     if (i == 0 && engine.patch_.osc_algorithm[0] == WAVEFORM_FM) {
       Osc1::UpdateSecondaryParameter(engine.patch_.osc_range[i] + 12);
     } else {
-      pitch += int16_t(engine.patch_.osc_range[i]) << 7;
+      pitch += static_cast<int16_t>(engine.patch_.osc_range[i]) << 7;
     }
     // -24 / +24 semitones by the main octave controller.
-    pitch += int16_t(engine.patch_.kbd_octave) * kOctave;
+    pitch += static_cast<int16_t>(engine.patch_.kbd_octave) * kOctave;
     if (i == 1) {
       // 0 / +1 semitones by the detune option for oscillator 2.
       pitch += engine.patch_.osc_option[1];
@@ -544,45 +553,41 @@ void Voice::Audio() {
     return;
   }
 
-  // Do not recompute the noise sample for every sample.
-  if (engine.oscillator_decimation() == 0) {
-    Random::Update();
-  }
-  
-  // Update the phase accumulators for the oscillators;
-  uint16_t previous_phase = Osc1::phase();
+  uint8_t osc_2 = Osc2::Render();
 
+  // Store the phase of the oscillator to check later whether the phase has
+  // been wrapped. Because the phase increment is likely to be below
+  // 65536 - 256, we can use the most significant byte only to detect wrapping.
+  uint8_t previous_phase = Osc1::phase() >> 8;
   uint8_t mix = Osc1::Render();
   
-  uint8_t osc_2 = Osc2::Render();
   if (engine.patch_.osc_option[0] == RING_MOD) {
     mix = Op::SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
-  }
-  mix = Op::Mix(
-      mix,
-      osc_2,
-      modulation_destinations_[MOD_DST_MIX_BALANCE]);
-  
-  if (engine.patch_.osc_algorithm[0] != WAVEFORM_VOWEL) {
-    uint8_t sub_osc = SubOsc::Render();
+  } else {
     mix = Op::Mix(
         mix,
-        sub_osc,
+        osc_2,
+        modulation_destinations_[MOD_DST_MIX_BALANCE]);
+    // If the phase of oscillator 1 has wrapped and if sync is enabled, reset
+    // the phase of the second oscillator.
+    if (engine.patch_.osc_option[0] == SYNC &&
+        static_cast<uint8_t>(Osc1::phase() >> 8) < previous_phase) {
+      Osc2::ResetPhase();
+    }
+  }
+  
+  if (engine.patch_.osc_algorithm[0] != WAVEFORM_VOWEL) {
+    mix = Op::Mix(
+        mix,
+        SubOsc::Render(),
         modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
-
     mix = Op::Mix(
         mix,
         Random::state_msb(),
         modulation_destinations_[MOD_DST_MIX_NOISE]);
   }
-
+  
   signal_ = mix;
-
-  // If the phase of oscillator 1 has wrapped and if sync is enabled, reset the
-  // phase of the second oscillator.
-  if (engine.patch_.osc_option[0] == SYNC && Osc1::phase() < previous_phase) {
-    Osc2::ResetPhase();
-  }
 }
 
 }  // hardware_shruti

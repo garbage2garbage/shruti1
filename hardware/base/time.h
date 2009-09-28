@@ -7,11 +7,13 @@
 #ifndef HARDWARE_BASE_TIME_H_
 #define HARDWARE_BASE_TIME_H_
 
+#include "hardware/base/base.h"
+
 namespace hardware_base {
 
-unsigned long milliseconds();
+uint32_t milliseconds();
 
-unsigned long Delay(unsigned long delay);
+uint32_t Delay(uint32_t delay);
 
 void SetupClock();
 

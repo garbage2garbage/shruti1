@@ -96,11 +96,11 @@ struct VowelSynthesizerData {
 };
 
 union OscillatorData {
-  PulseSquareOscillatorData bl;
-  SawTriangleOscillatorData wv;
+  PulseSquareOscillatorData sq;
+  SawTriangleOscillatorData st;
   CzOscillatorData cz;
   FmOscillatorData fm;
-  VowelSynthesizerData sp;
+  VowelSynthesizerData vw;
   Wavetable64OscillatorData wt;
 };
 
@@ -281,43 +281,43 @@ class Oscillator {
     // sub oscillator.
     if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
       // TODO(pichenettes): find better formula for leaky integrator constant.
-      data_.bl.leak = 255 - ((note_ - 12) >> 3);
-      data_.bl.wave[0] =
+      data_.sq.leak = 255 - ((note_ - 12) >> 3);
+      data_.sq.wave[0] =
           waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
-      data_.bl.shift = uint16_t(parameter_ + 127) << 8;
+      data_.sq.shift = static_cast<uint16_t>(parameter_ + 127) << 8;
     } else {
-      data_.bl.wave[0] =
+      data_.sq.wave[0] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
       wave_index = Op::AddClip(wave_index, 1, kNumZonesFullSampleRate);
-      data_.bl.wave[1] =
+      data_.sq.wave[1] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
       // Leak is set to 0 - this will be used by the rendering code to know that
       // it should render a pure square wave, by not trying to integrate a
       // blit, but instead directly reading from the wavetable.
-      data_.bl.leak = 0;
-      data_.bl.balance = note & 0xf0;
+      data_.sq.leak = 0;
+      data_.sq.balance = note & 0xf0;
     }
   }
   static void RenderPulseSquare() {
-    if (data_.bl.leak) {
+    if (data_.sq.leak) {
       HALF_SAMPLE_RATE;
       phase_ += phase_increment_2_;
       
-      int16_t blit = InterpolateSample(data_.bl.wave[0], phase_);
-      blit -= InterpolateSample(data_.bl.wave[0], phase_ + data_.bl.shift);
+      int16_t blit = InterpolateSample(data_.sq.wave[0], phase_);
+      blit -= InterpolateSample(data_.sq.wave[0], phase_ + data_.sq.shift);
       if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
         held_sample_ = Op::Clip8(blit + 128);
       } else {
         int8_t square = Op::SignedClip8(
-            Op::SignedMulScale8(data_.bl.square, data_.bl.leak) + blit);
-        data_.bl.square = square;
+            Op::SignedMulScale8(data_.sq.square, data_.sq.leak) + blit);
+        data_.sq.square = square;
         held_sample_ = square + 128;
       }
     } else {
       phase_ += phase_increment_;
       held_sample_ = InterpolateTwoTables(
-          data_.bl.wave[0], data_.bl.wave[1],
-          phase_, data_.bl.balance);
+          data_.sq.wave[0], data_.sq.wave[1],
+          phase_, data_.sq.balance);
     }
   }
   
@@ -330,17 +330,17 @@ class Oscillator {
         WAV_RES_BANDLIMITED_TRIANGLE_1;
 
     wave_index = Op::AddClip(wave_index, 1, kNumZonesHalfSampleRate);
-    data_.wv.wave[0] = waveform_table[base_resource_id + wave_index];
+    data_.st.wave[0] = waveform_table[base_resource_id + wave_index];
     wave_index = Op::AddClip(wave_index, 1, kNumZonesHalfSampleRate);
-    data_.wv.wave[1] = waveform_table[base_resource_id + wave_index];
-    data_.wv.balance = note & 0xf0;
+    data_.st.wave[1] = waveform_table[base_resource_id + wave_index];
+    data_.st.balance = note & 0xf0;
   }
   static void RenderSub() {
     FOURTH_SAMPLE_RATE;
     phase_ += phase_increment_;
     held_sample_ = InterpolateTwoTables(
-        data_.wv.wave[0], data_.wv.wave[1],
-        phase_, data_.wv.balance);
+        data_.st.wave[0], data_.st.wave[1],
+        phase_, data_.st.balance);
   }
 
   // ------- Interpolation between two waveforms from two wavetables -----------
@@ -351,16 +351,16 @@ class Oscillator {
         WAV_RES_BANDLIMITED_SAW_0 :
         WAV_RES_BANDLIMITED_TRIANGLE_0;
       
-    data_.wv.wave[0] = waveform_table[base_resource_id + wave_index];
+    data_.st.wave[0] = waveform_table[base_resource_id + wave_index];
     wave_index = Op::AddClip(wave_index, 1, kNumZonesFullSampleRate);
-    data_.wv.wave[1] = waveform_table[base_resource_id + wave_index];
-    data_.wv.balance = note & 0xf0;
+    data_.st.wave[1] = waveform_table[base_resource_id + wave_index];
+    data_.st.balance = note & 0xf0;
   }
   static void RenderSawTriangle() {
     phase_ += phase_increment_;
-    held_sample_ = InterpolateTwoTables(
-        data_.wv.wave[0], data_.wv.wave[1],
-        phase_, data_.wv.balance);
+    uint8_t sample = InterpolateTwoTables(
+        data_.st.wave[0], data_.st.wave[1],
+        phase_, data_.st.balance);
 
     // To produce pulse width-modulated variants, we shift (saw) or set to
     // a constant (triangle) a portion of the waveform within an increasingly
@@ -373,15 +373,16 @@ class Oscillator {
     //  /   |       /     |/      /      \
     // /    |/                   /        \
     //
-    if (held_sample_ < parameter_) {
+    if (sample < parameter_) {
       if (algorithm_ == WAVEFORM_SAW) {
         // Add a discontinuity.
-        held_sample_ += parameter_ >> 1;
+        sample += parameter_ >> 1;
       } else {
         // Clip.
-        held_sample_ = parameter_;
+        sample = parameter_;
       }
     }
+    held_sample_ = sample;
   }
 
   // ------- Interpolation between two offsets of a wavetable ------------------
@@ -465,9 +466,9 @@ class Oscillator {
   
   // ------- Vowel -----------------------------------------------------------.
   static void UpdateVowel() {
-    data_.sp.update++;
-    if (data_.sp.update == kVowelControlRateDecimation) {
-      data_.sp.update = 255;
+    data_.vw.update++;
+    if (data_.vw.update == kVowelControlRateDecimation) {
+      data_.vw.update = 255;
     } else {
       return;
     }
@@ -477,13 +478,13 @@ class Oscillator {
     uint8_t offset_2 = offset_1 + 5;
     uint8_t balance = parameter_ & 15;
     for (uint8_t i = 0; i < 3; ++i) {
-      data_.sp.formant_increment[i] = Op::UnscaledMix4(
+      data_.vw.formant_increment[i] = Op::UnscaledMix4(
           ResourcesManager::Lookup<uint8_t, uint8_t>(
               waveform_table[WAV_RES_VOWEL_DATA], offset_1 + i),
           ResourcesManager::Lookup<uint8_t, uint8_t>(
               waveform_table[WAV_RES_VOWEL_DATA], offset_2 + i),
           balance);
-      data_.sp.formant_increment[i] <<= 3;
+      data_.vw.formant_increment[i] <<= 3;
     }
     for (uint8_t i = 0; i < 2; ++i) {
       uint8_t amplitude_a = ResourcesManager::Lookup<uint8_t, uint8_t>(
@@ -493,12 +494,12 @@ class Oscillator {
           waveform_table[WAV_RES_VOWEL_DATA],
           offset_2 + 3 + i);
 
-      data_.sp.formant_amplitude[2 * i + 1] = Op::Mix4(
+      data_.vw.formant_amplitude[2 * i + 1] = Op::Mix4(
           amplitude_a & 0xf,
           amplitude_b & 0xf, balance);
       amplitude_a = Op::ShiftRight4(amplitude_a);
       amplitude_b = Op::ShiftRight4(amplitude_b);
-      data_.sp.formant_amplitude[2 * i] = Op::Mix4(
+      data_.vw.formant_amplitude[2 * i] = Op::Mix4(
           amplitude_a,
           amplitude_b, balance);
     }
@@ -508,22 +509,22 @@ class Oscillator {
     
     int8_t result = 0;
     for (uint8_t i = 0; i < 3; ++i) {
-      data_.sp.formant_phase[i] += data_.sp.formant_increment[i];
+      data_.vw.formant_phase[i] += data_.vw.formant_increment[i];
       result += ResourcesManager::Lookup<uint8_t, uint8_t>(
           i == 2 ? waveform_table[WAV_RES_FORMANT_SQUARE] :
                    waveform_table[WAV_RES_FORMANT_SINE],
-          ((data_.sp.formant_phase[i] >> 8) & 0xf0) |
-            data_.sp.formant_amplitude[i]);
+          ((data_.vw.formant_phase[i] >> 8) & 0xf0) |
+            data_.vw.formant_amplitude[i]);
     }
     result = Op::SignedMulScale8(result, 255 - (phase_ >> 8));
 
     phase_ += phase_increment_;
     int16_t phase_noise = int8_t(Random::state_msb()) *
-        int8_t(data_.sp.noise_modulation);
+        int8_t(data_.vw.noise_modulation);
     if ((phase_ + phase_noise) < phase_increment_) {
-      data_.sp.formant_phase[0] = 0;
-      data_.sp.formant_phase[1] = 0;
-      data_.sp.formant_phase[2] = 0;
+      data_.vw.formant_phase[0] = 0;
+      data_.vw.formant_phase[1] = 0;
+      data_.vw.formant_phase[2] = 0;
     }
     held_sample_ = Op::SignedClip8(4 * result) + 128;
   }

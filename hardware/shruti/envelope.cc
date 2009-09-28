@@ -38,7 +38,7 @@ void Envelope::Update(
   stage_increment_[DECAY] = -ScaleEnvelopeIncrement(
       decay,
       127 - sustain);
-  stage_target_[DECAY] = int16_t(sustain) << 7;
+  stage_target_[DECAY] = static_cast<int16_t>(sustain) << 7;
   release_ = release;
 }
 

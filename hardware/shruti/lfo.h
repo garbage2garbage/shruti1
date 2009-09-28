@@ -27,12 +27,14 @@ class Lfo {
   uint8_t Render() {
     switch (algorithm_) {
       case LFO_WAVEFORM_S_H:
-        if (uint16_t(phase_ + phase_increment_) < phase_) {
+        if (static_cast<uint16_t>(phase_ + phase_increment_) < phase_) {
           value_ = Random::GetByte();
         }
         return value_;
       case LFO_WAVEFORM_TRIANGLE:
-        return (phase_ & 0X8000) ? phase_ >> 7 : ~uint8_t(phase_ >> 7);
+        return (phase_ & 0X8000) ?
+            phase_ >> 7 :
+            ~static_cast<uint8_t>(phase_ >> 7);
       case LFO_WAVEFORM_SQUARE:
         return (phase_ & 0x8000) ? 255 : 0;
       default:
