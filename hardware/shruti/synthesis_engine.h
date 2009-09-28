@@ -98,7 +98,7 @@ class Voice {
   
   static uint8_t signal_;
   
-  static uint8_t noise_sample_;
+  static uint8_t osc1_phase_msb_;
 
   DISALLOW_COPY_AND_ASSIGN(Voice);
 };

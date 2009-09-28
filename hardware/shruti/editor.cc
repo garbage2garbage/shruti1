@@ -67,8 +67,8 @@ static const prog_char raw_parameter_definition[
 
   // Mix balance.
   PRM_MIX_BALANCE,
-  0, 127,
-  PAGE_OSC_OSC_MIX, UNIT_RAW_UINT8,
+  0, 63,
+  PAGE_OSC_OSC_MIX, UNIT_UINT8,
   STR_RES_MIX, STR_RES_OSC_BAL,
 
   PRM_MIX_SUB_OSC,
@@ -94,7 +94,7 @@ static const prog_char raw_parameter_definition[
   
   PRM_FILTER_RESONANCE,
   0, 63,
-  PAGE_FILTER_FILTER, UNIT_RAW_UINT8,
+  PAGE_FILTER_FILTER, UNIT_UINT8,
   STR_RES_RES, STR_RES_RESONANCE,
   
   PRM_FILTER_ENV,

@@ -21,7 +21,7 @@
 // CZ       sr        n/a              n/a
 // FM       sr        n/a              n/a
 // 8-bits   sr        n/a              n/a
-// Voice    sr/2      n/a              n/a
+// Vowel    sr/2      n/a              n/a
 // Table    sr/2      n/a              n/a
 // Sweep    ?         n/a              n/a
 //
@@ -544,8 +544,13 @@ template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::algorithm_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::parameter_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::note_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::sweeping_;
-template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::held_sample_;
-template<int id, OscillatorMode mode> OscillatorData Oscillator<id, mode>::data_;
+
+template<int id, OscillatorMode mode>
+uint8_t Oscillator<id, mode>::held_sample_;
+
+template<int id, OscillatorMode mode>
+OscillatorData Oscillator<id, mode>::data_;
+
 template<int id, OscillatorMode mode> AlgorithmFn Oscillator<id, mode>::fn_;
 template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_[] = {

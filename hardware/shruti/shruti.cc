@@ -221,7 +221,7 @@ void AudioRenderingTask() {
   if (audio.writable_block()) {
     rendered_blocks++;
     engine.Control();
-    for (uint8_t i = 0; i < kAudioBlockSize; ++i) {
+    for (uint8_t i = kAudioBlockSize; i > 0 ; --i) {
       engine.Audio();
       audio.Overwrite(engine.voice(0).signal());
     }
@@ -296,8 +296,8 @@ void Setup() {
   leds.Init();  
   
   engine.Init();
-  engine.SetParameter(PRM_ARP_OCTAVE, 2);
-  engine.NoteOn(0, 48, 80);
+  /*engine.SetParameter(PRM_ARP_OCTAVE, 2);
+  engine.NoteOn(0, 48, 80);*/
 }
 
 int main(void) {
