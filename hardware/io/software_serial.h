@@ -2,14 +2,22 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// BufferedSoftwareSerialOutput:
-// - Non-blocking serial transmission (unless of course you're trying to write
-// at a rate faster than the transmission rate).
-// - Called from a timer. The timer rate must be a multiple of the baud rate
-// otherwise this will miserably FAIL.
+// BufferedSoftwareSerialOutput, the name says it all:
+// - It is software serial.
+// - Contrary to the other Software Serial implementations out there which use
+// fine-tuned busy loop to delay between bits, this implementation bangs bits
+// in a timer interrupt ; while writes are done in an asynchronous, non-blocking
+// way to a buffer.
 //
-// SoftwareSerialOutput:
-// - Vanilla blocking implementation. 
+// Caveats:
+// - The timer rate must be a multiple of the baud rate otherwise this will
+// miserably FAIL.
+// - Tested only for 2400 (main timer at 31250 Hz) and 4800 (main timer at
+// 62500 Hz) baud per seconds.
+// - Please check the timing tolerance of your device's UART!
+//
+// SoftwareSerialOutput is a Vanilla blocking implementation, taken from the
+// Arduino libs ; Copyright (c) 2006 David A. Mellis.
 
 #ifndef HARDWARE_IO_SOFTWARE_SERIAL_H_
 #define HARDWARE_IO_SOFTWARE_SERIAL_H_
@@ -34,8 +42,8 @@ template<typename TxPin, uint16_t timer_rate, uint16_t baud_rate,
           uint8_t buffer_size_>
 class BufferedSoftwareSerialOutput {
   typedef BufferedSoftwareSerialOutput<TxPin, timer_rate,
-                                       baud_rate, buffer_size_> T;
-  typedef Buffer<T> OutputBuffer;
+                                       baud_rate, buffer_size_> Me;
+  typedef Buffer<Me> OutputBuffer;
  public:
   typedef uint8_t Value;
   enum {
@@ -158,7 +166,7 @@ struct SoftwareSerialOutput {
       "brne .-10"      "\n\t"
       : "+r" (delay), "+a" (tmp)
       : "0" (delay)
-      );
+    );
   }
 };
 

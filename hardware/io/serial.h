@@ -21,6 +21,8 @@
 // Serial::available()  // Number of bytes ready to be read. For polled read too
 // my_value = Serial::Read()  // Will wait until data arrives.
 // my_value = Serial::NonBlockingRead()  // Will return -1 if no data is there.
+// my_value = Serial::ImmediateRead()  // Assumes you are sure about what you
+//   are doing and you know that data is here.
 //
 // Flushing a buffer:
 // Serial::InputBuffer::Flush()
@@ -39,7 +41,7 @@ namespace hardware_io {
 const uint8_t kSerialOutputBufferSize = 32;
 const uint8_t kSerialInputBufferSize = 2;
 
-// Low-level interface to the low-level I/O registers. Several specializations
+// Low-level interface to the low-level UART registers. Several specializations
 // may be declared for each serial port. This class could theoretically be used
 // for non-blocking write or polling reads.
 template<typename TxEnableBit, typename TxReadyBit,
@@ -209,6 +211,8 @@ struct Serial {
   static inline Value ImmediateRead() { return Impl::IO::ImmediateRead(); }
 };
 
+// For other uC with several UARTs (eg Arduino mega), you can declare the other
+// UARTs here.
 IORegister(UBRR0H);
 IORegister(UBRR0L);
 IORegister(UCSR0A);

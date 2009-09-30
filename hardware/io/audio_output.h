@@ -3,7 +3,7 @@
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 // 
 // Audio output. Supports PWM (through a PwmOutput object) and DAC (through a
-// Dac object, for example in mcp492x.h).
+// Dac object, for example the one defined in mcp492x.h).
 
 #ifndef HARDWARE_IO_AUDIO_OUTPUT_H_
 #define HARDWARE_IO_AUDIO_OUTPUT_H_
@@ -52,7 +52,7 @@ class AudioOutput {
     return 1;
   }
   
-  // Called in data emission interrupt.
+  // Called from data emission interrupt.
   static inline void EmitSample() {
     int16_t v = OutputBuffer::NonBlockingRead();
     if (v >= 0) {
@@ -69,6 +69,7 @@ class AudioOutput {
 
  private:
   static uint16_t num_glitches_;
+  
   DISALLOW_COPY_AND_ASSIGN(AudioOutput);
 };
 

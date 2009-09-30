@@ -39,7 +39,7 @@
 #include "hardware/utils/random.h"
 #include "hardware/utils/op.h"
 
-using hardware_utils::Op;
+using namespace hardware_utils_op;
 using hardware_utils::Random;
 
 namespace hardware_shruti {
@@ -251,7 +251,7 @@ class Oscillator {
 #else
   static inline uint8_t InterpolateSample(const prog_uint8_t* table,
                                           uint16_t phase) {
-    return Op::Mix(
+    return Mix(
         ResourcesManager::Lookup<uint8_t, uint8_t>(table, phase >> 8),
         ResourcesManager::Lookup<uint8_t, uint8_t>(table, 1 + (phase >> 8)),
         phase & 0xff);
@@ -261,24 +261,23 @@ class Oscillator {
   static inline uint8_t InterpolateTwoTables(
       const prog_uint8_t* table_a, const prog_uint8_t* table_b,
       uint16_t phase, uint8_t balance) {
-    return Op::Mix(
+    return Mix(
         InterpolateSample(table_a, phase),
         InterpolateSample(table_b, phase),
         balance);
   }
   
-  // ------- Silence (useful when processing external signals) ----------------.
+  // ------- Silence (useful when processing external signals) -----------------
   static void RenderSilence() {
     held_sample_ = 128;
   }
   
-  // ------- Band-limited waveforms with variable pulse width -----------------.
+  // ------- Band-limited waveforms with variable pulse width ------------------
   static void UpdatePulseSquare() {
-    uint8_t note = Op::Swap4(note_ - 12);
+    uint8_t note = Swap4(note_ - 12);
     uint8_t wave_index = note & 0xf;
     // If the parameter is different from 0, use the PWM generator - otherwise,
-    // use directly the wavetable. This will never happen for the
-    // sub oscillator.
+    // use directly the wavetable.
     if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
       // TODO(pichenettes): find better formula for leaky integrator constant.
       data_.sq.leak = 255 - ((note_ - 12) >> 3);
@@ -288,7 +287,7 @@ class Oscillator {
     } else {
       data_.sq.wave[0] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
-      wave_index = Op::AddClip(wave_index, 1, kNumZonesFullSampleRate);
+      wave_index = AddClip(wave_index, 1, kNumZonesFullSampleRate);
       data_.sq.wave[1] =
           waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
       // Leak is set to 0 - this will be used by the rendering code to know that
@@ -306,10 +305,10 @@ class Oscillator {
       int16_t blit = InterpolateSample(data_.sq.wave[0], phase_);
       blit -= InterpolateSample(data_.sq.wave[0], phase_ + data_.sq.shift);
       if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
-        held_sample_ = Op::Clip8(blit + 128);
+        held_sample_ = Clip8(blit + 128);
       } else {
-        int8_t square = Op::SignedClip8(
-            Op::SignedMulScale8(data_.sq.square, data_.sq.leak) + blit);
+        int8_t square = SignedClip8(
+            SignedMulScale8(data_.sq.square, data_.sq.leak) + blit);
         data_.sq.square = square;
         held_sample_ = square + 128;
       }
@@ -323,15 +322,15 @@ class Oscillator {
   
   // ------- Minimal version of the square and triangle oscillators ------------
   static void UpdateSub() {
-    uint8_t note = Op::Swap4(note_);
+    uint8_t note = Swap4(note_);
     uint8_t wave_index = note & 0xf;
     uint8_t base_resource_id = algorithm_ == WAVEFORM_SQUARE ?
         WAV_RES_BANDLIMITED_SQUARE_1 :
         WAV_RES_BANDLIMITED_TRIANGLE_1;
 
-    wave_index = Op::AddClip(wave_index, 1, kNumZonesHalfSampleRate);
+    wave_index = AddClip(wave_index, 1, kNumZonesHalfSampleRate);
     data_.st.wave[0] = waveform_table[base_resource_id + wave_index];
-    wave_index = Op::AddClip(wave_index, 1, kNumZonesHalfSampleRate);
+    wave_index = AddClip(wave_index, 1, kNumZonesHalfSampleRate);
     data_.st.wave[1] = waveform_table[base_resource_id + wave_index];
     data_.st.balance = note & 0xf0;
   }
@@ -345,14 +344,14 @@ class Oscillator {
 
   // ------- Interpolation between two waveforms from two wavetables -----------
   static void UpdateSawTriangle() {
-    uint8_t note = Op::Swap4(note_ - 12);
+    uint8_t note = Swap4(note_ - 12);
     uint8_t wave_index = note & 0xf;
     uint8_t base_resource_id = algorithm_ == WAVEFORM_SAW ?
         WAV_RES_BANDLIMITED_SAW_0 :
         WAV_RES_BANDLIMITED_TRIANGLE_0;
       
     data_.st.wave[0] = waveform_table[base_resource_id + wave_index];
-    wave_index = Op::AddClip(wave_index, 1, kNumZonesFullSampleRate);
+    wave_index = AddClip(wave_index, 1, kNumZonesFullSampleRate);
     data_.st.wave[1] = waveform_table[base_resource_id + wave_index];
     data_.st.balance = note & 0xf0;
   }
@@ -419,7 +418,7 @@ class Oscillator {
         data_.wt.smooth_parameter & 0xff);
   }
   
-  // ------- Casio CZ-like synthesis ------------------------------------------.
+  // ------- Casio CZ-like synthesis -------------------------------------------
   static void UpdateCz() {
     data_.cz.formant_phase_increment = phase_increment_ + (
         (phase_increment_ * uint32_t(parameter_)) >> 3);
@@ -436,15 +435,15 @@ class Oscillator {
     uint8_t result = InterpolateSample(
         waveform_table[WAV_RES_SINE],
         data_.cz.formant_phase);
-    held_sample_ = Op::MulScale8(result, 255 - (phase_ >> 8));
+    held_sample_ = MulScale8(result, 255 - (phase_ >> 8));
   }
   
-  // ------- FM ---------------------------------------------------------------.
+  // ------- FM ----------------------------------------------------------------
   static void UpdateFm() {
     uint16_t multiplier = ResourcesManager::Lookup<uint16_t, uint8_t>(
         lut_res_fm_frequency_ratios, data_.fm.modulator_phase_increment);
     data_.fm.modulator_phase_increment = (
-        long(phase_increment_) * multiplier) >> 8;
+        static_cast<int32_t>(phase_increment_) * multiplier) >> 8;
     parameter_ <<= 1;
   }
   static void RenderFm() {
@@ -457,14 +456,14 @@ class Oscillator {
         phase_ + modulation);
   }
   
-  // ------- 8-bit land -------------------------------------------------------.
+  // ------- 8-bit land --------------------------------------------------------
   static void Render8BitLand() {
     phase_ += phase_increment_;
     uint8_t x = parameter_;
     held_sample_ = (((phase_ >> 8) ^ (x << 1)) & (~x)) + (x >> 1);
   }
   
-  // ------- Vowel -----------------------------------------------------------.
+  // ------- Vowel ------------------------------------------------------------
   static void UpdateVowel() {
     data_.vw.update++;
     if (data_.vw.update == kVowelControlRateDecimation) {
@@ -473,12 +472,12 @@ class Oscillator {
       return;
     }
     
-    uint8_t offset_1 = Op::ShiftRight4(parameter_);
+    uint8_t offset_1 = ShiftRight4(parameter_);
     offset_1 = (offset_1 << 2) + offset_1;  // offset_1 * 5
     uint8_t offset_2 = offset_1 + 5;
     uint8_t balance = parameter_ & 15;
     for (uint8_t i = 0; i < 3; ++i) {
-      data_.vw.formant_increment[i] = Op::UnscaledMix4(
+      data_.vw.formant_increment[i] = UnscaledMix4(
           ResourcesManager::Lookup<uint8_t, uint8_t>(
               waveform_table[WAV_RES_VOWEL_DATA], offset_1 + i),
           ResourcesManager::Lookup<uint8_t, uint8_t>(
@@ -494,12 +493,12 @@ class Oscillator {
           waveform_table[WAV_RES_VOWEL_DATA],
           offset_2 + 3 + i);
 
-      data_.vw.formant_amplitude[2 * i + 1] = Op::Mix4(
-          amplitude_a & 0xf,
-          amplitude_b & 0xf, balance);
-      amplitude_a = Op::ShiftRight4(amplitude_a);
-      amplitude_b = Op::ShiftRight4(amplitude_b);
-      data_.vw.formant_amplitude[2 * i] = Op::Mix4(
+      data_.vw.formant_amplitude[2 * i + 1] = Mix4(
+          amplitude_a & 0x0f,
+          amplitude_b & 0x0f, balance);
+      amplitude_a = ShiftRight4(amplitude_a);
+      amplitude_b = ShiftRight4(amplitude_b);
+      data_.vw.formant_amplitude[2 * i] = Mix4(
           amplitude_a,
           amplitude_b, balance);
     }
@@ -516,7 +515,7 @@ class Oscillator {
           ((data_.vw.formant_phase[i] >> 8) & 0xf0) |
             data_.vw.formant_amplitude[i]);
     }
-    result = Op::SignedMulScale8(result, 255 - (phase_ >> 8));
+    result = SignedMulScale8(result, 255 - (phase_ >> 8));
 
     phase_ += phase_increment_;
     int16_t phase_noise = int8_t(Random::state_msb()) *
@@ -526,7 +525,7 @@ class Oscillator {
       data_.vw.formant_phase[1] = 0;
       data_.vw.formant_phase[2] = 0;
     }
-    held_sample_ = Op::SignedClip8(4 * result) + 128;
+    held_sample_ = SignedClip8(4 * result) + 128;
   }
   
   DISALLOW_COPY_AND_ASSIGN(Oscillator);

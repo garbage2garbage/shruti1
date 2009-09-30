@@ -2,7 +2,9 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Pretty printer, to interface with an Output module.
+// Pretty printer. Wraps any module implementing the basic Output interface
+// (in fact, just a Write method), and provide string and integer formatting
+// using the << stream operator.
 
 #ifndef HARDWARE_IO_PRETTY_PRINTER_H_
 #define HARDWARE_IO_PRETTY_PRINTER_H_
@@ -24,28 +26,28 @@ struct PrettyPrinter {
     while (*string) {
       Output::Write(*string++);
     }
-  };
+  }
   static void Print(uint8_t byte) {
     Output::Write(byte);
-  };
+  }
   static void Print(char byte) {
     Output::Write(byte);
-  };
+  }
   static void Print(uint16_t value) {
     char buffer[TypeInfo<uint16_t>::max_size + 1];
     Itoa(value, TypeInfo<uint16_t>::max_size + 1, buffer);
     Print(buffer);
-  };
+  }
   static void Print(int16_t value) {
     char buffer[TypeInfo<int16_t>::max_size + 1];
     Itoa(value, TypeInfo<int16_t>::max_size + 1, buffer);
     Print(buffer);
-  };
+  }
   static void Print(uint32_t value) {
     char buffer[TypeInfo<uint32_t>::max_size + 1];
     Itoa(value, TypeInfo<uint32_t>::max_size + 1, buffer);
     Print(buffer);
-  };
+  }
   static void Print(EndOfLine e) {
     Print('\r');
     Print('\n');

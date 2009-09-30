@@ -28,7 +28,7 @@ void InitArduino() {
   
   SetupClock();
   
-  // Setup the timers to run at 1kHz.
+  // Setup the PWM timers to run at 1kHz.
   Timer<1>::set_prescaler(3);
   Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
 
@@ -36,7 +36,7 @@ void InitArduino() {
   Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
 
   // ADC setup.
-  Adc::set_prescale_factor(7);  // 128 -> 125kHz sampling rate.
+  Adc::set_prescaler(7);  // 128 -> 125kHz sampling rate.
   Adc::Enable();
   
   // Neuter the UART.

@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Shift register.
+// Driver for a 8-bits shift register.
 
 #ifndef HARDWARE_IO_DEVICES_74HC595_H_
 #define HARDWARE_IO_DEVICES_74HC595_H_
@@ -61,7 +61,11 @@ struct ShiftRegister<Latch, Clock, Data, size, MSB_FIRST>
     T mask = (T(1) << (size - 1));
     for (uint8_t i = size; i > 0; --i) {
       Clock::Low();
-      Data::set_value(data & mask ? HIGH : LOW);
+      if (data & mask) {
+        Data::High();
+      } else {
+        Data::Low();
+      }
       mask >>= 1;
       Clock::High();
       Data::Low();
@@ -73,4 +77,4 @@ struct ShiftRegister<Latch, Clock, Data, size, MSB_FIRST>
 
 }  // namespace hardware_io
 
-#endif   // HARDWARE_IO_DEVICES_74HC595_H_
+#endif  // HARDWARE_IO_DEVICES_74HC595_H_

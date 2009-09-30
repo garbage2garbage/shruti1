@@ -16,6 +16,8 @@
 using namespace hardware_io;
 using namespace hardware_utils;
 
+using hardware_io::kLcdNoCursor;
+
 namespace hardware_shruti {
   
 /* extern */
@@ -268,7 +270,7 @@ uint8_t Editor::current_display_type_;
 ParameterPage Editor::current_page_;
 ParameterPage Editor::last_visited_page_[kNumGroups];
 uint8_t Editor::current_controller_;
-uint8_t Editor::parameter_definition_offset_[kNumPages][kNumControllers];
+uint8_t Editor::parameter_definition_offset_[kNumPages][kNumEditingPots];
 
 char Editor::line_buffer_[kLcdWidth * kLcdHeight + 1];
 
@@ -291,7 +293,7 @@ void Editor::Init() {
   last_visited_page_[GROUP_LOAD_SAVE] = PAGE_LOAD_SAVE;
   for (uint8_t i = 0; i < kNumEditableParameters; ++i) {
     parameter_definition_offset_[parameter_definition(i).page]
-        [i % kNumControllers] = i;
+        [i % kNumEditingPots] = i;
   }
   // Check that the pages are in the right order in the PageDefinition
   // structure. Otherwise we won't be able to do fancy addressing.
@@ -525,7 +527,7 @@ void Editor::DisplayEditSummaryPage() {
   // 0123456789abcdef
   // foo bar baz bad
   //  63 127   0   0
-  for (uint8_t i = 0; i < kNumControllers; ++i) {
+  for (uint8_t i = 0; i < kNumEditingPots; ++i) {
     uint8_t index = parameter_definition_offset_[current_page_][i];
     const ParameterDefinition& parameter = parameter_definition(index);
     ResourcesManager::LoadStringResource(

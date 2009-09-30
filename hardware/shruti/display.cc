@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Display.
+// Instance of the display class, configured for the Shruti-1 project.
 
 #include "hardware/shruti/display.h"
 

@@ -101,6 +101,8 @@ struct TimerImpl {
 template<int n>
 struct NumberedTimer { };
 
+// Timer<0> cannot be modified / stopped / started by default, because the real
+// time clock (Delay(), milliseconds()) uses it.
 template<> struct NumberedTimer<0> {
   typedef TimerImpl<
       TCCR0ARegister,
@@ -173,6 +175,8 @@ typedef PwmChannel<Timer<1>, COM1B1, OCR1BRegister> PwmChannel1B;
 typedef PwmChannel<Timer<2>, COM2A1, OCR2ARegister> PwmChannel2A;
 typedef PwmChannel<Timer<2>, COM2B1, OCR2BRegister> PwmChannel2B;
 
+// A definition of Timer<0> that can be adjusted / started / stopped, used for
+// example in initialization code.
 typedef TimerImpl<
     TCCR0ARegister,
     TCCR0BRegister,
@@ -180,6 +184,7 @@ typedef TimerImpl<
     TCNT0Register,
     true> MutableTimer0;
 
+// Readable aliases for timer interrupts.
 #define TIMER_0_TICK ISR(TIMER0_OVF_vect)
 #define TIMER_1_TICK ISR(TIMER1_OVF_vect)
 #define TIMER_2_TICK ISR(TIMER2_OVF_vect)

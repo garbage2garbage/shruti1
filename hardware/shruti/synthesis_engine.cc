@@ -13,7 +13,7 @@
 #include "hardware/utils/random.h"
 #include "hardware/utils/op.h"
 
-using hardware_utils::Op;
+using namespace hardware_utils_op;
 
 namespace hardware_shruti {
 
@@ -87,7 +87,7 @@ static const prog_char empty_patch[] PROGMEM = {
     MOD_SRC_ASSIGNABLE_2, MOD_DST_FILTER_CUTOFF, 0,
     MOD_SRC_CV_1, MOD_DST_FILTER_CUTOFF, 0,
     MOD_SRC_CV_2, MOD_DST_FILTER_CUTOFF, 0,
-    120, 2, 0, 0,
+    120, 0, 0, 0,
     0x00, 0x00, 0xff, 0xff, 0xcc, 0xcc, 0x44, 0x44,
     0, 0, 0, 1,
     'n', 'e', 'w', ' ', ' ', ' ', ' ', ' ', 16};
@@ -160,7 +160,7 @@ void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
 /* static */
 void SynthesisEngine::PitchBend(uint8_t channel, uint16_t pitch_bend) {
   IGNORE_OTHER_CHANNELS;
-  modulation_sources_[MOD_SRC_PITCH_BEND] = Op::ShiftRight6(pitch_bend);
+  modulation_sources_[MOD_SRC_PITCH_BEND] = ShiftRight6(pitch_bend);
 }
 
 /* static */
@@ -398,11 +398,11 @@ void Voice::Control() {
   // Rescale the value of each modulation sources. Envelopes are in the
   // 0-16383 range ; just like pitch. All are scaled to 0-255.
   modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources] = 
-      Op::ShiftRight6(envelope_[0].value());
+      ShiftRight6(envelope_[0].value());
   modulation_sources_[MOD_SRC_ENV_2 - kNumGlobalModulationSources] = 
-      Op::ShiftRight6(envelope_[1].value());
+      ShiftRight6(envelope_[1].value());
   modulation_sources_[MOD_SRC_NOTE - kNumGlobalModulationSources] =
-      Op::ShiftRight6(pitch_value_);
+      ShiftRight6(pitch_value_);
   modulation_sources_[MOD_SRC_GATE - kNumGlobalModulationSources] =
       envelope_[0].stage() >= RELEASE ? 0 : 255;
       
@@ -427,7 +427,7 @@ void Voice::Control() {
 
     // The last modulation amount is adjusted by the wheel.
     if (i == kSavedModulationMatrixSize - 1) {
-      amount = Op::SignedMulScale8(
+      amount = SignedMulScale8(
           amount,
           engine.modulation_sources_[MOD_SRC_WHEEL]);
     }
@@ -445,14 +445,14 @@ void Voice::Control() {
     }
     if (destination != MOD_DST_VCA) {
       int16_t modulation = dst[destination];
-      modulation += Op::SignedUnsignedMul(amount, source_value);
+      modulation += SignedUnsignedMul(amount, source_value);
       // For those sources, use relative modulation.
       if (source <= MOD_SRC_LFO_2 ||
           source == MOD_SRC_PITCH_BEND ||
           source == MOD_SRC_NOTE) {
         modulation -= amount << 7;
       }
-      dst[destination] = Op::Clip(modulation, 0, 16383);
+      dst[destination] = Clip(modulation, 0, 16383);
     } else {
       // The VCA modulation is multiplicative, not additive. Yet another
       // Special case :(.
@@ -460,20 +460,20 @@ void Voice::Control() {
         amount = -amount;
         source_value = 255 - source_value;
       }
-      modulation_destinations_[MOD_DST_VCA] = Op::MulScale8(
+      modulation_destinations_[MOD_DST_VCA] = MulScale8(
           modulation_destinations_[MOD_DST_VCA],
-          Op::Mix(255, source_value, amount << 2));
+          Mix(255, source_value, amount << 2));
     }
   }
   // Hardcoded filter modulations.
-  dst[MOD_DST_FILTER_CUTOFF] = Op::Clip(
-      dst[MOD_DST_FILTER_CUTOFF] + Op::SignedUnsignedMul(
+  dst[MOD_DST_FILTER_CUTOFF] = Clip(
+      dst[MOD_DST_FILTER_CUTOFF] + SignedUnsignedMul(
           engine.patch_.filter_env,
           modulation_sources_[MOD_SRC_ENV_1 - kNumGlobalModulationSources]),
       0,
       16383);
-  dst[MOD_DST_FILTER_CUTOFF] = Op::Clip(
-      dst[MOD_DST_FILTER_CUTOFF] + Op::SignedUnsignedMul(
+  dst[MOD_DST_FILTER_CUTOFF] = Clip(
+      dst[MOD_DST_FILTER_CUTOFF] + SignedUnsignedMul(
           engine.patch_.filter_lfo,
           engine.modulation_sources_[MOD_SRC_LFO_2]) -
       (engine.patch_.filter_lfo << 7),
@@ -481,16 +481,16 @@ void Voice::Control() {
       16383);
   
   // Store in memory all the updated parameters.
-  modulation_destinations_[MOD_DST_FILTER_CUTOFF] = Op::ShiftRight6(
+  modulation_destinations_[MOD_DST_FILTER_CUTOFF] = ShiftRight6(
       dst[MOD_DST_FILTER_CUTOFF]);
 
-  modulation_destinations_[MOD_DST_FILTER_RESONANCE] = Op::ShiftRight6(
+  modulation_destinations_[MOD_DST_FILTER_RESONANCE] = ShiftRight6(
       dst[MOD_DST_FILTER_RESONANCE]);
 
   modulation_destinations_[MOD_DST_PWM_1] = dst[MOD_DST_PWM_1] >> 7;
   modulation_destinations_[MOD_DST_PWM_2] = dst[MOD_DST_PWM_2] >> 7;
 
-  modulation_destinations_[MOD_DST_MIX_BALANCE] = Op::ShiftRight6(
+  modulation_destinations_[MOD_DST_MIX_BALANCE] = ShiftRight6(
       dst[MOD_DST_MIX_BALANCE]);
   modulation_destinations_[MOD_DST_MIX_NOISE] = dst[MOD_DST_MIX_NOISE] >> 8;
   modulation_destinations_[MOD_DST_MIX_SUB_OSC] = dst[MOD_DST_MIX_SUB_OSC] >> 7;
@@ -561,9 +561,9 @@ void Voice::Audio() {
   uint8_t mix = Osc1::Render();
   
   if (engine.patch_.osc_option[0] == RING_MOD) {
-    mix = Op::SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
+    mix = SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
   } else {
-    mix = Op::Mix(
+    mix = Mix(
         mix,
         osc_2,
         modulation_destinations_[MOD_DST_MIX_BALANCE]);
@@ -579,11 +579,11 @@ void Voice::Audio() {
   }
   
   if (engine.patch_.osc_algorithm[0] != WAVEFORM_VOWEL) {
-    mix = Op::Mix(
+    mix = Mix(
         mix,
         SubOsc::Render(),
         modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
-    mix = Op::Mix(
+    mix = Mix(
         mix,
         Random::state_msb(),
         modulation_destinations_[MOD_DST_MIX_NOISE]);

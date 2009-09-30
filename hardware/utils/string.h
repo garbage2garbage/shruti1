@@ -4,8 +4,8 @@
 //
 // Utility functions for string processing.
 
-#ifndef HARDWARE_UTILS_STRING_UTILS_H_
-#define HARDWARE_UTILS_STRING_UTILS_H_
+#ifndef HARDWARE_UTILS_STRING_H_
+#define HARDWARE_UTILS_STRING_H_
 
 #include "hardware/base/base.h"
 #include <string.h>
@@ -68,4 +68,4 @@ void Itoa(T i, uint8_t width, char* destination) {
 
 }  // namespace hardware_utils
 
-#endif  // HARDWARE_UTILS_STRING_UTILS_H_
+#endif  // HARDWARE_UTILS_STRING_H_

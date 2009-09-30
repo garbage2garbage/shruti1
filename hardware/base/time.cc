@@ -2,7 +2,8 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Real time clock.
+// Real time clock. Based on the code in the arduino core library
+// by David A. Mellis.
 
 #include "hardware/io/timer.h"
 #include "hardware/base/time.h"

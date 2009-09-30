@@ -9,7 +9,7 @@
 
 #ifdef __TEST__
 
-namespace google_logging {
+namespace hardware_utils {
 
 /* extern */
 char* kSegmentFaultCauser = "Used to cause artificial segmentation fault";
@@ -19,6 +19,6 @@ const char* severity_name[] = {
   AS_STRING(INFO), AS_STRING(WARNING), AS_STRING(ERROR), AS_STRING(FATAL)
 };
 
-}  // namespace google_logging
+}  // namespace hardware_utils
 
 #endif __TEST__

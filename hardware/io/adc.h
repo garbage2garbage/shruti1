@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Interface to the onboard analog->digital converter, and analog multiplexer.
+// Interface to the onboard ADC converter, and analog multiplexer.
 
 #ifndef HARDWARE_IO_ADC_H_
 #define HARDWARE_IO_ADC_H_
@@ -34,7 +34,7 @@ typedef BitInRegister<ADCSRARegister, ADEN> AdcEnabled;
 
 class Adc {
  public:
-  static inline void set_prescale_factor(uint8_t factor) {
+  static inline void set_prescaler(uint8_t factor) {
     *ADCSRARegister::ptr() = (*ADCSRARegister::ptr() & ~0x07) | (factor & 0x07);
   }
   static inline void set_reference(AdcReference reference) {

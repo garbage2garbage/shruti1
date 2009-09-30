@@ -6,6 +6,11 @@
 #
 # Generates .cc and .h files for string, lookup tables, etc.
 
+"""Compiles python string tables/arrays into a .cc and .h file.
+
+TODO(pichenettes): rewrite this using the django templating engine.
+"""
+
 import os
 import string
 import sys

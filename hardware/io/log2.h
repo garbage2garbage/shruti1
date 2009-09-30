@@ -3,6 +3,7 @@
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
 // Template class for converting a power of 2 to its logarithm in base 2.
+// Using log might simply not work for template arguments.
 
 #ifndef HARDWARE_IO_LOG2_
 #define HARDWARE_IO_LOG2_

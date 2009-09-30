@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Random number generator.
+// Fast 16-bit pseudo random number generator.
 
 #ifndef HARDWARE_UTILS_RANDOM_H_
 #define HARDWARE_UTILS_RANDOM_H_

@@ -7,18 +7,9 @@
 #ifndef HARDWARE_SHRUTI_EDITOR_H_
 #define HARDWARE_SHRUTI_EDITOR_H_
 
-#include <stdio.h>
-
 #include "hardware/base/base.h"
-#include "hardware/io/devices/sparkfun_ser_lcd.h"
-#include "hardware/io/pin.h"
-#include "hardware/shruti/patch.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/shruti.h"
-
-using hardware_io::kLcdNoCursor;
-using hardware_io::Display;
-using hardware_io::Pin;
 
 namespace hardware_shruti {
 
@@ -49,7 +40,6 @@ enum Page {
   PAGE_PLAY_STEP_SEQUENCER,
   PAGE_PLAY_KBD,
   PAGE_LOAD_SAVE,
-  PAGE_END = 255
 };
 
 enum Unit {
@@ -82,7 +72,6 @@ typedef uint8_t ParameterUnit;
 
 static const uint8_t kNumPages = 12;
 static const uint8_t kNumGroups = 6;
-static const uint8_t kNumControllers = 4;
 
 // Size (in char) of the display elements.
 static const uint8_t kCaptionWidth = 10;
@@ -99,14 +88,27 @@ struct ParameterDefinition {
   ResourceId long_name;
 };
 
-class Editor;
-
-enum PageUi {
+enum PageUiType {
   PARAMETER_EDITOR = 0,
   STEP_SEQUENCER = 1,
   LOAD_SAVE = 2,
 };
 
+typedef uint8_t UiType;
+
+struct PageDefinition {
+  ParameterPage id;
+  ParameterGroup group;
+  ResourceId name;
+  UiType ui_type;
+};
+
+// For each type of page (basic parameter editor, step sequencer, load/save
+// dialog, 4 functions must be defined:
+// - a function displaying the "overview" page.
+// - a function displaying a specific parameter value ("details").
+// - a function handling a change in one of the 4 editing pots.
+// - a function handling increment/decrement.
 struct UiHandler {
   void (*summary_page)();
   void (*details_page)();
@@ -114,25 +116,30 @@ struct UiHandler {
   void (*increment_handler)(int8_t direction);  
 };
 
-struct PageDefinition {
-  ParameterPage id;
-  ParameterGroup group;
-  ResourceId name;
-  uint8_t ui_type;
-};
-
 class Editor {
  public:
   Editor() { }
   static void Init();
+  
+  // Handles a press on one of the "parameter groups" buttons. Go back to the
+  // most recently visited page in this group, or cycle through the pages in
+  // the current group.
   static void ToggleGroup(ParameterGroup group);
 
+  // Handles the modification of one of the editing pots.
   static void HandleInput(uint8_t controller_index, uint16_t value);
+  
+  // Handles a press on the inc/dec buttons.
   static void HandleIncrement(int8_t direction);
+  
+  // Display variants of the current page.
   static void DisplaySummary();
   static void DisplayDetails();
+  
+  // Display two lines of text read from a resource.
   static void DisplaySplashScreen(ResourceId first_line);
   
+  // Use the UI default to reset the current patch.
   static void ResetPatch();
   static inline ParameterPage current_page() { return current_page_; }
   static inline uint8_t cursor() { return cursor_; }
@@ -140,7 +147,7 @@ class Editor {
 
  private:
   static void PrettyPrintParameterValue(const ParameterDefinition& parameter,
-                                 char* buffer, uint8_t width);
+                                        char* buffer, uint8_t width);
   
   // Output and Input handling for all the different category of pages.
   static void DisplayEditSummaryPage();
@@ -175,7 +182,7 @@ class Editor {
   static ParameterPage current_page_;
   static ParameterPage last_visited_page_[kNumGroups];
   static uint8_t current_controller_;
-  static uint8_t parameter_definition_offset_[kNumPages][kNumControllers];
+  static uint8_t parameter_definition_offset_[kNumPages][kNumEditingPots];
 
   static char line_buffer_[kLcdWidth * kLcdHeight + 1];
 

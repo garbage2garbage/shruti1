@@ -9,9 +9,9 @@
 
 namespace hardware_midi {
   
-const uint8_t kModulationWheelMsb = 0x1;
+const uint8_t kModulationWheelMsb = 0x01;
 const uint8_t kDataEntryMsb = 0x06;
-const uint8_t kPortamentoTimeMsb = 0x5;
+const uint8_t kPortamentoTimeMsb = 0x05;
 const uint8_t kHarmonicIntensity = 0x47;
 const uint8_t kRelease = 0x48;
 const uint8_t kAttack = 0x49;
@@ -63,12 +63,11 @@ class MidiStreamParser {
    
   uint8_t running_status_;
   uint8_t data_[3];
-  uint8_t data_size_;
-  uint8_t expected_data_size_;
+  uint8_t data_size_;  // Number of non-status byte received.
+  uint8_t expected_data_size_;  // Expected number of non-status bytes.
   
   DISALLOW_COPY_AND_ASSIGN(MidiStreamParser);
 };
-
 
 template<typename Device>
 MidiStreamParser<Device>::MidiStreamParser() {
@@ -79,7 +78,7 @@ MidiStreamParser<Device>::MidiStreamParser() {
 
 template<typename Device>
 uint8_t MidiStreamParser<Device>::PushByte(uint8_t byte) {
-  // Realtime messages are immediately passed-through, and do not modified the
+  // Realtime messages are immediately passed-through, and do not modify the
   // state of the parser.
   uint8_t value = 0;
   if (byte >= 0xf8) {
@@ -237,7 +236,6 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
       break;
   }
 }
-
   
 }  // namespace hardware_midi
 

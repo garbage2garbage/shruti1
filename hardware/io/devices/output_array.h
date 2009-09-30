@@ -4,11 +4,11 @@
 //
 // Controller for an array of digital outputs behind a shift register. This
 // class maintains an internal array reflecting the status of each output. A
-// call to Out() writes the content of the array to a shift register, if the
+// call to Output() writes the content of the array to a shift register, if the
 // content of the array has changed.
 //
 // The num_intensity_level template parameter allows basic PWM on the output
-// of the array. More specifically, each call to Out() will write a 0 or 1
+// of the array. More specifically, each call to Output() will write a 0 or 1
 // depending on the "analog" level. This can be used for example to adjust
 // the brightness of a LED. More precisely, this is achieved in a PWM-like way
 // (we cycle N times through the array and at time i, we power only the outputs
@@ -53,7 +53,7 @@ class OutputArray {
     }
     return values_[output_index];
   }
-  static inline void Out() {
+  static inline void Output() {
     Index c = 0;
     Index bit = 1;
     for (Index i = 0; i < size; ++i) {
@@ -87,7 +87,7 @@ OutputArray<Latch, Clock, Data, size, bit_depth, order, safe>::cycle_;
 
 
 // A specialization that packs the data by nibble - this is the configuration
-// used for Shruti.
+// used for the Shruti-1 status LEDs.
 template<typename Latch, typename Clock, typename Data,
          uint8_t size, DataOrder order, bool safe>
 class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
@@ -110,7 +110,7 @@ class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
     }
     if (output_index & 1) {
       output_index >>= 1;
-      values_[output_index] = (intensity << 4) | (values_[output_index] & 0xf);
+      values_[output_index] = (intensity << 4) | (values_[output_index] & 0x0f);
     } else {
       output_index >>= 1;
       values_[output_index] = intensity | (values_[output_index] & 0xf0);
@@ -123,10 +123,10 @@ class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
     if (output_index & 1) {
       return values_[output_index >> 1] >> 4;
     } else {
-      return values_[output_index >> 1] & 0xf;
+      return values_[output_index >> 1] & 0x0f;
     }
   }
-  static inline void Out() {
+  static inline void Output() {
     Index c = 0;
     Index bit = 1;
     for (Index i = 0; i < size; ++i) {
@@ -181,7 +181,7 @@ class OutputArray<Latch, Clock, Data, size, 1, order, safe> {
   OutputArray() { }
   static inline void Init() {
     if (safe) {
-      touched_ = 1;
+      last_bits_ = 1;
       bits_ = 0;
     }
     Register::Init();
@@ -205,7 +205,7 @@ class OutputArray<Latch, Clock, Data, size, 1, order, safe> {
     T mask = T(1) << output_index;
     return T(bits_ & mask) ? 1 : 0;
   }
-  static inline void Out() {
+  static inline void Output() {
     if (bits_ == last_bits_) {
       return;
     }
@@ -215,7 +215,6 @@ class OutputArray<Latch, Clock, Data, size, 1, order, safe> {
  private:
   static T bits_;
   static T last_bits_;
-  static uint8_t touched_;
   
   DISALLOW_COPY_AND_ASSIGN(OutputArray);
 };
@@ -229,10 +228,6 @@ template<typename Latch, typename Clock, typename Data,
          uint8_t size, DataOrder order, bool safe>
 typename OutputArray<Latch, Clock, Data, size, 1, order, safe>::T
 OutputArray<Latch, Clock, Data, size, 1, order, safe>::last_bits_;
-
-template<typename Latch, typename Clock, typename Data,
-         uint8_t size, DataOrder order, bool safe>
-uint8_t OutputArray<Latch, Clock, Data, size, 1, order, safe>::touched_;
 
 }  // namespace hardware_io
 

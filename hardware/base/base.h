@@ -9,10 +9,6 @@
 
 #include <inttypes.h>
 
-#ifndef __TEST__
-#define USE_OPTIMIZED_OP
-#endif  // !__TEST__
-
 #ifndef NULL
 #define NULL 0
 #endif

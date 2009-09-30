@@ -3,10 +3,10 @@
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 // 
 // Driver for Sparkfun's serial-enabled LCD displays, with double buffering, and
-// a "low-granularity" approach.
+// a "low-granularity" approach to writes.
 //
 // All updates to the content of the screen are done in an in-memory "local"
-// text page. A "remote" text page mirrors the current state of the LCD display.
+// text page. A "remote" buffer mirrors the current state of the LCD display.
 // A task should periodically call the Update() method, which scans the local
 // and remote pages for differences, transmit serially the modified character
 // in the local page to the LCD, and update the remote buffer to reflect that
@@ -74,7 +74,8 @@ class Display {
     // It is assumed, at initialization, that the display is wrongly in 9600
     // bauds mode. Send this message to switch to the target baud rate.
     // At worst, if the baud rate is already set, this will display glitchy
-    // characters for a short amount of time.
+    // characters for a short amount of time (if the display is configured at
+    // 2400 bps, they look like the infinity symbol).
     Delay(250);
     DisplayPanicSerialOutput::Write(124);
     if (baud_rate == 2400) {
@@ -99,14 +100,14 @@ class Display {
       LOG(INFO) << "display\ttext\t+----------------+";
     }
     LOG(INFO) << "display\ttext\t|" << text << "|";
-    if (line == 1) {
+    if (line == height - 1) {
       LOG(INFO) << "display\ttext\t+----------------+";
     }
     uint8_t row = width;
     uint8_t* destination = local_ + (line << Log2<width>::value);
     while (*text && row) {
       uint8_t character = *text;
-      // Do not write control characters.
+      // Skip control characters.
       if (character == 124 || character == 254 ||
           (character >= 8 && character < 32)) {
         *destination++ = ' ';
@@ -125,21 +126,21 @@ class Display {
 
   static void SetCustomCharMap(const uint8_t* characters,
                                uint8_t num_characters) {
-   DisplaySerialOutput::Write(0xfe);
-   DisplaySerialOutput::Write(0x01);
-   for (uint8_t i = 0; i < num_characters; ++i) {
-     DisplaySerialOutput::Write(0xfe);
-     DisplaySerialOutput::Write(0x40 + i * 8);
-     for (uint8_t j = 0; j < 8; ++j) {
-       // The 6th bit is not used, so it is set to prevent character definition
-       // data to be misunderstood with special commands.
-       DisplaySerialOutput::Write(0x20 |
-           SimpleResourcesManager::Lookup<uint8_t, uint8_t>(
-               characters, i * 8 + j));
+    DisplaySerialOutput::Write(0xfe);
+    DisplaySerialOutput::Write(0x01);
+    for (uint8_t i = 0; i < num_characters; ++i) {
+      DisplaySerialOutput::Write(0xfe);
+      DisplaySerialOutput::Write(0x40 + i * 8);
+      for (uint8_t j = 0; j < 8; ++j) {
+        // The 6th bit is not used, so it is set to prevent character definition
+        // data to be misunderstood with special commands.
+        DisplaySerialOutput::Write(0x20 |
+            SimpleResourcesManager::Lookup<uint8_t, uint8_t>(
+                characters, i * 8 + j));
      }
      DisplaySerialOutput::Write(0xfe);
      DisplaySerialOutput::Write(0x01);
-   }                               
+    }
   }
 
   // Use kLcdNoCursor (255) or any other value outside of the screen to hide.
@@ -163,8 +164,10 @@ class Display {
     if (DisplaySerialOutput::writable() < 3) {
       return;
     }
-    // It is now safe that all writes of 3 bytes to the display buffer will not
-    // block.
+    // It is now safe to assuma that all writes of 3 bytes to the display buffer
+    // will not block.
+    
+    // Blink the cursor and clears the status character.
     blink_clock_ = (blink_clock_ + 1) & kLcdCursorBlinkRate;
     if (blink_clock_ == 0) {
       blink_ = ~blink_;
@@ -188,6 +191,7 @@ class Display {
         character = local_[scan_position_];
       }
     }
+    // Check whether the screen really has to be updated to show the character.
     if (character != remote_[scan_position_] ||
         scan_position_ == cursor_position_) {
       // There is a character to transmit!
@@ -209,9 +213,7 @@ class Display {
         DisplaySerialOutput::Overwrite(cursor_position);
         DisplaySerialOutput::Overwrite(character);
       }
-      // We can now assume that remote display will be updated. This works
-      // because the entry to this block of code is protected by a check on the
-      // transmission success!
+      // We can now assume that remote display will be updated.
       remote_[scan_position_] = character;
       scan_position_last_write_ = scan_position_;
     }

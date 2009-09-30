@@ -115,10 +115,10 @@ void VoiceController::SetSwing(uint8_t swing) {
 
 /* static */
 void VoiceController::RecomputeStepDurations() {
-  step_duration_[0] = (kSampleRate * 60L / 4) / long(tempo_);
+  step_duration_[0] = (kSampleRate * 60L / 4) / static_cast<int32_t>(tempo_);
   step_duration_[1] = step_duration_[0];
   estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
-  int16_t swing = (step_duration_[0] * long(swing_)) >> 9;
+  int16_t swing = (step_duration_[0] * static_cast<int32_t>(swing_)) >> 9;
   step_duration_[0] += swing;
   step_duration_[1] -= swing;
 }

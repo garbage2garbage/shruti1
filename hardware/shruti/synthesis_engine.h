@@ -8,8 +8,8 @@
 // lds r18, 0x04e4
 //
 // instead of ugly indirect addressing like:
-// subi r28, 0xF1
-// sbci r29, 0xFD
+// subi r28, 0xf1
+// sbci r29, 0xfD
 // ld r18, Y
 // ldd  r19, Y+1  ; 0x01
 //

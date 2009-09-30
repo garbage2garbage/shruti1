@@ -17,6 +17,6 @@ uint32_t Delay(uint32_t delay);
 
 void SetupClock();
 
-}  // namespace hardware_base;
+}  // namespace hardware_base
 
 #endif  // HARDWARE_BASE_TIME_H_

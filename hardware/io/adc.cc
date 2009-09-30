@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Interface to the onboard analog->digital converter, and analog multiplexer.
+// Interface to the onboard ADC converter, and analog multiplexer.
 
 #include "hardware/io/adc.h"
 

@@ -1,12 +1,10 @@
 Name: Shruti-1
 Type: Compact table-top synth
 Audio I/O: 6.35 Jack (Mono audio out), 6.35 Jack (External signal in)
+CV: 2 CV (0-5 V) in for easy experimentation with controllers
 MIDI: in, out (thru + patch dumps)
 Controllers: 12 facade LEDs, 2x16 LCD display, 4 pots for patch editing. 2
-assignable pots, 2 CV input for performance controllers. Volume and mixer pot. 5 navigation switches, one inc/dec pair.
-
-
-Monophonic synth section:
+assignable pots, 2 CV input for performance controllers. Volume and mixer pot. 5 navigation switches, one inc/dec switches pair.
 
 Hybrid digital / analog synthesis.
 
@@ -14,28 +12,18 @@ Hybrid digital / analog synthesis.
 - pulse, square (with pulse-width modulation), triangle with waveshapping, sawtooth. All band-limited (sort of).
 - sawtooth with sweepable resonance.
 - simplistic FM (1>2 configuration, adjustable modulation index and frequency ratio).
-- low-fi vowel synthesis (think "speak and spell").
+- lo-fi vowel synthesis (think "speak and spell").
 - cheap 8bit waveforms with plenty of aliasing.
 - 32 waveforms sweepable wavetable.
 - "sweep" oscillator which scans through all the waveforms (think wave table
   scan, when controlled by a LFO or Envelope, or wave sequence).
 * Noise & sub-oscillator (triangle or square).
-* 2 LFO (square, wave, triangle, sample & hold).
+* 2 LFO (square, sawtooth, triangle, sample & hold).
 * 2 ADSR envelopes.
 * 14 patchcords modulation matrix (16 modulation sources, 11 destinations).
 * That curtis VCF/VCA (with external input).
 * Arpeggiator with 6 different patterns + direction and octave setting.
 * 16-steps step sequencer.
 * 16-patches patch memory.
+* MIDI implementation with patch load/save by SysEx.
 * Support for (some) indian/arabic scales.
-
-
-TODO:
-
-Polyphonic expander section:
- 
-"Crappo" wavetable synthesizer (think "annoying polyphonic ringtone").
- 
-In case people wanted to compose entire songs with the module and nothing else,
-this uber-cheap section can handle the task. Yes, those are the same sounds
-that polyphonic ringtones - As an apology, you can route them to the filters.

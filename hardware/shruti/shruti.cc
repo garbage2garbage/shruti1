@@ -62,7 +62,6 @@ OutputArray<
 
 // Audio output on pin 3.
 AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio;
-uint32_t rendered_blocks = 0;
 
 MidiStreamParser<SynthesisEngine> midi_parser;
 
@@ -88,7 +87,7 @@ void UpdateLedsTask() {
     }
     leds.set_value(i, value);
   }
-  leds.Out();
+  leds.Output();
 }
 
 void UpdateDisplayTask() {
@@ -219,7 +218,6 @@ void MidiTask() {
 
 void AudioRenderingTask() {
   if (audio.writable_block()) {
-    rendered_blocks++;
     engine.Control();
     for (uint8_t i = kAudioBlockSize; i > 0 ; --i) {
       engine.Audio();
@@ -290,8 +288,7 @@ void Setup() {
   midi_io.Init();
   pots.Init();
   switches.Init();
-  // Enable the pull-up resistor.
-  Pin<kPinDigitalInput>::High();
+  DigitalInput<kPinDigitalInput>::EnablePullUpResistor();
   input_mux.Init();
   leds.Init();  
   

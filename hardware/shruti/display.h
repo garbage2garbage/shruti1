@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Display.
+// Instance of the display class, configured for the Shruti-1 project.
 
 #ifndef HARDWARE_SHRUTI_DISPLAY_H_
 #define HARDWARE_SHRUTI_DISPLAY_H_
@@ -17,7 +17,8 @@ using hardware_io::Pin;
 
 namespace hardware_shruti {
 
-typedef Display<Pin<kPinLcdTx>,
+typedef Display<
+    Pin<kPinLcdTx>,
     kMainTimerRate,
     kDisplayBaudRate,
     kLcdWidth,

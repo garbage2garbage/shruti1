@@ -68,7 +68,7 @@ typedef Port<PINDRegister, PORTDRegister, DDRDRegister> PortD;
 
 // The actual implementation of a pin, not very convenient to use because it
 // requires the actual parameters of the pin to be passed as template
-// parameters.
+// arguments.
 template<typename Port, typename PwmChannel, uint8_t bit, bool safe>
 struct PinImpl {
   typedef BitInRegister<typename Port::Mode, bit> ModeBit;
@@ -209,6 +209,9 @@ struct DigitalInput {
   };
   static void Init() {
     Pin<pin>::set_mode(DIGITAL_INPUT);
+  }
+  static void EnablePullUpResistor() {
+    Pin<pin>::High();
   }
   static int8_t Read() {
     return Pin<pin>::value();

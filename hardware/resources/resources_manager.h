@@ -24,7 +24,8 @@ template<const prog_char** strings, const prog_uint16_t** lookup_tables>
 struct ResourcesTables {
   static inline const prog_char** string_table() { return strings; }
   static inline const prog_uint16_t** lookup_table_table() {
-      return lookup_tables; }
+      return lookup_tables;
+  }
 };
 
 struct NoResourcesTables {

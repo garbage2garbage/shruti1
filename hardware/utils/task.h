@@ -15,7 +15,7 @@
 case 0:;
 
 // This is very unreliable because it assumes the line numbers will fit in an
-// uint8_t. Don't use this unless you want to save a hundred bytes by having
+// uint8_t. Don't use this unless you want to save a couple of bytes by using
 // 8 bits comparisons instead of 16 bits comparisons.
 #define TASK_BEGIN_NEAR static uint8_t state = 0; \
     switch(state) { \
@@ -112,7 +112,6 @@ uint8_t NaiveScheduler<num_slots>::slots_[num_slots];
 template<uint8_t num_slots>
 uint8_t NaiveScheduler<num_slots>::current_slot_ = 0;
 
-}  // namespace
-
+}  // namespace hardware_utils
 
 #endif  // HARDWARE_UTILS_TASK_H_

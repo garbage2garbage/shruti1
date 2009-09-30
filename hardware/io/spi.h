@@ -4,14 +4,14 @@
 //
 // Fast SPI communication (using the hardware implementation). This will take
 // ownership of the pins 11 (data output),  12 (data input) and 13 (clock), +
-// a user-definable pin for slave selection.
+// a user-definable pin for slave selection (10 is recommended, or 10, or... 10)
 //
 // This is a fairly basic implementation:
 // - nothing is buffered, since the overhead of managing a circular buffer is
 //   around 15 cycles (not including the interrupt prelude/postlude), which is
-//   close to the transmission time.
+//   close to the transmission time at the fastest speed.
 // - the arduino is always configured as a master.
-// - no support for input.
+// - no support for reading back from the slave.
 
 #ifndef HARDWARE_IO_SPI_H_
 #define HARDWARE_IO_SPI_H_
@@ -21,7 +21,6 @@
 
 namespace hardware_io {
 
-const uint8_t kSpiOutputBufferSize = 8;
 const uint8_t kSpiDataOutPin = 11;
 const uint8_t kSpiDataInPin = 12;
 const uint8_t kSpiClockPin = 13;
@@ -38,12 +37,9 @@ template<uint8_t slave_select_pin = 10,
 class Spi {
  public:
   enum {
-    buffer_size = kSpiOutputBufferSize,
+    buffer_size = 0,
     data_size = 8
   };
-  typedef uint8_t Value;  
-  typedef Spi<slave_select_pin, order, speed> Me;
-  typedef Buffer<Me> OutputBuffer;
   
   static void Init() {
     Clock::set_mode(DIGITAL_OUTPUT);
@@ -53,6 +49,7 @@ class Spi {
     
     SlaveSelect::High();
     
+    // SPI enabled, configured as master.
     uint8_t configuration = _BV(SPE) | _BV(MSTR);
     if (order == LSB_FIRST) {
       configuration |= _BV(DORD);
@@ -87,7 +84,7 @@ class Spi {
     SlaveSelect::High();
   }
 
-  static inline void Write(uint8_t a, uint8_t b) {
+  static inline void WriteWord(uint8_t a, uint8_t b) {
     SlaveSelect::Low();
     *SPDRRegister::ptr() = a;
     while (!TransferComplete::value());

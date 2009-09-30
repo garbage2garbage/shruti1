@@ -2,7 +2,7 @@
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
-// Driver for a MCP492x DAC.
+// Driver for a MCP492x DAC (SPI single/dual 12-bits DAC).
 
 #ifndef HARDWARE_IO_DEVICES_MCP492X_H_
 #define HARDWARE_IO_DEVICES_MCP492X_H_
@@ -41,9 +41,9 @@ class Dac {
   }
 
   static void Write(uint8_t value, uint8_t channel) {
-    value = Op::Swap4(value);
+    value = Swap4(value);
     uint8_t command;
-    command = (value & 0xf) | 0x10;
+    command = (value & 0x0f) | 0x10;
     if (channel) {
       command |= 0x80;
     }

@@ -6,7 +6,7 @@
 // controlled by a shift register. Stores an array reflecting the current value
 // of each input. A readout returns an "Event" object with the latest value of
 // the controller, a flag indicating how it changed with respect to the
-// previous value, and a time.
+// previous value, and a timestamp.
 //
 // When event = EVENT_NONE, the time is the idle time (how many ms since an
 // event occurred).
@@ -16,7 +16,8 @@
 // change in the ADC value that will raise an EVENT_CHANGED. This can be used,
 // for example, to avoid a costly update of internal variables to reflect a
 // change in the value read by a potentiometer - a change which turns out to be
-// only noise.
+// only noise. Since the arduino ADC is 10 bits, set this to 3, for example,
+// if you only need 7 bits of resolution.
 
 #ifndef HARDWARE_IO_INPUT_ARRAY_H_
 #define HARDWARE_IO_INPUT_ARRAY_H_
@@ -43,7 +44,7 @@ class InputArray {
     uint8_t event;  // Could have been InputEvent but I want the extra byte.
     T value;
     uint32_t time;
-   } Event;
+  } Event;
   static void Init() {
     // No need to initialize anything - the first cycle of readouts will take
     // care of this.
@@ -54,6 +55,8 @@ class InputArray {
   static Event Read() {
     Event e;
     e.id = active_input_;
+    
+    // Read a value from the DAC and check if something occurred.
     e.value = Input::Read();
     uint8_t same;
     if (threshold == 1) {
@@ -73,10 +76,13 @@ class InputArray {
         e.event = EVENT_CHANGED;
       }
     }
+    
+    // The next call to Read() will read the next input.
     ++active_input_;
     if (active_input_ == num_inputs) {
       active_input_ = 0;
     }
+    
     // During the first cycle, do not raise any event - just record the values.
     if (starting_up_) {
       if (active_input_ == 0) {
@@ -88,6 +94,7 @@ class InputArray {
     return e;
   }
   static uint8_t active_input() { return active_input_; }
+  
  private:
   static T values_[num_inputs];
   static uint8_t active_input_;

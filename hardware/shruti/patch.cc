@@ -14,7 +14,7 @@
 #include "hardware/utils/op.h"
 
 using namespace hardware_io;
-using hardware_utils::Op;
+using namespace hardware_utils_op;
 
 namespace hardware_shruti {
 
@@ -24,7 +24,7 @@ void Patch::Pack(uint8_t* patch_buffer) const {
   }
   for (uint8_t i = 0; i < kSavedModulationMatrixSize; ++i) {
     patch_buffer[2 * i + 28] = modulation_matrix.modulation[i].source |
-        Op::ShiftLeft4(modulation_matrix.modulation[i].destination);
+        ShiftLeft4(modulation_matrix.modulation[i].destination);
     patch_buffer[2 * i + 29] = modulation_matrix.modulation[i].amount;
   }
   for (uint8_t i = 0; i < 8; ++i) {
@@ -56,7 +56,7 @@ void Patch::Unpack(const uint8_t* patch_buffer) {
   }
   for (uint8_t i = 0; i < kSavedModulationMatrixSize; ++i) {
     modulation_matrix.modulation[i].source = patch_buffer[2 * i + 28] & 0xf;
-    modulation_matrix.modulation[i].destination = Op::ShiftRight4(
+    modulation_matrix.modulation[i].destination = ShiftRight4(
         patch_buffer[2 * i + 28]);
     modulation_matrix.modulation[i].amount = patch_buffer[2 * i + 29];
   }
@@ -110,11 +110,11 @@ void Patch::SysExSend() const {
   uint8_t checksum = 0;  // Sum of all patch data bytes.
   for (uint8_t i = 0; i < kSerializedPatchSize; ++i) {
     checksum += load_save_buffer_[i];
-    midi_output.Write(Op::ShiftRight4(load_save_buffer_[i]));
+    midi_output.Write(ShiftRight4(load_save_buffer_[i]));
     midi_output.Write(load_save_buffer_[i] & 0x0f);
   }
   
-  midi_output.Write(Op::ShiftRight4(checksum));
+  midi_output.Write(ShiftRight4(checksum));
   midi_output.Write(checksum & 0x0f);
   
   midi_output.Write(0xf7);  // </SysEx>
@@ -147,7 +147,7 @@ void Patch::SysExReceive(uint8_t sysex_byte) {
           sysex_reception_checksum_ += load_save_buffer_[i];
         }
       } else {
-          load_save_buffer_[i] = Op::ShiftLeft4(sysex_byte);
+          load_save_buffer_[i] = ShiftLeft4(sysex_byte);
       }
       sysex_bytes_received_++;
       if (sysex_bytes_received_ >= (kSerializedPatchSize + 1) * 2) {
