@@ -293,8 +293,6 @@ void Setup() {
   leds.Init();  
   
   engine.Init();
-  /*engine.SetParameter(PRM_ARP_OCTAVE, 2);
-  engine.NoteOn(0, 48, 80);*/
 }
 
 int main(void) {
