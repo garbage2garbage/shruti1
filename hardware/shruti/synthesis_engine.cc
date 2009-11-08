@@ -555,9 +555,6 @@ void Voice::Audio() {
 
   uint8_t osc_2 = Osc2::Render();
 
-  // Store the phase of the oscillator to check later whether the phase has
-  // been wrapped. Because the phase increment is likely to be below
-  // 65536 - 256, we can use the most significant byte only to detect wrapping.
   uint8_t mix = Osc1::Render();
   
   if (engine.patch_.osc_option[0] == RING_MOD) {
@@ -573,11 +570,17 @@ void Voice::Audio() {
       uint8_t phase_msb = static_cast<uint8_t>(Osc1::phase() >> 8);
       if (phase_msb < osc1_phase_msb_) {
         Osc2::ResetPhase();
+      // Store the phase of the oscillator to check later whether the phase has
+      // been wrapped. Because the phase increment is likely to be below
+      // 65536 - 256, we can use the most significant byte only to detect
+      // wrapping.
       }
-      osc1_phase_msb_ = Osc1::phase() >> 8;
+      osc1_phase_msb_ = phase_msb;
     }
   }
   
+  // Disable sub oscillator and noise when the "vowel" waveform is used - it is
+  // just too costly.
   if (engine.patch_.osc_algorithm[0] != WAVEFORM_VOWEL) {
     mix = Mix(
         mix,
@@ -592,4 +595,4 @@ void Voice::Audio() {
   signal_ = mix;
 }
 
-}  // hardware_shruti
+}  // namespace hardware_shruti

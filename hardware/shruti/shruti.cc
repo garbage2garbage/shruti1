@@ -58,7 +58,7 @@ ShiftRegister<
 OutputArray<
     Pin<kPinOutputLatch>, 
     Pin<kPinClk>,
-    Pin<kPinData>, kNumPages, 4, LSB_FIRST, false> leds;
+    Pin<kPinData>, kNumPages, 4, MSB_FIRST, false> leds;
 
 // Audio output on pin 3.
 AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio;
