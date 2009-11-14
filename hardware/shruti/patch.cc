@@ -151,22 +151,22 @@ void Patch::SysExReceive(uint8_t sysex_byte) {
         sysex_reception_state_ = RECEIVING_FOOTER;
       }
       break;
-  case RECEIVING_DATA:
-    {
-      uint8_t i = sysex_bytes_received_ >> 1;
-      if (sysex_bytes_received_ & 1) {
-        load_save_buffer_[i] |= sysex_byte & 0xf;
-        if (i < kSerializedPatchSize) {
-          sysex_reception_checksum_ += load_save_buffer_[i];
-        }
-      } else {
+    case RECEIVING_DATA:
+      {
+        uint8_t i = sysex_bytes_received_ >> 1;
+        if (sysex_bytes_received_ & 1) {
+          load_save_buffer_[i] |= sysex_byte & 0xf;
+          if (i < kSerializedPatchSize) {
+            sysex_reception_checksum_ += load_save_buffer_[i];
+          }
+        } else {
           load_save_buffer_[i] = ShiftLeft4(sysex_byte);
+        }
+        sysex_bytes_received_++;
+        if (sysex_bytes_received_ >= (kSerializedPatchSize + 1) * 2) {
+          sysex_reception_state_ = RECEIVING_FOOTER;
+        }
       }
-      sysex_bytes_received_++;
-      if (sysex_bytes_received_ >= (kSerializedPatchSize + 1) * 2) {
-        sysex_reception_state_ = RECEIVING_FOOTER;
-      }
-    }
     break;
   case RECEIVING_FOOTER:
     if (sysex_byte == 0xf7 &&

@@ -60,18 +60,6 @@ void SynthesisEngine::Init() {
   }
 }
 
-void SynthesisEngine::SysExStart() {
-  patch_.SysExReceive(0xf0);
-}
-
-void SynthesisEngine::SysExByte(uint8_t sysex_byte) {
-  patch_.SysExReceive(sysex_byte);
-}
-
-void SynthesisEngine::SysExEnd() {
-  patch_.SysExReceive(0xf7);
-}
-
 static const prog_char empty_patch[] PROGMEM = {
     99,
     WAVEFORM_SAW, WAVEFORM_SAW, 0, 0,
@@ -197,16 +185,35 @@ void SynthesisEngine::ResetAllControllers(uint8_t channel) {
 
 // When in Omni mode, disable Omni and enable reception only on the channel on
 // which this message has been received.
+/* static */
 void SynthesisEngine::OmniModeOff(uint8_t channel) {
   IGNORE_OTHER_CHANNELS;
   patch_.kbd_midi_channel = channel + 1;
 }
 
 // Enable Omni mode.
+/* static */
 void SynthesisEngine::OmniModeOn(uint8_t channel) {
   IGNORE_OTHER_CHANNELS;
   patch_.kbd_midi_channel = 0;
 }
+
+/* static */
+void SynthesisEngine::SysExStart() {
+  patch_.SysExReceive(0xf0);
+}
+
+
+/* static */
+void SynthesisEngine::SysExByte(uint8_t sysex_byte) {
+  patch_.SysExReceive(sysex_byte);
+}
+
+/* static */
+void SynthesisEngine::SysExEnd() {
+  patch_.SysExReceive(0xf7);
+}
+
 
 /* static */
 void SynthesisEngine::Reset() {
@@ -271,6 +278,8 @@ void SynthesisEngine::UpdateModulationIncrements() {
   // Update the LFO increments.
   for (uint8_t i = 0; i < 2; ++i) {
     uint16_t increment;
+    // The LFO rates 0 to 15 are translated into a multiple of the step
+    // sequencer/arpeggiator step size.
     if (patch_.lfo_rate[i] < 16) {
       increment = 65536 / (controller_.estimated_beat_duration() *
                            (1 + patch_.lfo_rate[i]) / 4);
@@ -318,7 +327,6 @@ void SynthesisEngine::Control() {
 void SynthesisEngine::Audio() {
   // Tick the noise generator.
   oscillator_decimation_ = (oscillator_decimation_ + 1) & 3;
-  oscillator_decimation_ &= 3;
   if (!oscillator_decimation_) {
     Random::Update();
   }
