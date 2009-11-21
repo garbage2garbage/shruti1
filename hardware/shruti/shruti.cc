@@ -83,20 +83,18 @@ MidiStreamParser<SynthesisEngine> midi_parser;
 // others, by the Scheduler.
 void UpdateLedsTask() {
   for (uint8_t i = 0; i < kNumPages; ++i) {
-    uint8_t value = 0;
-    if (i == editor.current_page()) {
-      if (i == PAGE_MOD_MATRIX) {
-        uint8_t current_modulation_source_value = engine.modulation_source(0, 
-            engine.patch().modulation_matrix.modulation[
-                editor.subpage()].source);
-        value = current_modulation_source_value >> 4;
-      } else {
-        value = 15;
-      }
-    } else {
-      value = 0;
-    }
-    leds.set_value(i, value);
+    leds.set_value(i, i == editor.current_page() ? 15 : 0);
+  }
+  if (editor.current_page() == PAGE_MOD_MATRIX) {
+    uint8_t current_modulation_source_value = engine.modulation_source(0,
+        engine.patch().modulation_matrix.modulation[
+            editor.subpage()].source);
+    leds.set_value(PAGE_MOD_MATRIX, current_modulation_source_value >> 4);
+  }
+  // The led of the arpeggiator page flashes strongly on the 0-th step and
+  // weakly on the other steps which are a multiple of 4.
+  if (!(engine.voice_controller().step() & 3)) {
+    leds.set_value(PAGE_PLAY_ARP, engine.voice_controller().step() ? 1 : 15);
   }
   leds.Output();
 }

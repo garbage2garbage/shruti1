@@ -178,6 +178,9 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
     UpdateOscillatorAlgorithms();
   }
   static inline const Patch& patch() { return patch_; }
+  static inline const VoiceController& voice_controller() {
+    return controller_;
+  }
   static inline Patch* mutable_patch() { return &patch_; }
   
   // These variables are sent to I/O pins, and are made accessible here.

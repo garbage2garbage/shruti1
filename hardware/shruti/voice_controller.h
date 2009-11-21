@@ -64,6 +64,8 @@ class VoiceController {
   static inline void Audio() { --internal_clock_counter_; }
   static inline void ExternalSync() { --midi_clock_counter_; }
   static inline uint8_t step() { return pattern_step_; }
+  static inline uint8_t has_ticked() { return has_ticked_; }
+  static inline void ClearTick() { has_ticked_ = 0; }
   static inline uint16_t has_arpeggiator_note() {
     return pattern_mask_ & pattern_;
   }
@@ -110,6 +112,8 @@ class VoiceController {
   
   static uint8_t tempo_;
   static uint8_t swing_;
+  
+  static uint8_t has_ticked_;  // equal to 1 when the clock has ticked.
   
   // In order to sync the LFOs to an external MIDI clock, we need to estimate at
   // which BPM the master MIDI clock is running. This attemps to track this by

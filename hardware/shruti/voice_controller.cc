@@ -49,6 +49,7 @@ uint8_t VoiceController::num_voices_;
   
 uint8_t VoiceController::tempo_;
 uint8_t VoiceController::swing_;
+uint8_t VoiceController::has_ticked_;
 uint8_t VoiceController::pattern_size_;
 
 uint16_t VoiceController::step_duration_estimator_num_;
@@ -187,6 +188,7 @@ void VoiceController::Control() {
       (!tempo_ && midi_clock_counter_ > 0)) {
     return;
   }
+  has_ticked_ = 1;
   ++step_duration_estimator_den_;
   
   // Move to the next step in the x-o-x pattern.

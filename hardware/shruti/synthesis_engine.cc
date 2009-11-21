@@ -319,7 +319,6 @@ void SynthesisEngine::Control() {
   modulation_sources_[MOD_SRC_RANDOM] = Random::state_msb();
 
   // Update the arpeggiator / step sequencer.
-  uint8_t previous_step = controller_.step();
   controller_.Control();
   // We need to do a couple of things when the step sequencer has moved to the
   // next step:
@@ -328,7 +327,7 @@ void SynthesisEngine::Control() {
   // tempo might have changed.
   // - Reset the LFO value to 0 every n-th step. Otherwise, there might be a
   // "synchronization drift" because of rounding error.
-  if (previous_step != controller_.step()) {
+  if (controller_.has_ticked()) {
     ++lfo_reset_counter_;
     if (lfo_reset_counter_ == num_lfo_reset_steps_) {
       UpdateModulationIncrements();
@@ -349,6 +348,7 @@ void SynthesisEngine::Control() {
   for (uint8_t i = 0; i < kNumVoices; ++i) {
     voice_[i].Control();
   }
+  controller_.ClearTick();
 }
 
 /* static */
