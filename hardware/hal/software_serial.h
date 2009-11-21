@@ -32,13 +32,13 @@
 // SoftwareSerialOutput is a Vanilla blocking implementation, taken from the
 // Arduino libs ; Copyright (c) 2006 David A. Mellis.
 
-#ifndef HARDWARE_IO_SOFTWARE_SERIAL_H_
-#define HARDWARE_IO_SOFTWARE_SERIAL_H_
+#ifndef HARDWARE_HAL_SOFTWARE_SERIAL_H_
+#define HARDWARE_HAL_SOFTWARE_SERIAL_H_
 
-#include "hardware/io/io.h"
-#include "hardware/io/pin.h"
+#include "hardware/hal/hal.h"
+#include "hardware/hal/gpio.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 enum SoftwareSerialState {
   START_BIT = 0,
@@ -183,6 +183,6 @@ struct SoftwareSerialOutput {
   }
 };
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif HARDWARE_IO_SOFTWARE_SERIAL_H_
+#endif HARDWARE_HAL_SOFTWARE_SERIAL_H_

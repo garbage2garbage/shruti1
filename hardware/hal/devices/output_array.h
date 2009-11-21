@@ -27,13 +27,13 @@
 // (we cycle N times through the array and at time i, we power only the outputs
 // with level above i/N).
 
-#ifndef HARDWARE_IO_DEVICES_OUTPUT_ARRAY_H_
-#define HARDWARE_IO_DEVICES_OUTPUT_ARRAY_H_
+#ifndef HARDWARE_HAL_DEVICES_OUTPUT_ARRAY_H_
+#define HARDWARE_HAL_DEVICES_OUTPUT_ARRAY_H_
 
-#include "hardware/io/devices/74hc595.h"
-#include "hardware/io/size_to_type.h"
+#include "hardware/hal/devices/74hc595.h"
+#include "hardware/hal/size_to_type.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 // A generic, not very efficient implementation, especially for small bit
 // depths.
@@ -242,6 +242,6 @@ template<typename Latch, typename Clock, typename Data,
 typename OutputArray<Latch, Clock, Data, size, 1, order, safe>::T
 OutputArray<Latch, Clock, Data, size, 1, order, safe>::last_bits_;
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_DEVICES_OUTPUT_ARRAY_H_
+#endif   // HARDWARE_HAL_DEVICES_OUTPUT_ARRAY_H_

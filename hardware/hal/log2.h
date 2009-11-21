@@ -15,18 +15,30 @@
 //
 // -----------------------------------------------------------------------------
 //
-// Fast serial (for the onboard UART), using compile time optimizations.
+// Template class for converting a power of 2 to its logarithm in base 2.
+// Using log might simply not work for template arguments.
 
-#include "hardware/io/serial.h"
-#include "hardware/io/pin.h"
+#ifndef HARDWARE_HAL_LOG2_
+#define HARDWARE_HAL_LOG2_
 
-#ifndef __TEST__
-#include <avr/interrupt.h>
+namespace hardware_hal {
 
-using namespace hardware_io;
+template<uint8_t x>
+struct Log2 {
+  enum {
+    value = 0
+  };
+};
 
-ISR(USART_RX_vect) {
-  SerialInput<SerialPort0>::Received();
-}
+template<> struct Log2<1> { enum { value = 0 }; };
+template<> struct Log2<2> { enum { value = 1 }; };
+template<> struct Log2<4> { enum { value = 2 }; };
+template<> struct Log2<8> { enum { value = 3 }; };
+template<> struct Log2<16> { enum { value = 4 }; };
+template<> struct Log2<32> { enum { value = 5 }; };
+template<> struct Log2<64> { enum { value = 6 }; };
+template<> struct Log2<128> { enum { value = 7 }; };
 
-#endif // !__TEST__
+}  // namespace hardware_hal
+
+#endif   // HARDWARE_HAL_LOG2_

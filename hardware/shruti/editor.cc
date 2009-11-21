@@ -26,10 +26,10 @@
 #include "hardware/shruti/synthesis_engine.h"
 #include "hardware/utils/string.h"
 
-using namespace hardware_io;
+using namespace hardware_hal;
 using namespace hardware_utils;
 
-using hardware_io::kLcdNoCursor;
+using hardware_hal::kLcdNoCursor;
 
 namespace hardware_shruti {
   

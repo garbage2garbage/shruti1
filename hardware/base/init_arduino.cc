@@ -22,15 +22,15 @@
 #include "hardware/base/init_arduino.h"
 
 #include "hardware/base/time.h"
-#include "hardware/io/adc.h"
-#include "hardware/io/io.h"
-#include "hardware/io/timer.h"
+#include "hardware/hal/adc.h"
+#include "hardware/hal/hal.h"
+#include "hardware/hal/timer.h"
 
-using hardware_io::Adc;
-using hardware_io::Timer;
-using hardware_io::MutableTimer0;
-using hardware_io::TIMER_FAST_PWM;
-using hardware_io::TIMER_PWM_PHASE_CORRECT;
+using hardware_hal::Adc;
+using hardware_hal::Timer;
+using hardware_hal::MutableTimer0;
+using hardware_hal::TIMER_FAST_PWM;
+using hardware_hal::TIMER_PWM_PHASE_CORRECT;
 
 IORegister(UCSR0B);
 

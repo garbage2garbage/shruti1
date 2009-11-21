@@ -43,13 +43,13 @@
 // TODO(pichenettes): Buffered writes not supported for now (should look up
 // the right interrupt handler).
 
-#ifndef HARDWARE_IO_SERIAL_H_
-#define HARDWARE_IO_SERIAL_H_
+#ifndef HARDWARE_HAL_SERIAL_H_
+#define HARDWARE_HAL_SERIAL_H_
 
-#include "hardware/io/io.h"
-#include "hardware/io/pin.h"
+#include "hardware/hal/hal.h"
+#include "hardware/hal/gpio.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 const uint8_t kSerialOutputBufferSize = 32;
 const uint8_t kSerialInputBufferSize = 2;
@@ -244,6 +244,6 @@ typedef SerialPort<
     kSerialOutputBufferSize,
     kSerialInputBufferSize> SerialPort0;
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif HARDWARE_IO_SERIAL_H_
+#endif HARDWARE_HAL_SERIAL_H_

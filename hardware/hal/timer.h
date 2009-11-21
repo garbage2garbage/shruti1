@@ -17,8 +17,8 @@
 //
 // Definitions of timer and related PWM registers.
 
-#ifndef HARDWARE_IO_TIMER_H_
-#define HARDWARE_IO_TIMER_H_
+#ifndef HARDWARE_HAL_TIMER_H_
+#define HARDWARE_HAL_TIMER_H_
 
 #ifndef __TEST__
 // interrupt.h is not strictly needed here, but .cc files including the timer
@@ -28,9 +28,9 @@
 #include <avr/io.h>
 #endif  // !__TEST__
 
-#include "hardware/io/io.h"
+#include "hardware/hal/hal.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 #ifndef __TEST__
 
@@ -204,6 +204,6 @@ typedef TimerImpl<
 
 #endif  // !__TEST__
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_TIMER_H_
+#endif   // HARDWARE_HAL_TIMER_H_

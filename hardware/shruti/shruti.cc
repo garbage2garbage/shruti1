@@ -15,15 +15,15 @@
 
 #include "hardware/base/init_arduino.h"
 #include "hardware/base/time.h"
-#include "hardware/io/adc.h"
-#include "hardware/io/audio_output.h"
-#include "hardware/io/devices/74hc595.h"
-#include "hardware/io/devices/output_array.h"
-#include "hardware/io/input_array.h"
-#include "hardware/io/pin.h"
-#include "hardware/io/pretty_printer.h"
-#include "hardware/io/serial.h"
-#include "hardware/io/timer.h"
+#include "hardware/hal/adc.h"
+#include "hardware/hal/audio_output.h"
+#include "hardware/hal/devices/74hc595.h"
+#include "hardware/hal/devices/output_array.h"
+#include "hardware/hal/input_array.h"
+#include "hardware/hal/gpio.h"
+#include "hardware/hal/pretty_printer.h"
+#include "hardware/hal/serial.h"
+#include "hardware/hal/timer.h"
 #include "hardware/midi/midi.h"
 #include "hardware/shruti/display.h"
 #include "hardware/shruti/editor.h"
@@ -32,7 +32,7 @@
 #include "hardware/utils/task.h"
 
 using namespace hardware_base;
-using namespace hardware_io;
+using namespace hardware_hal;
 using namespace hardware_midi;
 using namespace hardware_shruti;
 
@@ -61,15 +61,15 @@ Switches switches;
 
 // Shift register for input multiplexer.
 ShiftRegister<
-    Pin<kPinInputLatch>,
-    Pin<kPinClk>,
-    Pin<kPinData>, 8, MSB_FIRST> input_mux;
+    Gpio<kPinInputLatch>,
+    Gpio<kPinClk>,
+    Gpio<kPinData>, 8, MSB_FIRST> input_mux;
 
 // LED array.
 OutputArray<
-    Pin<kPinOutputLatch>, 
-    Pin<kPinClk>,
-    Pin<kPinData>, kNumPages, 4, MSB_FIRST, false> leds;
+    Gpio<kPinOutputLatch>, 
+    Gpio<kPinClk>,
+    Gpio<kPinData>, kNumPages, 4, MSB_FIRST, false> leds;
 
 // Audio output on pin 3.
 AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio;

@@ -6,7 +6,7 @@ ARDUINO_DIR  = /Applications/arduino-0016
 
 TARGET       = shruti
 
-PACKAGES     = hardware/base hardware/io hardware/io/devices hardware/midi hardware/utils hardware/shruti
+PACKAGES     = hardware/base hardware/hal hardware/hal/devices hardware/midi hardware/utils hardware/shruti
 
 ARDUINO_LIBS = 
 

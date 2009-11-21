@@ -32,13 +32,13 @@
 // only noise. Since the arduino ADC is 10 bits, set this to 3, for example,
 // if you only need 7 bits of resolution.
 
-#ifndef HARDWARE_IO_INPUT_ARRAY_H_
-#define HARDWARE_IO_INPUT_ARRAY_H_
+#ifndef HARDWARE_HAL_INPUT_ARRAY_H_
+#define HARDWARE_HAL_INPUT_ARRAY_H_
 
 #include "hardware/base/time.h"
-#include "hardware/io/size_to_type.h"
+#include "hardware/hal/size_to_type.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 enum InputEvent {
   EVENT_NONE = 0,
@@ -130,6 +130,6 @@ uint32_t InputArray<Input, num_inputs, robustness>::last_event_time_;
 template<typename Input, uint8_t num_inputs, uint8_t robustness>
 uint8_t InputArray<Input, num_inputs, robustness>::starting_up_;
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_INPUT_ARRAY_H_
+#endif   // HARDWARE_HAL_INPUT_ARRAY_H_

@@ -17,13 +17,13 @@
 //
 // Driver for a 8-bits shift register.
 
-#ifndef HARDWARE_IO_DEVICES_74HC595_H_
-#define HARDWARE_IO_DEVICES_74HC595_H_
+#ifndef HARDWARE_HAL_DEVICES_74HC595_H_
+#define HARDWARE_HAL_DEVICES_74HC595_H_
 
-#include "hardware/io/pin.h"
-#include "hardware/io/size_to_type.h"
+#include "hardware/hal/gpio.h"
+#include "hardware/hal/size_to_type.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 template<typename Latch, typename Clock, typename Data>
 struct BaseShiftRegister {
@@ -88,6 +88,6 @@ struct ShiftRegister<Latch, Clock, Data, size, MSB_FIRST>
   }
 };
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif  // HARDWARE_IO_DEVICES_74HC595_H_
+#endif  // HARDWARE_HAL_DEVICES_74HC595_H_

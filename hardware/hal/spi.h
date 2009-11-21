@@ -26,13 +26,13 @@
 // - the arduino is always configured as a master.
 // - no support for reading back from the slave.
 
-#ifndef HARDWARE_IO_SPI_H_
-#define HARDWARE_IO_SPI_H_
+#ifndef HARDWARE_HAL_SPI_H_
+#define HARDWARE_HAL_SPI_H_
 
-#include "hardware/io/io.h"
-#include "hardware/io/pin.h"
+#include "hardware/hal/hal.h"
+#include "hardware/hal/gpio.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 const uint8_t kSpiDataOutPin = 11;
 const uint8_t kSpiDataInPin = 12;
@@ -107,12 +107,12 @@ class Spi {
   }
   
  private:
-  typedef Pin<slave_select_pin> SlaveSelect;
-  typedef Pin<kSpiDataOutPin> DataOut;
-  typedef Pin<kSpiDataInPin> DataIn;
-  typedef Pin<kSpiClockPin> Clock;
+  typedef Gpio<slave_select_pin> SlaveSelect;
+  typedef Gpio<kSpiDataOutPin> DataOut;
+  typedef Gpio<kSpiDataInPin> DataIn;
+  typedef Gpio<kSpiClockPin> Clock;
 };
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif HARDWARE_IO_SPI_H_
+#endif HARDWARE_HAL_SPI_H_

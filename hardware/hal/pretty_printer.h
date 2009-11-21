@@ -19,15 +19,15 @@
 // (in fact, just a Write method), and provide string and integer formatting
 // using the << stream operator.
 
-#ifndef HARDWARE_IO_PRETTY_PRINTER_H_
-#define HARDWARE_IO_PRETTY_PRINTER_H_
+#ifndef HARDWARE_HAL_PRETTY_PRINTER_H_
+#define HARDWARE_HAL_PRETTY_PRINTER_H_
 
 #include "hardware/utils/string.h"
 
 using hardware_utils::Itoa;
 using hardware_utils::TypeInfo;
 
-namespace hardware_io {
+namespace hardware_hal {
 
 enum EndOfLine {
   endl = 0
@@ -72,6 +72,6 @@ struct PrettyPrinter {
   }
 };
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_PRETTY_PRINTER_H_
+#endif   // HARDWARE_HAL_PRETTY_PRINTER_H_

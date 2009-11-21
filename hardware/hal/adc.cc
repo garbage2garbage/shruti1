@@ -17,11 +17,11 @@
 //
 // Interface to the onboard ADC converter, and analog multiplexer.
 
-#include "hardware/io/adc.h"
+#include "hardware/hal/adc.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 /* static */
 uint8_t Adc::reference_ = ADC_DEFAULT << 6;
 
-}  // namespace hardware_io
+}  // namespace hardware_hal

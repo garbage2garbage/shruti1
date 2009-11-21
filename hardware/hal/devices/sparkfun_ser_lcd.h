@@ -35,20 +35,20 @@
 // TODO(pichenettes): this class assumes that software serial will be used.
 // Rework this a bit to have the driver and serial i/o more loosely coupled.
 
-#ifndef HARDWARE_IO_DEVICES_SPARKFUN_SER_LCD_H_
-#define HARDWARE_IO_DEVICES_SPARKFUN_SER_LCD_H_
+#ifndef HARDWARE_HAL_DEVICES_SPARKFUN_SER_LCD_H_
+#define HARDWARE_HAL_DEVICES_SPARKFUN_SER_LCD_H_
 
 #include "hardware/base/base.h"
 #include "hardware/base/time.h"
-#include "hardware/io/log2.h"
-#include "hardware/io/software_serial.h"
+#include "hardware/hal/log2.h"
+#include "hardware/hal/software_serial.h"
 #include "hardware/resources/resources_manager.h"
 #include "hardware/utils/logging.h"
 
 using hardware_base::Delay;
 using hardware_resources::SimpleResourcesManager;
 
-namespace hardware_io {
+namespace hardware_hal {
 
 static const uint8_t kLcdNoCursor = 0xff;
 static const uint8_t kLcdCursorBlinkRate = 0x7f;
@@ -287,6 +287,6 @@ template<typename TxPin, uint16_t main_timer_rate, uint16_t baud_rate,
          uint8_t width, uint8_t height>
 uint8_t Display<TxPin, main_timer_rate, baud_rate, width, height>::status_;
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_DEVICES_SPARKFUN_SER_LCD_H_
+#endif   // HARDWARE_HAL_DEVICES_SPARKFUN_SER_LCD_H_

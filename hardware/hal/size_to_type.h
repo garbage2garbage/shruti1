@@ -18,10 +18,10 @@
 // Template class for converting an integer template argument to the
 // corresponding size type.
 
-#ifndef HARDWARE_IO_SIZE_TO_TYPE_H_
-#define HARDWARE_IO_SIZE_TO_TYPE_H_
+#ifndef HARDWARE_HAL_SIZE_TO_TYPE_H_
+#define HARDWARE_HAL_SIZE_TO_TYPE_H_
 
-namespace hardware_io {
+namespace hardware_hal {
 
 template<uint8_t size>
 struct DataTypeForSize {
@@ -37,6 +37,6 @@ template<> struct DataTypeForSize<6> { typedef uint8_t Type; };
 template<> struct DataTypeForSize<7> { typedef uint8_t Type; };
 template<> struct DataTypeForSize<8> { typedef uint8_t Type; };
   
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_SIZE_TO_TYPE_H_
+#endif   // HARDWARE_HAL_SIZE_TO_TYPE_H_

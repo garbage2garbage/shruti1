@@ -18,13 +18,13 @@
 // Audio output. Supports PWM (through a PwmOutput object) and DAC (through a
 // Dac object, for example the one defined in mcp492x.h).
 
-#ifndef HARDWARE_IO_AUDIO_OUTPUT_H_
-#define HARDWARE_IO_AUDIO_OUTPUT_H_
+#ifndef HARDWARE_HAL_AUDIO_OUTPUT_H_
+#define HARDWARE_HAL_AUDIO_OUTPUT_H_
 
 #include "hardware/base/base.h"
-#include "hardware/io/io.h"
+#include "hardware/hal/hal.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 enum UnderrunPolicy {
   EMIT_CLICK = 0,
@@ -92,6 +92,6 @@ template<typename OutputPort, uint8_t buffer_size_, uint8_t block_size,
 uint16_t AudioOutput<OutputPort, buffer_size_, block_size,
                      underrun_policy>::num_glitches_ = 0;
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif  // HARDWARE_IO_AUDIO_OUTPUT_H_
+#endif  // HARDWARE_HAL_AUDIO_OUTPUT_H_

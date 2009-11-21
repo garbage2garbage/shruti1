@@ -18,11 +18,11 @@
 // Real time clock. Based on the code in the arduino core library
 // by David A. Mellis.
 
-#include "hardware/io/timer.h"
+#include "hardware/hal/timer.h"
 #include "hardware/base/time.h"
 
-using hardware_io::MutableTimer0;
-using hardware_io::TIMER_FAST_PWM;
+using hardware_hal::MutableTimer0;
+using hardware_hal::TIMER_FAST_PWM;
 
 namespace hardware_base {
 

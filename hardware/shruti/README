@@ -1,7 +1,7 @@
 Name: Shruti-1
 Type: Compact table-top synth
 Audio I/O: 6.35 Jack (Mono audio out), 6.35 Jack (External signal in)
-CV: 2 CV in (0-5 V, aka "geek ins") for easy experimentation with controllers
+CV: 2 CV in (0-5 V, aka "geek ins") for easy experimentation with controllers, accessible through an extension port inside the synth.
 MIDI: in, out (thru + patch dumps)
 Controllers: 12 facade LEDs, 2x16 LCD display, 4 pots for patch editing. 2
 assignable pots. Volume and mixer pot. 5 navigation switches, one inc/dec switches pair.
@@ -10,7 +10,7 @@ Hybrid digital / analog synthesis.
 
 * 2 sync'able, x-modable DCOs:
 - pulse, square (with pulse-width modulation), triangle with waveshapping, sawtooth. All band-limited (sort of).
-- sawtooth with sweepable resonance.
+- sawtooth with sweepable resonance (casio cz-like).
 - simplistic FM (1>2 configuration, adjustable modulation index and frequency ratio).
 - lo-fi vowel synthesis (think "speak and spell").
 - cheap 8bit waveforms with plenty of aliasing.
@@ -36,31 +36,31 @@ Q: This doesn't look like typical arduino code. Where are my digitalWrite()'s, m
 
 A: They are gone. This project needs efficiency / code compactness that the original Arduino library simply does not provide. In particular, what made me scrap the Arduino library early in the project:
 
-- In AVR assembly GPIO read/writes (digitalRead / digitalWrite) take 1 CPU cycle. The Arduino library equivalent takes at least 10, because it allows for one thing that I absolutely don't see the point of: the ability to compute *at run time* the index of the GPIO we're going to write to. And what if we need generic libraries for writing to devices to a bunch of GPIOs? Templates are a solution.
+- In AVR assembly GPIO read/writes (digitalRead / digitalWrite) take 1 CPU cycle. The Arduino library equivalent takes at least 10, because it allows for one thing I absolutely don't see the point of: the ability to compute *at run time* the index of the GPIO we're going to write to. And what if we need generic libraries for writing to devices to a bunch of GPIOs? Templates are a solution.
 
-- The Arduino library adds a big overhead to the project, sometimes for silly reasons (linking the division emulation because % is used somewhere with something that should be a power of 2 anyway, or / used to set up a prescaler). It's mostly gcc's fault here - since it doesn't go as deep in constant folding as it should.
+- The Arduino library adds a big overhead to the project, sometimes for silly reasons (linking the division emulation because % is used somewhere with something that is always a power of 2, or / used to set up a prescaler). It's mostly gcc's fault here - since it doesn't go as deep in constant folding as it should.
 
 - I did not like the way the Arduino library handled serial transmission - I wanted a way of having more control on buffered vs polled and on the buffer sizes.
 
 - The software serial implementation in the Arduino library is blocking - it runs a busy loop between each bit to create the right delay. I could not afford wasting time doing nothing while there was important synthesis stuff to do!
 
-- In the early development stage, the firmware was compiled and ran on a Mac OS X machine - so I needed something easy to mock (75% of the firmware was written before I got an Arduino - unfortunately, for the last 25% I stopped bothering with the OS X version).
+- In the early development stage, the firmware was compiled and ran on a Mac OS X machine - so I could easily test/mock stuff on my machine (75% of the firmware was written before I got an Arduino - unfortunately, for the last 25% I stopped bothering with the OS X version).
 
-Now please forget what you've read and get back to having fun with the Arduino libs. It's well supported, plenty of people will answer your questions on forums, and it's perfectly fine for projects that do not push limits of the platform.
+Now please forget what you've read and get back to having fun with the Arduino libs. It's well supported, plenty of people will answer your questions on forums, and it's perfectly fine for projects that do not push the limits of the platform.
 
 
 Q: templates? Why templates?
 
 A: I personally hate templates for anything else besides containers, and boost makes me want to puke, but for this project I absolutely needed them. They allowed me to build what I call "compile-time abstractions" - layers of abstractions, reusable functions or classes, that are automatically "collapsed" at compile-time - all the branches of code which are never reached are removed, all constants are folded, deep, deep, deep... Have a look at the generated machine code - in most places it's hard to do shorter, and several layers of templates and definitions end up as one machine instructions (eg: GPIO read/writes).
 
-Without templates I would have had the choice between well-structured but slow code, or ugly fast code.
+Without templates I would have had the choice between well-structured but slow code, or ugly fast code. Can you guess what TCCR2A = _BV(COM2B1) | _BV(WGM20) does without looking at the datasheet?
 
 
 Q: Why not assembly? Or at least C?
 
-A: Assembly is not readable. I like programs that tell what they do and that are free of syntactic noise. What's the point of sharing code if nobody can understand what it does, or find where a modification could be made? I tried to keep assembly only for a small number of primitives, for which gcc was generated horrible code.
+A: Assembly is not readable. I like programs that tell what they do and that are free of syntactic noise. What's the point of sharing code if nobody can understand what it does, or find where a modification could be made? I tried to keep assembly only for a small number of primitives, for which gcc was generating horrible code.
 
-A: C is readable but not enough for me. I like the extra level of structuring and compile-time checking offered by namespaces, private/public declarations, and constness. I've read a couple of firmwares for complex ATMega-based projects and to me it did not look like the way software should look like. Note that I tried to write the code in such a way that it minimizes the performance toll of C++ (singletons are all static to avoid an extra level of this-> inidirection ; static/compile-time polymorphism).
+A: C is readable but not enough for me. I like the extra level of structuring and compile-time checking offered by namespaces, private/public declarations, and constness. I've read a couple of firmwares for complex ATMega-based projects and to me it did not look like the way software should look like. Note that I tried to write the code in such a way that it minimizes the performance toll of C++ (singletons are all static to avoid an extra level of this-> indirections ; static/compile-time polymorphism instead of virtuals).
 
 
 Q: template<int oscillator_id> class Oscillator. Oscillator<1> a, Oscillator<2> b... WTF? Dude, do you know that you can create multiple instances of an object in C++?
@@ -71,14 +71,19 @@ A: Try rewriting hardware_shruti::Oscillator as a "non-static" class and use thr
 Q: How are the saw/square oscillators implemented?
 
 A: First of all: saw = phase_ >> 8; square = phase_ < 32768 ? 0 : 255; kills kittens, please don't do that.
-A cheap way of doing bandlimited synthesis of saw/square waveforms is wavetables - compute a bandlimited saw/square for each octave, and interpolate inbetween (you'll get a bit of aliasing but it's non lethal for kittens). This is what I do, with one tabulated waveform every 16th note. The tabulated waveforms are "colored" bandlimited square/saws, computed using the traditional "integrate a band limited pulse train" approach.
+A cheap way of doing bandlimited synthesis of saw/square waveforms is wavetables - compute a bandlimited saw/square for each octave, and interpolate inbetween (you'll get a bit of aliasing but it's non lethal for kittens). This is what I do, with one tabulated waveform every 16th note. The tabulated waveforms are "colored" bandlimited square/saws, computed using the traditional "integrate a band limited pulse train" approach. The degree of coloring can be modified in the resources code - the default is not unlike the basic Juno-60 waveforms.
 
 
 Q: Why not doing the VCF and VCA in software?
 
-A: Not enough CPU cycles for a good VCF (crappy is possible, but I was not interested in doing something too low-fi). Saying that implementing a VCA is just a multiplication totally misses the point. The CEM-3379 maps the 0-5V range of the VCA control voltage to a wonderful non-linear thing that sounds musical.
+A: Not enough CPU cycles for a good VCF (crappy is possible, but I was not interested in doing something too low-fi). Saying that implementing a VCA is just a multiplication totally misses the point. The CEM-3379 maps the 0-5V range of the VCA control voltage to a wonderful non-linear thing that sounds musical, lively, punchy.
 
 
 Q: Why this fancy analog stuff if you can't even afford a proper DAC?
 
 A: I originally intended to use a proper DAC (MCP4922, if you call that a proper DAC) for the DCO and the VCA ouputs. I breadboarded this and my observation was that the slight gain in quality/precision was not worth the additional CPU burden (waiting between SPI writes; or managing a ring buffer and using interrupt driven SPI), which prevented some combinations of oscillators to render at 31.25kHz. And 31.25kHz rocksolid with PWM sounded much better than 20kHz with a DAC.
+
+
+Q: What's next?
+
+A: Something more ambitious based on an ARM core and several CEM chips.

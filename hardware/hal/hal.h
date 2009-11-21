@@ -18,17 +18,17 @@
 // Important: All buffer sizes are expected to be less than 256! (fit in 8
 // bits), and must be powers of 2.
 
-#ifndef HARDWARE_IO_IO_H_
-#define HARDWARE_IO_IO_H_
+#ifndef HARDWARE_HAL_HAL_H_
+#define HARDWARE_HAL_HAL_H_
 
 #ifndef __TEST__
 #include <avr/io.h>
 #endif  // !__TEST__
 
 #include "hardware/base/base.h"
-#include "hardware/io/size_to_type.h"
+#include "hardware/hal/size_to_type.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 enum DataOrder {
   MSB_FIRST = 0,
@@ -220,6 +220,6 @@ enum PortMode {
   BUFFERED = 2
 };
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_IO_H_
+#endif   // HARDWARE_HAL_HAL_H_

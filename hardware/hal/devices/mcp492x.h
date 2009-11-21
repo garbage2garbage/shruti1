@@ -17,15 +17,15 @@
 //
 // Driver for a MCP492x DAC (SPI single/dual 12-bits DAC).
 
-#ifndef HARDWARE_IO_DEVICES_MCP492X_H_
-#define HARDWARE_IO_DEVICES_MCP492X_H_
+#ifndef HARDWARE_HAL_DEVICES_MCP492X_H_
+#define HARDWARE_HAL_DEVICES_MCP492X_H_
 
-#include "hardware/io/spi.h"
+#include "hardware/hal/spi.h"
 #include "hardware/utils/op.h"
 
 using hardware_utils::Op;
 
-namespace hardware_io {
+namespace hardware_hal {
 
 static const uint8_t kDacSpeed = 2;
 
@@ -73,6 +73,6 @@ class Dac {
   typedef Spi<slave_select_pin, MSB_FIRST, kDacSpeed> DacInterface;
 };
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_DEVICES_MCP492X_H_
+#endif   // HARDWARE_HAL_DEVICES_MCP492X_H_

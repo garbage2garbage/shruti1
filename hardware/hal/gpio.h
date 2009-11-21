@@ -15,34 +15,34 @@
 //
 // -----------------------------------------------------------------------------
 //
-// An alternative pin i/o library based on templates.
+// An alternative gpio library based on templates.
 //
 // Examples of use:
 //
-// Pin<3>::set_mode(DIGITAL_INPUT)
-// Pin<4>::set_mode(DIGITAL_OUTPUT)
-// Pin<3>::value()
-// Pin<4>::High()
-// Pin<4>::Low()
-// Pin<4>::set_value(1)
-// Pin<4>::set_value(0)
+// Gpio<3>::set_mode(DIGITAL_INPUT)
+// Gpio<4>::set_mode(DIGITAL_OUTPUT)
+// Gpio<3>::value()
+// Gpio<4>::High()
+// Gpio<4>::Low()
+// Gpio<4>::set_value(1)
+// Gpio<4>::set_value(0)
 //
 // Using the logging facilities in logging.h, this can also generates debugging
 // code (for compilation on desktop computers) which logs to stderr the activity
 // on the pin.
 
-#ifndef HARDWARE_IO_PIN_H_
-#define HARDWARE_IO_PIN_H_
+#ifndef HARDWARE_HAL_GPIO_H_
+#define HARDWARE_HAL_GPIO_H_
 
 #ifndef __TEST__
 #include <avr/io.h>
 #endif  // !__TEST__
 
-#include "hardware/io/io.h"
-#include "hardware/io/timer.h"
+#include "hardware/hal/hal.h"
+#include "hardware/hal/timer.h"
 #include "hardware/utils/logging.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 enum PinMode {
   DIGITAL_INPUT = 0,
@@ -83,7 +83,7 @@ typedef Port<PINDRegister, PORTDRegister, DDRDRegister> PortD;
 // requires the actual parameters of the pin to be passed as template
 // arguments.
 template<typename Port, typename PwmChannel, uint8_t bit, bool safe>
-struct PinImpl {
+struct GpioImpl {
   typedef BitInRegister<typename Port::Mode, bit> ModeBit;
   typedef BitInRegister<typename Port::Output, bit> OutputBit;
   typedef BitInRegister<typename Port::Input, bit> InputBit;
@@ -145,40 +145,40 @@ struct PinImpl {
 // A template that will be specialized for each pin, allowing the pin number to
 // be specified as a template parameter.
 template<int n, bool safe>
-struct NumberedPin { };
+struct NumberedGpio { };
 
 // Macro to make the pin definitions (template specializations) easier to read.
-#define SetupPin(n, port, timer, bit) \
-template<bool safe> struct NumberedPin<n, safe> { \
-  typedef PinImpl<port, timer, bit, safe> Impl; };
+#define SetupGpio(n, port, timer, bit) \
+template<bool safe> struct NumberedGpio<n, safe> { \
+  typedef GpioImpl<port, timer, bit, safe> Impl; };
 
-SetupPin(0, PortD, NoPwmChannel, 0);
-SetupPin(1, PortD, NoPwmChannel, 1);
-SetupPin(2, PortD, NoPwmChannel, 2);
-SetupPin(3, PortD, PwmChannel2B, 3);
-SetupPin(4, PortD, NoPwmChannel, 4);
-SetupPin(5, PortD, PwmChannel0B, 5);
-SetupPin(6, PortD, PwmChannel0A, 6);
-SetupPin(7, PortD, NoPwmChannel, 7);
-SetupPin(8, PortB, NoPwmChannel, 0);
-SetupPin(9, PortB, PwmChannel1A, 1);
-SetupPin(10, PortB, PwmChannel1B, 2);
-SetupPin(11, PortB, PwmChannel2A, 3);
-SetupPin(12, PortB, NoPwmChannel, 4);
-SetupPin(13, PortB, NoPwmChannel, 5);
-SetupPin(14, PortC, NoPwmChannel, 0);
-SetupPin(15, PortC, NoPwmChannel, 1);
-SetupPin(16, PortC, NoPwmChannel, 2);
-SetupPin(17, PortC, NoPwmChannel, 3);
-SetupPin(18, PortC, NoPwmChannel, 4);
-SetupPin(19, PortC, NoPwmChannel, 5);
+SetupGpio(0, PortD, NoPwmChannel, 0);
+SetupGpio(1, PortD, NoPwmChannel, 1);
+SetupGpio(2, PortD, NoPwmChannel, 2);
+SetupGpio(3, PortD, PwmChannel2B, 3);
+SetupGpio(4, PortD, NoPwmChannel, 4);
+SetupGpio(5, PortD, PwmChannel0B, 5);
+SetupGpio(6, PortD, PwmChannel0A, 6);
+SetupGpio(7, PortD, NoPwmChannel, 7);
+SetupGpio(8, PortB, NoPwmChannel, 0);
+SetupGpio(9, PortB, PwmChannel1A, 1);
+SetupGpio(10, PortB, PwmChannel1B, 2);
+SetupGpio(11, PortB, PwmChannel2A, 3);
+SetupGpio(12, PortB, NoPwmChannel, 4);
+SetupGpio(13, PortB, NoPwmChannel, 5);
+SetupGpio(14, PortC, NoPwmChannel, 0);
+SetupGpio(15, PortC, NoPwmChannel, 1);
+SetupGpio(16, PortC, NoPwmChannel, 2);
+SetupGpio(17, PortC, NoPwmChannel, 3);
+SetupGpio(18, PortC, NoPwmChannel, 4);
+SetupGpio(19, PortC, NoPwmChannel, 5);
 
 // Two specializations of the numbered pin template, one which clears the timer
 // for each access to the PWM pins, as does the original Arduino wire lib,
 // the other that does not (use with care!).
 template<int n, bool safe = false>
-struct Pin {
-  typedef typename NumberedPin<n, safe>::Impl Impl;
+struct Gpio {
+  typedef typename NumberedGpio<n, safe>::Impl Impl;
   static void set_mode(uint8_t mode) { Impl::set_mode(mode); }
   static void High() { Impl::High(); }
   static void Low() { Impl::Low(); }
@@ -191,7 +191,7 @@ struct Pin {
 #else
 
 template<int n>
-struct Pin {
+struct Gpio {
   static void set_mode(uint8_t mode) {
     LOG(INFO) << "pin_" << n << "\tmode\t" << int(mode);
   }
@@ -221,13 +221,13 @@ struct DigitalInput {
     data_size = 1,
   };
   static void Init() {
-    Pin<pin>::set_mode(DIGITAL_INPUT);
+    Gpio<pin>::set_mode(DIGITAL_INPUT);
   }
   static void EnablePullUpResistor() {
-    Pin<pin>::High();
+    Gpio<pin>::High();
   }
   static int8_t Read() {
-    return Pin<pin>::value();
+    return Gpio<pin>::value();
   }
 };
 
@@ -238,13 +238,13 @@ struct PwmOutput {
     data_size = 8,
   };
   static void Init() {
-    Pin<pin>::set_mode(ANALOG_OUTPUT);
+    Gpio<pin>::set_mode(ANALOG_OUTPUT);
   }
   static void Write(uint8_t value) {
-    return Pin<pin>::set_analog_value(value);
+    return Gpio<pin>::set_analog_value(value);
   }
 };
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif   // HARDWARE_IO_PIN_H_
+#endif   // HARDWARE_HAL_GPIO_H_

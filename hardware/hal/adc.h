@@ -17,17 +17,17 @@
 //
 // Interface to the onboard ADC converter, and analog multiplexer.
 
-#ifndef HARDWARE_IO_ADC_H_
-#define HARDWARE_IO_ADC_H_
+#ifndef HARDWARE_HAL_ADC_H_
+#define HARDWARE_HAL_ADC_H_
 
 #ifndef __TEST__
 #include <avr/io.h>
 #endif  // !__TEST__
 
-#include "hardware/io/io.h"
+#include "hardware/hal/hal.h"
 #include "hardware/utils/logging.h"
 
-namespace hardware_io {
+namespace hardware_hal {
 
 enum AdcReference {
   ADC_EXTERNAL = 0,
@@ -111,6 +111,6 @@ template<int pin> AnalogInput<pin>::counter_ = 0;
 
 #endif  // !__TEST__
 
-}  // namespace hardware_io
+}  // namespace hardware_hal
 
-#endif  // HARDWARE_IO_ADC_H_
+#endif  // HARDWARE_HAL_ADC_H_

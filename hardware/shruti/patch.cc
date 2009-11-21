@@ -22,11 +22,11 @@
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 
-#include "hardware/io/serial.h"
+#include "hardware/hal/serial.h"
 #include "hardware/shruti/display.h"
 #include "hardware/utils/op.h"
 
-using namespace hardware_io;
+using namespace hardware_hal;
 using namespace hardware_utils_op;
 
 namespace hardware_shruti {
