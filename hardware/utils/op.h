@@ -194,6 +194,18 @@ static inline int16_t SignedUnsignedMul(int8_t a, uint8_t b) {
   return result;
 }
 
+static inline uint16_t UnsignedUnsignedMul(uint8_t a, uint8_t b) {
+  uint16_t result;
+  asm(
+    "mul %1, %2"    "\n\t"
+    "movw %0, r0"      "\n\t"
+    "eor r1, r1"      "\n\t"
+    : "=r" (result)
+    : "a" (a), "a" (b)
+  );
+  return result;
+}
+
 static inline int8_t SignedSignedMulScale8(int8_t a, int8_t b) {
   uint8_t result;
   asm(
@@ -295,6 +307,10 @@ static inline int8_t SignedMulScale8(int8_t a, uint8_t b) {
 }
 
 static inline int16_t SignedUnsignedMul(int8_t a, uint8_t b) {
+  return a * b;
+}
+
+static inline uint16_t UnsignedUnsignedMul(uint8_t a, uint8_t b) {
   return a * b;
 }
 

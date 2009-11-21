@@ -74,19 +74,19 @@ void VoiceController::Init(Voice* voices, uint8_t num_voices) {
   internal_clock_counter_ = step_duration_[0];
   midi_clock_counter_ = 6;
   pattern_size_ = 16;
-  step_duration_estimator_num_ = 0;
-  step_duration_estimator_den_ = 0;
   estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
+  pattern_mask_ = 255;
+  internal_clock_counter_ = 0;
+  step_duration_estimator_num_ = 255;
+  step_duration_estimator_den_ = 255;
+  midi_clock_counter_ = kMidiClockPrescaler;
+  pattern_step_ = 15;
   Reset();
 }
 
 /* static */
 void VoiceController::Reset() {
-  pattern_mask_ = 255;
-  pattern_step_ = 15;
   direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1; 
-  internal_clock_counter_ = 0;
-  midi_clock_counter_ = kMidiClockPrescaler;
   if (mode_ == ARPEGGIO_DIRECTION_DOWN) {
     // Move to the first note, so that we'll start from the last note at the
     // next clock tick.

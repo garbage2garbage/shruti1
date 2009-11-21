@@ -53,6 +53,10 @@ static const uint16_t kOctave = 12 * 128;
 static const uint16_t kPitchTableStart = 96 * 128;
 static const uint16_t kHighestNote = 108 * 128;
 
+static const uint8_t kNumLfos = 2;
+static const uint8_t kNumEnvelopes = 2;
+static const uint8_t kNumOscillators = 2;
+
 class Voice {
  public:
   Voice() { }
@@ -90,7 +94,7 @@ class Voice {
   
  private:
   // Envelope generators.
-  static Envelope envelope_[2];
+  static Envelope envelope_[kNumEnvelopes];
   static uint8_t dead_;
 
   // Counters/phases for the pitch envelope generator (portamento).
@@ -191,7 +195,10 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static uint8_t modulation_sources_[kNumGlobalModulationSources];
   
   static Patch patch_;
-  static Lfo lfo_[2];
+  static Lfo lfo_[kNumLfos];
+  static uint8_t num_lfo_reset_steps_;  // resync the LFO every n-th step.
+  static uint8_t lfo_reset_counter_;
+  static uint8_t lfo_to_reset_;
   static Voice voice_[kNumVoices];
   static VoiceController controller_;
   static uint8_t oscillator_decimation_;

@@ -45,9 +45,13 @@ uint8_t SynthesisEngine::oscillator_decimation_;
 Patch SynthesisEngine::patch_;
 Voice SynthesisEngine::voice_[kNumVoices];
 VoiceController SynthesisEngine::controller_;
-Lfo SynthesisEngine::lfo_[2];
+Lfo SynthesisEngine::lfo_[kNumLfos];
 uint8_t SynthesisEngine::qux_[2];
 uint8_t SynthesisEngine::nrpn_parameter_number_ = 0xff;
+uint8_t SynthesisEngine::num_lfo_reset_steps_;
+uint8_t SynthesisEngine::lfo_reset_counter_;
+uint8_t SynthesisEngine::lfo_to_reset_;
+
 /* </static> */
 
 /* static */
@@ -62,9 +66,9 @@ void SynthesisEngine::Init() {
 
 static const prog_char empty_patch[] PROGMEM = {
     99,
-    WAVEFORM_SAW, WAVEFORM_SAW, 0, 0,
+    WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 0,
     0, 0, 0, 0,
-    0, 0, 0, WAVEFORM_SQUARE,
+    32, 0, 0, WAVEFORM_SQUARE,
     120, 0, 0, 0,
     20, 0,
     60, 40,
@@ -221,8 +225,9 @@ void SynthesisEngine::Reset() {
   controller_.AllSoundOff();
   memset(modulation_sources_, 0, kNumGlobalModulationSources);
   modulation_sources_[MOD_SRC_PITCH_BEND] = 128;
-  lfo_[0].ResetPhase();
-  lfo_[1].ResetPhase();
+  for (uint8_t i = 0; i < kNumLfos; ++i) {
+    lfo_[i].ResetPhase();
+  }
 }
 
 /* static */
@@ -276,13 +281,19 @@ void SynthesisEngine::UpdateOscillatorAlgorithms() {
 /* static */
 void SynthesisEngine::UpdateModulationIncrements() {
   // Update the LFO increments.
-  for (uint8_t i = 0; i < 2; ++i) {
+  num_lfo_reset_steps_ = 0;
+  lfo_to_reset_ = 0;
+  for (uint8_t i = 0; i < kNumLfos; ++i) {
     uint16_t increment;
     // The LFO rates 0 to 15 are translated into a multiple of the step
     // sequencer/arpeggiator step size.
     if (patch_.lfo_rate[i] < 16) {
       increment = 65536 / (controller_.estimated_beat_duration() *
                            (1 + patch_.lfo_rate[i]) / 4);
+      num_lfo_reset_steps_ = UnsignedUnsignedMul(
+          num_lfo_reset_steps_ ? num_lfo_reset_steps_ : 1,
+          1 + patch_.lfo_rate[i]);
+      lfo_to_reset_ |= _BV(i);
     } else {
       increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
           lut_res_lfo_increments, patch_.lfo_rate[i] - 16);
@@ -301,17 +312,34 @@ void SynthesisEngine::UpdateModulationIncrements() {
 
 /* static */
 void SynthesisEngine::Control() {
-  for (uint8_t i = 0; i < 2; ++i) {
+  for (uint8_t i = 0; i < kNumLfos; ++i) {
     lfo_[i].Increment();
     modulation_sources_[MOD_SRC_LFO_1 + i] = lfo_[i].Render();
   }
   modulation_sources_[MOD_SRC_RANDOM] = Random::state_msb();
 
   // Update the arpeggiator / step sequencer.
+  uint8_t previous_step = controller_.step();
   controller_.Control();
-  
-  // TODO(pichenettes): if we have moved back to step 0, update the modulation
-  // increments (for external tempo sync).
+  // We need to do a couple of things when the step sequencer has moved to the
+  // next step:
+  // - From time to time (eg whenever we move to step 0, recompute the LFO
+  // increments from the tempo, in case we have LFO mapped to the tempo. The
+  // tempo might have changed.
+  // - Reset the LFO value to 0 every n-th step. Otherwise, there might be a
+  // "synchronization drift" because of rounding error.
+  if (previous_step != controller_.step()) {
+    ++lfo_reset_counter_;
+    if (lfo_reset_counter_ == num_lfo_reset_steps_) {
+      UpdateModulationIncrements();
+      for (uint8_t i = 0; i < kNumLfos; ++i) {
+        if (lfo_to_reset_ & _BV(i)) {
+          lfo_[i].Reset();
+        }
+      }
+      lfo_reset_counter_ = 0;
+    }
+  }
   
   // Read/shift the value of the step sequencer.
   modulation_sources_[MOD_SRC_SEQ] = patch_.sequence_step(controller_.step());
@@ -353,14 +381,16 @@ uint8_t Voice::osc1_phase_msb_;
 void Voice::Init() {
   pitch_value_ = 0;
   signal_ = 128;
-  envelope_[0].Init();
-  envelope_[1].Init();
+  for (uint8_t i = 0; i < kNumEnvelopes; ++i) {
+    envelope_[i].Init();
+  }
 }
 
 /* static */
 void Voice::TriggerEnvelope(uint8_t stage) {
-  envelope_[0].Trigger(stage);
-  envelope_[1].Trigger(stage);
+  for (uint8_t i = 0; i < kNumEnvelopes; ++i) {
+    envelope_[i].Trigger(stage);
+  }
 }
 
 /* static */
@@ -400,7 +430,7 @@ void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
 void Voice::Control() {
   // Update the envelopes.
   dead_ = 1;
-  for (uint8_t i = 0; i < 2; ++i) {
+  for (uint8_t i = 0; i < kNumEnvelopes; ++i) {
     envelope_[i].Render();
     dead_ = dead_ && envelope_[i].dead();
   }
@@ -517,7 +547,7 @@ void Voice::Control() {
   modulation_destinations_[MOD_DST_MIX_SUB_OSC] = dst[MOD_DST_MIX_SUB_OSC] >> 7;
   
   // Update the oscillator parameters.
-  for (uint8_t i = 0; i < 2; ++i) {
+  for (uint8_t i = 0; i < kNumOscillators; ++i) {
     int16_t pitch = pitch_value_;
     // -24 / +24 semitones by the range controller.
     if (i == 0 && engine.patch_.osc_algorithm[0] == WAVEFORM_FM) {

@@ -37,9 +37,6 @@
 // Vowel    sr/2      n/a              n/a
 // Table    sr/2      n/a              n/a
 // Sweep    ?         n/a              n/a
-//
-// TODO(pichenettes): This code is horrible, find a way to get the generate the
-// 3 specialized variants in a more efficient way.
 
 #ifndef HARDWARE_SHRUTI_OSCILLATOR_H_
 #define HARDWARE_SHRUTI_OSCILLATOR_H_
