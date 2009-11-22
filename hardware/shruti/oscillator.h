@@ -153,7 +153,6 @@ class Oscillator {
     return held_sample_;
   }
   static inline void Reset() {
-    ResetPhase();
     if (mode == FULL && algorithm_ == WAVEFORM_WAVETABLE) {
       data_.wt.smooth_parameter = parameter_ * 64;
     }

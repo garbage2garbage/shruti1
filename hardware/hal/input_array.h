@@ -69,7 +69,7 @@ class InputArray {
     Event e;
     e.id = active_input_;
     
-    // Read a value from the DAC and check if something occurred.
+    // Read a value from the ADC and check if something occurred.
     e.value = Input::Read();
     uint8_t same;
     if (threshold == 1) {
@@ -77,12 +77,13 @@ class InputArray {
     } else {
       same = abs(values_[active_input_] - e.value) < threshold;
     }
-    e.time = hardware_base::milliseconds() - last_event_time_;
+    uint32_t now = hardware_base::milliseconds();
+    e.time = now - last_event_time_;
     if (same) {
       e.event = EVENT_NONE;
     } else {
       values_[active_input_] = e.value;
-      last_event_time_ = hardware_base::milliseconds();
+      last_event_time_ = now;
       if (Input::data_size == 1) {
         e.event = (e.value == 1) ? EVENT_RAISED : EVENT_LOWERED;
       } else {

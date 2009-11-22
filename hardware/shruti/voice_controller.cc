@@ -49,7 +49,6 @@ uint8_t VoiceController::num_voices_;
   
 uint8_t VoiceController::tempo_;
 uint8_t VoiceController::swing_;
-uint8_t VoiceController::has_ticked_;
 uint8_t VoiceController::pattern_size_;
 uint8_t VoiceController::active_;
 uint8_t VoiceController::inactive_steps_;
@@ -191,13 +190,12 @@ void VoiceController::NoteOff(uint8_t note) {
 }
 
 /* static */
-void VoiceController::Control() {
+uint8_t VoiceController::Control() {
   ++step_duration_estimator_num_;
   if ((tempo_ && internal_clock_counter_ > 0) ||
       (!tempo_ && midi_clock_counter_ > 0)) {
-    return;
+    return 0;
   }
-  has_ticked_ = 1;
   ++step_duration_estimator_den_;
   
   // Move to the next step in the x-o-x pattern.
@@ -233,13 +231,14 @@ void VoiceController::Control() {
   }
 
   if (notes_.size() == 0 || octaves_ == 0) {
-    return;
+    return 1;
   }
   
   // If the bit is set in the x-o-x pattern, move to the next note.
   if (has_arpeggiator_note()) {
     Step();
   }
+  return 2;
 }
 
 /* static */

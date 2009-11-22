@@ -111,11 +111,12 @@ class OutputArray<Latch, Clock, Data, size, 4, order, safe> {
   OutputArray() { }
   static inline void Init() {
     if (safe) {
-      memset(values_, 0, sizeof(values_));
+      Clear();
       cycle_ = 0;
     }
     Register::Init();
   }
+  static inline void Clear() { memset(values_, 0, sizeof(values_)); }
   static inline void set_value(Index output_index, Value intensity) {
     if (safe) {
       ARGUMENT_CHECK_LT(output_index, size);

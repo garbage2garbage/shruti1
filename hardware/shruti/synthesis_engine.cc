@@ -118,12 +118,14 @@ void SynthesisEngine::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
     lfo_reset_counter_ = num_lfo_reset_steps_ - 1;
   }
   controller_.NoteOn(note, velocity);
+#ifdef HAS_EASTER_EGG
   if (note - qux_[0] == ((0x29 | 0x15) >> 4)) {
     qux_[1] += ~0xfe;
   } else {
     qux_[1] ^= qux_[1];
   }
   qux_[0] = note;
+#endif  // HAS_EASTER_EGG
 }
 
 /* static */
@@ -323,15 +325,14 @@ void SynthesisEngine::Control() {
   modulation_sources_[MOD_SRC_RANDOM] = Random::state_msb();
 
   // Update the arpeggiator / step sequencer.
-  controller_.Control();
-  // We need to do a couple of things when the step sequencer has moved to the
-  // next step:
-  // - From time to time (eg whenever we move to step 0, recompute the LFO
-  // increments from the tempo, in case we have LFO mapped to the tempo. The
-  // tempo might have changed.
-  // - Reset the LFO value to 0 every n-th step. Otherwise, there might be a
-  // "synchronization drift" because of rounding error.
-  if (controller_.has_ticked()) {
+  if (controller_.Control()) {
+    // We need to do a couple of things when the step sequencer has moved to the
+    // next step:
+    // - From time to time (eg whenever we move to step 0, recompute the LFO
+    // increments from the tempo, in case we have LFO mapped to the tempo. The
+    // tempo might have changed.
+    // - Reset the LFO value to 0 every n-th step. Otherwise, there might be a
+    // "synchronization drift" because of rounding error.
     ++lfo_reset_counter_;
     if (lfo_reset_counter_ == num_lfo_reset_steps_) {
       UpdateModulationIncrements();
@@ -352,7 +353,6 @@ void SynthesisEngine::Control() {
   for (uint8_t i = 0; i < kNumVoices; ++i) {
     voice_[i].Control();
   }
-  controller_.ClearTick();
 }
 
 /* static */
@@ -625,11 +625,11 @@ void Voice::Audio() {
       uint8_t phase_msb = static_cast<uint8_t>(Osc1::phase() >> 8);
       if (phase_msb < osc1_phase_msb_) {
         Osc2::ResetPhase();
+      }
       // Store the phase of the oscillator to check later whether the phase has
       // been wrapped. Because the phase increment is likely to be below
       // 65536 - 256, we can use the most significant byte only to detect
       // wrapping.
-      }
       osc1_phase_msb_ = phase_msb;
     }
   }

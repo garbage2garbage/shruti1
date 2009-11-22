@@ -82,9 +82,8 @@ MidiStreamParser<SynthesisEngine> midi_parser;
 // are called in sequence, with some tasks being more frequently called than
 // others, by the Scheduler.
 void UpdateLedsTask() {
-  for (uint8_t i = 0; i < kNumPages; ++i) {
-    leds.set_value(i, i == editor.current_page() ? 15 : 0);
-  }
+  leds.Clear();
+  leds.set_value(editor.current_page(), 15);
   if (editor.current_page() == PAGE_MOD_MATRIX) {
     uint8_t current_modulation_source_value = engine.modulation_source(0,
         engine.patch().modulation_matrix.modulation[
@@ -95,7 +94,7 @@ void UpdateLedsTask() {
   // weakly on the other steps which are a multiple of 4.
   if (engine.voice_controller().active()) {
     if (!(engine.voice_controller().step() & 3)) {
-      leds.set_value(PAGE_PLAY_ARP, engine.voice_controller().step() ? 1 : 15);
+      leds.set_value(PAGE_LOAD_SAVE, engine.voice_controller().step() ? 1 : 15);
     }
   }
   leds.Output();
@@ -110,6 +109,7 @@ void InputTask() {
   Pots::Event pot_event;
   static uint8_t idle;
   static uint8_t target_page_type;
+  static uint8_t test_note_playing = 0;
 TASK_BEGIN_NEAR
   while (1) {
     idle = 0;
@@ -128,15 +128,24 @@ TASK_BEGIN_NEAR
       if (switch_event.event == EVENT_RAISED && switch_event.time > 100) {
         uint8_t id = switch_event.id;
         if (id < kNumGroupSwitches) {
-          editor.ToggleGroup(id);
-          target_page_type = PAGE_TYPE_SUMMARY;
+          // Pressing the arpeggiator/sequencer page button for more than
+          // 1.5s will play a C3 note. Super useful for debugging...
+          if (id == GROUP_PLAY && test_note_playing) {
+            engine.NoteOff(0, 48, 0);
+            test_note_playing = 0;
+          } else if (id == GROUP_PLAY && switch_event.time > 1000) {
+            engine.NoteOn(0, 48, 100);
+            test_note_playing = 1;
+          } else {
+            editor.ToggleGroup(id);
+            target_page_type = PAGE_TYPE_SUMMARY;
+          }
         } else {
           editor.HandleIncrement(2 * id - 2 * kNumGroupSwitches - 1);
           target_page_type = PAGE_TYPE_DETAILS;
         }
       }
     }
-    TASK_SWITCH;
     
     // Select which analog/digital inputs we want to read by a write to the
     // multiplexer register.
@@ -160,9 +169,12 @@ TASK_BEGIN_NEAR
     }
     TASK_SWITCH;
     
+#ifdef HAS_EASTER_EGG    
     if (engine.zobi() == 18) {
       editor.DisplaySplashScreen(STR_RES_P_ORLEANS_21_MN);
-    } else if (target_page_type == PAGE_TYPE_SUMMARY) {
+    } else
+#endif  // HAS_EASTER_EGG
+    if (target_page_type == PAGE_TYPE_SUMMARY) {
       editor.DisplaySummary();
     } else if (target_page_type == PAGE_TYPE_DETAILS) {
       editor.DisplayDetails();

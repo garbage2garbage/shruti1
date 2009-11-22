@@ -192,7 +192,9 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
     }
   }
   static const Voice& voice(uint8_t i) { return voice_[i]; }
-  static inline uint8_t zobi() { return qux_[1]; }
+  #ifdef HAS_EASTER_EGG
+    static inline uint8_t zobi() { return qux_[1]; }
+  #endif  // HAS_EASTER_EGG
  private:
   // Value of global modulation parameters, scaled to 0-255;
   static uint8_t modulation_sources_[kNumGlobalModulationSources];
