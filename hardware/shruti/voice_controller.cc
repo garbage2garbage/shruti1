@@ -51,11 +51,12 @@ uint8_t VoiceController::tempo_;
 uint8_t VoiceController::swing_;
 uint8_t VoiceController::has_ticked_;
 uint8_t VoiceController::pattern_size_;
+uint8_t VoiceController::active_;
+uint8_t VoiceController::inactive_steps_;
 
 uint16_t VoiceController::step_duration_estimator_num_;
 uint8_t VoiceController::step_duration_estimator_den_;
 uint16_t VoiceController::estimated_beat_duration_;
-
 /* </static> */
 
 /* static */
@@ -70,23 +71,30 @@ void VoiceController::Init(Voice* voices, uint8_t num_voices) {
   step_duration_[0] = (kSampleRate * 60L / 4) / 120;
   step_duration_[1] = (kSampleRate * 60L / 4) / 120;
   octaves_ = 0;
+  pattern_size_ = 16;
   pattern_ = 0x5555;
   mode_ = 0;
-  internal_clock_counter_ = step_duration_[0];
-  midi_clock_counter_ = 6;
-  pattern_size_ = 16;
-  estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
-  pattern_mask_ = 255;
-  internal_clock_counter_ = 0;
-  step_duration_estimator_num_ = 255;
-  step_duration_estimator_den_ = 255;
-  midi_clock_counter_ = kMidiClockPrescaler;
-  pattern_step_ = 15;
+  inactive_steps_ = 0;
+  active_ = 0;
   Reset();
 }
 
 /* static */
 void VoiceController::Reset() {
+  // If 4 beats has elapsed without event, the sequencer will restart from
+  // the first step when a key is pressed. Otherwise, the pattern will continue
+  // moving on.
+  if (!active_) {
+    internal_clock_counter_ = step_duration_[0];
+    midi_clock_counter_ = 6;
+    estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
+    pattern_mask_ = 255;
+    internal_clock_counter_ = 0;
+    step_duration_estimator_num_ = 255;
+    step_duration_estimator_den_ = 255;
+    midi_clock_counter_ = kMidiClockPrescaler;
+    pattern_step_ = pattern_size_ - 1;
+  }
   direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1; 
   if (mode_ == ARPEGGIO_DIRECTION_DOWN) {
     // Move to the first note, so that we'll start from the last note at the
@@ -155,6 +163,7 @@ void VoiceController::NoteOn(uint8_t note, uint8_t velocity) {
     // If no notes were present in the stack, reset the arpeggiator step count.
     if (notes_.size() == 0) {
       Reset();
+      active_ = 1;
     }
     // Add a note to the stack. If the arpeggiator is running, it will trigger
     // itself. Otherwise, trigger it manually.
@@ -197,6 +206,13 @@ void VoiceController::Control() {
   if (pattern_step_ >= pattern_size_) {
     pattern_mask_ = 1;
     pattern_step_ = 0;
+  }
+  if (notes_.size() == 0) {
+    ++inactive_steps_;
+    if (inactive_steps_ >= pattern_size_) {
+      active_ = 0;
+      inactive_steps_ = 0;
+    }
   }
   
   // Update the value of the counter depending on which steps we are on.

@@ -93,8 +93,10 @@ void UpdateLedsTask() {
   }
   // The led of the arpeggiator page flashes strongly on the 0-th step and
   // weakly on the other steps which are a multiple of 4.
-  if (!(engine.voice_controller().step() & 3)) {
-    leds.set_value(PAGE_PLAY_ARP, engine.voice_controller().step() ? 1 : 15);
+  if (engine.voice_controller().active()) {
+    if (!(engine.voice_controller().step() & 3)) {
+      leds.set_value(PAGE_PLAY_ARP, engine.voice_controller().step() ? 1 : 15);
+    }
   }
   leds.Output();
 }

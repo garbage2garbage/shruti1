@@ -65,6 +65,7 @@ class VoiceController {
   static inline void ExternalSync() { --midi_clock_counter_; }
   static inline uint8_t step() { return pattern_step_; }
   static inline uint8_t has_ticked() { return has_ticked_; }
+  static inline uint8_t active() { return active_; }
   static inline void ClearTick() { has_ticked_ = 0; }
   static inline uint16_t has_arpeggiator_note() {
     return pattern_mask_ & pattern_;
@@ -112,6 +113,10 @@ class VoiceController {
   
   static uint8_t tempo_;
   static uint8_t swing_;
+  // After 4 beats without event, the sequencer is not active. The LED stops
+  // blinking and the sequencer will restart from the first note in the pattern. 
+  static uint8_t active_;
+  static uint8_t inactive_steps_;
   
   static uint8_t has_ticked_;  // equal to 1 when the clock has ticked.
   

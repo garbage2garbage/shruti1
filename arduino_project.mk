@@ -358,7 +358,7 @@ depends:	$(DEPS)
 		cat $(DEPS) > $(DEP_FILE)
 
 size:	$(TARGET_ELF)
-		$(SIZE) $(TARGET_ELF)
+		$(SIZE) $(TARGET_ELF) > firmware_size && cat firmware_size
 
 .PHONY:	all clean depends upload
 
