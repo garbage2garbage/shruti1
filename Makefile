@@ -8,18 +8,22 @@ TARGET       = shruti
 
 PACKAGES     = hardware/base hardware/hal hardware/hal/devices hardware/midi hardware/utils hardware/shruti
 
+EEPROM_DATA = hardware/shruti/data/patch_library.hex
+
 ARDUINO_LIBS = 
 
 MCU          = atmega328p
 DMCU         = m328p
 F_CPU        = 16000000
 ARDUINO_PORT = /dev/cu.usbserial-A6008iA6
+# ARDUINO_PORT = /dev/cu.usbserial-A6008hLO
 
 NO_CORE      = 1
 
 include arduino_project.mk
 
 RES_PATH     = hardware/shruti/resources
+
 resources:	$(wildcard $(RES_PATH)/*.py)
 		python hardware/resources/arc.py hardware/shruti/resources/resources.py
 

@@ -358,7 +358,17 @@ depends:	$(DEPS)
 		cat $(DEPS) > $(DEP_FILE)
 
 size:	$(TARGET_ELF)
-		$(SIZE) $(TARGET_ELF) > firmware_size && cat firmware_size
+		$(SIZE) $(TARGET_ELF) > firmware_size
+			cat firmware_size
+
+eeprom_backup:
+		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ARD_OPTS) \
+			-U eeprom:r:$(EEPROM_DATA):i
+
+eeprom_restore:
+		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ARD_OPTS) \
+			-U eeprom:w:$(EEPROM_DATA):i
+
 
 .PHONY:	all clean depends upload
 
