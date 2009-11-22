@@ -63,7 +63,7 @@ void SynthesisEngine::Init() {
     voice_[i].Init();
   }
 }
-/*
+
 static const prog_char empty_patch[] PROGMEM = {
     99,
     WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 0,
@@ -96,40 +96,6 @@ static const prog_char empty_patch[] PROGMEM = {
     0x00, 0x00, 0xff, 0xff, 0xcc, 0xcc, 0x44, 0x44,
     0, 0, 0, 1,
     'n', 'e', 'w', ' ', ' ', ' ', ' ', ' ', 16};
-
-*/
-  static const prog_char empty_patch[] PROGMEM = {
-      99,
-      WAVEFORM_SQUARE, WAVEFORM_SQUARE, 0, 0,
-      -12, 12, 0, 0,
-      32, 0, 0, WAVEFORM_SQUARE,
-      100, 0, 0, 40,
-      20, 0,
-      60, 40,
-      20, 100,
-      60, 40,
-      LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 15, 1,
-      MOD_SRC_LFO_1, MOD_DST_MIX_BALANCE, 50,
-      MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
-      MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
-      MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
-      MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
-      // By default, the resonance tracks the note. This value was empirically
-      // obtained and it is not clear whether it depends on the positive supply
-      // voltage, and if it varies from chip to chip.
-      MOD_SRC_NOTE, MOD_DST_FILTER_CUTOFF, 58,
-      MOD_SRC_ENV_2, MOD_DST_VCA, 63,
-      MOD_SRC_VELOCITY, MOD_DST_VCA, 16,
-      MOD_SRC_PITCH_BEND, MOD_DST_VCO_1_2_FINE, 32,
-      MOD_SRC_LFO_1, MOD_DST_VCO_1_2_FINE, 16,
-      MOD_SRC_ASSIGNABLE_1, MOD_DST_PWM_1, 0,
-      MOD_SRC_ASSIGNABLE_2, MOD_DST_FILTER_CUTOFF, 0,
-      MOD_SRC_CV_1, MOD_DST_FILTER_CUTOFF, 0,
-      MOD_SRC_CV_2, MOD_DST_FILTER_CUTOFF, 0,
-      120, 0, 0, 0,
-      0x00, 0x00, 0xff, 0xff, 0xcc, 0xcc, 0x44, 0x44,
-      0, 0, 0, 1,
-      'n', 'e', 'w', ' ', ' ', ' ', ' ', ' ', 16};
 
 /* static */
 void SynthesisEngine::ResetPatch() {
