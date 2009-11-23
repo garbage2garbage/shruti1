@@ -15,8 +15,8 @@ ARDUINO_LIBS =
 MCU          = atmega328p
 DMCU         = m328p
 F_CPU        = 16000000
-ARDUINO_PORT = /dev/cu.usbserial-A6008iA6
-# ARDUINO_PORT = /dev/cu.usbserial-A6008hLO
+# ARDUINO_PORT = /dev/cu.usbserial-A6008iA6
+ARDUINO_PORT = /dev/cu.usbserial-A6008hLO
 
 NO_CORE      = 1
 
