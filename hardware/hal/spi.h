@@ -23,7 +23,7 @@
 // - nothing is buffered, since the overhead of managing a circular buffer is
 //   around 15 cycles (not including the interrupt prelude/postlude), which is
 //   close to the transmission time at the fastest speed.
-// - the arduino is always configured as a master.
+// - the atmega is always configured as a master.
 // - no support for reading back from the slave.
 
 #ifndef HARDWARE_HAL_SPI_H_

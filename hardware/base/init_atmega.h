@@ -17,13 +17,13 @@
 //
 // Basic Arduino initialization.
 
-#ifndef HARDWARE_BASE_INIT_ARDUINO_H_
-#define HARDWARE_BASE_INIT_ARDUINO_H_
+#ifndef HARDWARE_BASE_INIT_ATMEGA_H_
+#define HARDWARE_BASE_INIT_ATMEGA_H_
 
 namespace hardware_base {
 
-void InitArduino();
+void InitAtmega();
 
 }  // namespace hardware_base;
 
-#endif  // HARDWARE_BASE_INIT_ARDUINO_H_
+#endif  // HARDWARE_BASE_INIT_ATMEGA_H_

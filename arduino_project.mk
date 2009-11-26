@@ -19,6 +19,7 @@
 #                         - Support for source in multiple dirs via VPATH.
 #                         - Disabling of unwanted libraries.
 #                         - Rule for printing the size.
+#                         - Rules for eeprom backup/restore.
 #
 ########################################################################
 #

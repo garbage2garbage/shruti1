@@ -15,11 +15,11 @@
 //
 // -----------------------------------------------------------------------------
 //
-// Basic Arduino initialization. Put the board in the same state as the original
+// Basic ATMega initialization. Put the cpu in the same state as the original
 // initialization code of the arduino core library by David A. Mellis
 // (wiring.c).
 
-#include "hardware/base/init_arduino.h"
+#include "hardware/base/init_atmega.h"
 
 #include "hardware/base/time.h"
 #include "hardware/hal/adc.h"
@@ -36,7 +36,7 @@ IORegister(UCSR0B);
 
 namespace hardware_base {
 
-void InitArduino() {
+void InitAtmega() {
   sei();
   
   SetupClock();

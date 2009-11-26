@@ -32,7 +32,7 @@ Hybrid digital / analog synthesis.
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-Q: This doesn't look like typical arduino code. Where are my digitalWrite()'s, my Serial.begin(9600)'s, and my loop()'s?
+Q: This project was originally built for an arduino, right? But this doesn't look like typical arduino code. Where are my digitalWrite()'s, my Serial.begin(9600)'s, and my loop()'s?
 
 A: They are gone. This project needs efficiency / code compactness that the original Arduino library simply does not provide. In particular, what made me scrap the Arduino library early in the project:
 
@@ -49,7 +49,7 @@ A: They are gone. This project needs efficiency / code compactness that the orig
 Now please forget what you've read and get back to having fun with the Arduino libs. It's well supported, plenty of people will answer your questions on forums, and it's perfectly fine for projects that do not push the limits of the platform.
 
 
-Q: templates? Why templates?
+Q: Templates? Why templates?
 
 A: I personally hate templates for anything else besides containers, and boost makes me want to puke, but for this project I absolutely needed them. They allowed me to build what I call "compile-time abstractions" - layers of abstractions, reusable functions or classes, that are automatically "collapsed" at compile-time - all the branches of code which are never reached are removed, all constants are folded, deep, deep, deep... Have a look at the generated machine code - in most places it's hard to do shorter, and several layers of templates and definitions end up as one machine instructions (eg: GPIO read/writes).
 
@@ -71,7 +71,7 @@ A: Try rewriting hardware_shruti::Oscillator as a "non-static" class and use thr
 Q: How are the saw/square oscillators implemented?
 
 A: First of all: saw = phase_ >> 8; square = phase_ < 32768 ? 0 : 255; kills kittens, please don't do that.
-A cheap way of doing bandlimited synthesis of saw/square waveforms is wavetables - compute a bandlimited saw/square for each octave, and interpolate inbetween (you'll get a bit of aliasing but it's non lethal for kittens). This is what I do, with one tabulated waveform every 16th note. The tabulated waveforms are "colored" bandlimited square/saws, computed using the traditional "integrate a band limited pulse train" approach. The degree of coloring can be modified in the resources code - the default is not unlike the basic Juno-60 waveforms.
+A cheap way of doing bandlimited synthesis of saw/square waveforms is wavetables - compute a bandlimited saw/square for each octave, and interpolate inbetween (you'll get a bit of aliasing due to interpolation and the crossfading of the "zones" but it's non lethal for kittens). This is what I do, with one tabulated waveform every 16th note. The tabulated waveforms are "colored" bandlimited square/saws, computed using the traditional "integrate a band limited pulse train" approach. The degree of coloring can be modified in the resources code - the default is not unlike the basic Juno-60 waveforms.
 
 
 Q: Why not doing the VCF and VCA in software?

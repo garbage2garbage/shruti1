@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "hardware/base/init_arduino.h"
+#include "hardware/base/init_atmega.h"
 #include "hardware/base/time.h"
 #include "hardware/hal/adc.h"
 #include "hardware/hal/audio_output.h"
@@ -319,7 +319,7 @@ void Setup() {
 }
 
 int main(void) {
-  InitArduino();
+  InitAtmega();
   display.Init();
   Setup();
   scheduler.Run();
