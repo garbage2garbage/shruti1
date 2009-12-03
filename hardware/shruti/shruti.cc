@@ -320,7 +320,6 @@ void Setup() {
 
 int main(void) {
   InitAtmega();
-  display.Init();
   Setup();
   scheduler.Run();
 }

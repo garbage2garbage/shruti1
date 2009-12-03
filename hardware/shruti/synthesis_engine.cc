@@ -326,13 +326,14 @@ void SynthesisEngine::Control() {
 
   // Update the arpeggiator / step sequencer.
   if (controller_.Control()) {
-    // We need to do a couple of things when the step sequencer has moved to the
+    // We need to do a couple of things when the step sequencer advances to the
     // next step:
-    // - From time to time (eg whenever we move to step 0, recompute the LFO
-    // increments from the tempo, in case we have LFO mapped to the tempo. The
-    // tempo might have changed.
+    // - periodically (eg whenever we move to step 0), recompute the LFO
+    // increments from the tempo, (if the LFO follows the tempo), since the
+    // tempo might have been modified by the user or the rate of the MIDI clock
+    // messages.
     // - Reset the LFO value to 0 every n-th step. Otherwise, there might be a
-    // "synchronization drift" because of rounding error.
+    // "synchronization drift" because of rounding errors.
     ++lfo_reset_counter_;
     if (lfo_reset_counter_ == num_lfo_reset_steps_) {
       UpdateModulationIncrements();
