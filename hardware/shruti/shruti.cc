@@ -289,8 +289,8 @@ TIMER_2_TICK {
 }
 
 void Setup() {
-  scheduler.Init();
   display.Init();
+  scheduler.Init();
   editor.Init();
   audio.Init();
 

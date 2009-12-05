@@ -63,12 +63,9 @@ void VoiceController::Init(Voice* voices, uint8_t num_voices) {
   voices_ = voices;
   num_voices_ = num_voices;
   notes_.Clear();
-  voices_ = NULL;
-  num_voices_ = 0;
   tempo_ = 120;
   swing_ = 0;
-  step_duration_[0] = (kSampleRate * 60L / 4) / 120;
-  step_duration_[1] = (kSampleRate * 60L / 4) / 120;
+  step_duration_[0] = step_duration_[1] = (kSampleRate * 60L / 4) / 120;
   octaves_ = 0;
   pattern_size_ = 16;
   pattern_ = 0x5555;
@@ -83,26 +80,30 @@ void VoiceController::Reset() {
   // If 4 beats has elapsed without event, the sequencer will restart from
   // the first step when a key is pressed. Otherwise, the pattern will continue
   // moving on.
+  // Note that all this active/reset stuff is only for internal clock. For
+  // external clock there's little we can do as we don't know, for example,
+  // if not receiving a clock event at t means "we're slowing down" or "we have
+  // stopped".
   if (!active_) {
-    internal_clock_counter_ = step_duration_[0];
-    midi_clock_counter_ = 6;
-    estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
+    midi_clock_counter_ = kMidiClockPrescaler;
+    if (tempo_) {
+      estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
+    }
     pattern_mask_ = 255;
     internal_clock_counter_ = 0;
-    step_duration_estimator_num_ = 255;
-    step_duration_estimator_den_ = 255;
-    midi_clock_counter_ = kMidiClockPrescaler;
+    step_duration_estimator_num_ = 0xffff;
+    step_duration_estimator_den_ = 0xff;
     pattern_step_ = pattern_size_ - 1;
-  }
-  direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1; 
-  if (mode_ == ARPEGGIO_DIRECTION_DOWN) {
-    // Move to the first note, so that we'll start from the last note at the
-    // next clock tick.
-    ArpeggioFirst();
-  } else {
-    // Move to the last note, so that we'll start from the first note at the
-    // next clock tick.
-    ArpeggioLast();
+    direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1; 
+    if (mode_ == ARPEGGIO_DIRECTION_DOWN) {
+      // Move to the first note, so that we'll start from the last note at the
+      // next clock tick.
+      ArpeggioFirst();
+    } else {
+      // Move to the last note, so that we'll start from the first note at the
+      // next clock tick.
+      ArpeggioLast();
+    }
   }
 }
 
@@ -159,14 +160,11 @@ void VoiceController::NoteOn(uint8_t note, uint8_t velocity) {
   if (velocity == 0) {
     NoteOff(note);
   } else {
-    // If no notes were present in the stack, reset the arpeggiator step count.
-    if (notes_.size() == 0) {
-      Reset();
-      active_ = 1;
-    }
-    // Add a note to the stack. If the arpeggiator is running, it will trigger
-    // itself. Otherwise, trigger it manually.
     notes_.NoteOn(note, velocity);
+    // In case we haven't played something for a while, reset all the
+    // sequencer/arpeggiator stuff.
+    Start();
+    // Trigger the note.
     if (octaves_ == 0) {
       voices_[0].Trigger(note, velocity, false);
     }
@@ -205,10 +203,10 @@ uint8_t VoiceController::Control() {
     pattern_mask_ = 1;
     pattern_step_ = 0;
   }
-  if (notes_.size() == 0) {
+  if (notes_.size() == 0 && tempo_) {
     ++inactive_steps_;
     if (inactive_steps_ >= pattern_size_) {
-      active_ = 0;
+      Stop();
       inactive_steps_ = 0;
     }
   }

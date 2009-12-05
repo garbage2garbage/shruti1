@@ -194,6 +194,8 @@ class Editor {
 
   static ParameterPage current_page_;
   static ParameterPage last_visited_page_[kNumGroups];
+  // Used for the modulation matrix page only.
+  static uint8_t last_visited_subpage_;
   static uint8_t current_controller_;
   static uint8_t parameter_definition_offset_[kNumPages][kNumEditingPots];
 

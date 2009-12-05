@@ -281,7 +281,8 @@ enum Status {
 enum OPERATOR {
   SUM = 0,
   SYNC = 1,
-  RING_MOD = 2
+  RING_MOD = 2,
+  XOR = 3
 };
 
 static const uint8_t kNumEditableParameters = 40;

@@ -141,6 +141,8 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static void OmniModeOn(uint8_t channel);
   static void Reset();
   static void Clock();
+  static void Start();
+  static void Stop();
   static void SysExStart();
   static void SysExByte(uint8_t sysex_byte);
   static void SysExEnd();

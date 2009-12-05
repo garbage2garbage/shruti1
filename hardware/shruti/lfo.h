@@ -40,9 +40,10 @@ class Lfo {
   uint8_t Render() {
     switch (algorithm_) {
       case LFO_WAVEFORM_S_H:
-        if (static_cast<uint16_t>(phase_ + phase_increment_) < phase_) {
+        if (phase_ < previous_phase_) {
           value_ = Random::GetByte();
         }
+        previous_phase_ = phase_;
         return value_;
       case LFO_WAVEFORM_TRIANGLE:
         return (phase_ & 0X8000) ?
@@ -55,7 +56,6 @@ class Lfo {
     }
   }
   void Reset() {
-    ResetPhase();
     phase_ = 0;
   }
   void Increment() {
@@ -65,7 +65,6 @@ class Lfo {
     algorithm_ = algorithm;
     phase_increment_ = increment;
   }
-  void ResetPhase() { phase_ = 0; }
 
  private:
   // Phase increment.
@@ -73,6 +72,7 @@ class Lfo {
 
   // Current phase of the lfo.
   uint16_t phase_;
+  uint16_t previous_phase_;
   
   // Copy of the algorithm used by this oscillator.
   uint8_t algorithm_;

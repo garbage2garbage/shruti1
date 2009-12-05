@@ -55,7 +55,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_RNG, STR_RES_RANGE,
   
   PRM_OSC_OPTION_1,
-  SUM, RING_MOD,
+  SUM, XOR,
   PAGE_OSC_OSC_1, UNIT_OPERATOR,
   STR_RES_OP, STR_RES_OPERATOR,
 
@@ -277,33 +277,32 @@ const PageDefinition Editor::page_definition_[] = {
 
 /* <static> */
 ParameterDefinition Editor::parameter_definition_;
-uint8_t Editor::parameter_definition_index_;
+uint8_t Editor::parameter_definition_index_ = 0xff;
 uint8_t Editor::current_display_type_;
 
-ParameterPage Editor::current_page_;
-ParameterPage Editor::last_visited_page_[kNumGroups];
-uint8_t Editor::current_controller_;
+ParameterPage Editor::current_page_ = PAGE_FILTER_FILTER;
+ParameterPage Editor::last_visited_page_[kNumGroups] = {
+    PAGE_OSC_OSC_1,
+    PAGE_FILTER_FILTER,
+    PAGE_MOD_ENV_1,
+    PAGE_PLAY_ARP,
+    PAGE_LOAD_SAVE
+};
+uint8_t Editor::current_controller_ = 0;
 uint8_t Editor::parameter_definition_offset_[kNumPages][kNumEditingPots];
+uint8_t Editor::last_visited_subpage_ = 0;
 
 char Editor::line_buffer_[kLcdWidth * kLcdHeight + 1];
 
 uint8_t Editor::cursor_;
 uint8_t Editor::subpage_;
 uint8_t Editor::action_;
-uint8_t Editor::current_patch_number_;
-uint8_t Editor::previous_patch_number_;
+uint8_t Editor::current_patch_number_ = 0;
+uint8_t Editor::previous_patch_number_ = 0;
 /* </static> */
 
 /* static */
 void Editor::Init() {
-  parameter_definition_index_ = 0xff;
-  current_page_ = PAGE_FILTER_FILTER;
-  current_controller_ = 0;
-  last_visited_page_[GROUP_OSC] = PAGE_OSC_OSC_1;
-  last_visited_page_[GROUP_FILTER] = PAGE_FILTER_FILTER;
-  last_visited_page_[GROUP_MOD] = PAGE_MOD_ENV_1;
-  last_visited_page_[GROUP_PLAY] = PAGE_PLAY_ARP;
-  last_visited_page_[GROUP_LOAD_SAVE] = PAGE_LOAD_SAVE;
   for (uint8_t i = 0; i < kNumEditableParameters; ++i) {
     parameter_definition_offset_[parameter_definition(i).page]
         [i % kNumEditingPots] = i;
@@ -314,8 +313,6 @@ void Editor::Init() {
     CHECK_EQ(page_definition_[i].id, i);
   }
   line_buffer_[kLcdWidth] = '\0';
-  previous_patch_number_ = 0;
-  current_patch_number_ = 0;
 }
 
 /* static */
@@ -351,6 +348,11 @@ void Editor::ToggleGroup(ParameterGroup group) {
       } else {
         current_page_ = current_page_ + 1;
       }
+    }
+    // When switching to the modulation matrix page, go back to the previously
+    // edited modulation.
+    if (current_page_ == PAGE_MOD_MATRIX) {
+        subpage_ = last_visited_subpage_;
     }
     last_visited_page_[group] = current_page_;
   }
@@ -652,6 +654,7 @@ void Editor::SetParameterWithHacks(uint8_t id, uint8_t value) {
   if (current_page_ == PAGE_MOD_MATRIX) {
     if (id == PRM_MOD_ROW) {
       subpage_ = value;
+      last_visited_subpage_ = value;
     } else {
       engine.SetParameter(id + subpage_ * 3, value);
     }

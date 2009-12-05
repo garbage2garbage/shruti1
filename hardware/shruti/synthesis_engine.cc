@@ -74,7 +74,7 @@ static const prog_char empty_patch[] PROGMEM = {
     60, 40,
     20, 100,
     60, 40,
-    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 80, 24,
+    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 80, 3,
     MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
     MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
     MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
@@ -213,7 +213,6 @@ void SynthesisEngine::SysExStart() {
   patch_.SysExReceive(0xf0);
 }
 
-
 /* static */
 void SynthesisEngine::SysExByte(uint8_t sysex_byte) {
   patch_.SysExReceive(sysex_byte);
@@ -224,7 +223,6 @@ void SynthesisEngine::SysExEnd() {
   patch_.SysExReceive(0xf7);
 }
 
-
 /* static */
 void SynthesisEngine::Reset() {
   controller_.Reset();
@@ -232,13 +230,23 @@ void SynthesisEngine::Reset() {
   memset(modulation_sources_, 0, kNumGlobalModulationSources);
   modulation_sources_[MOD_SRC_PITCH_BEND] = 128;
   for (uint8_t i = 0; i < kNumLfos; ++i) {
-    lfo_[i].ResetPhase();
+    lfo_[i].Reset();
   }
 }
 
 /* static */
 void SynthesisEngine::Clock() {
   controller_.ExternalSync();
+}
+
+/* static */
+void SynthesisEngine::Start() {
+  controller_.Start();
+}
+
+/* static */
+void SynthesisEngine::Stop() {
+  controller_.Stop();
 }
 
 /* static */
@@ -615,6 +623,9 @@ void Voice::Audio() {
   
   if (engine.patch_.osc_option[0] == RING_MOD) {
     mix = SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
+  } else if (engine.patch_.osc_option[0] == XOR) {
+    mix ^= osc_2;
+    mix += modulation_destinations_[MOD_DST_MIX_BALANCE];
   } else {
     mix = Mix(
         mix,

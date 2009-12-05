@@ -76,6 +76,14 @@ class VoiceController {
   static uint16_t estimated_beat_duration() {
     return estimated_beat_duration_;
   }
+  // (for external sync).
+  static void Stop() {
+    active_ = 0;
+  }
+  static void Start() {
+    Reset();
+    active_ = 1;
+  }
 
  private:
   static void RecomputeStepDurations();

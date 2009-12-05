@@ -476,7 +476,7 @@ class Oscillator {
   static void UpdateVowel() {
     data_.vw.update++;
     if (data_.vw.update == kVowelControlRateDecimation) {
-      data_.vw.update = 255;
+      data_.vw.update = 0;
     } else {
       return;
     }
