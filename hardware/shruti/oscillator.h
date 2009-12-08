@@ -285,34 +285,39 @@ class Oscillator {
   static void UpdatePulseSquare() {
     uint8_t note = Swap4(note_ - 12);
     uint8_t wave_index = note & 0xf;
-    // If the parameter is different from 0, use the PWM generator - otherwise,
-    // use directly the wavetable.
+    data_.sq.balance = note & 0xf0;
+    uint8_t wavetable_base;
+    uint8_t wavetable_size;
+    
     if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
       // TODO(pichenettes): find better formula for leaky integrator constant.
       data_.sq.leak = 255 - ((note_ - 12) >> 3);
-      data_.sq.wave[0] =
-          waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
       data_.sq.shift = static_cast<uint16_t>(parameter_ + 127) << 8;
+      wavetable_base = WAV_RES_BANDLIMITED_PULSE_1;
+      wavetable_size = kNumZonesHalfSampleRate;
     } else {
-      data_.sq.wave[0] =
-          waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
-      wave_index = AddClip(wave_index, 1, kNumZonesFullSampleRate);
-      data_.sq.wave[1] =
-          waveform_table[WAV_RES_BANDLIMITED_SQUARE_0 + wave_index];
-      // Leak is set to 0 - this will be used by the rendering code to know that
-      // it should render a pure square wave, by not trying to integrate a
-      // blit, but instead directly reading from the wavetable.
       data_.sq.leak = 0;
-      data_.sq.balance = note & 0xf0;
+      wavetable_base = WAV_RES_BANDLIMITED_SQUARE_0;
+      wavetable_size = kNumZonesFullSampleRate;
     }
+    data_.sq.wave[0] = waveform_table[wavetable_base + wave_index];
+    wave_index = AddClip(wave_index, 1, wavetable_size);
+    data_.sq.wave[1] = waveform_table[wavetable_base + wave_index];
   }
   static void RenderPulseSquare() {
     if (data_.sq.leak) {
       HALF_SAMPLE_RATE;
-      phase_ += phase_increment_2_;
-      
-      int16_t blit = InterpolateSample(data_.sq.wave[0], phase_);
+    }
+    held_sample_ = InterpolateTwoTables(
+        data_.sq.wave[0],
+        data_.sq.wave[1],
+        phase_,
+        data_.sq.balance);
+
+    if (data_.sq.leak) {
+      int16_t blit = held_sample_;
       blit -= InterpolateSample(data_.sq.wave[0], phase_ + data_.sq.shift);
+      phase_ += phase_increment_2_;
       if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
         held_sample_ = Clip8(blit + 128);
       } else {
@@ -323,9 +328,6 @@ class Oscillator {
       }
     } else {
       phase_ += phase_increment_;
-      held_sample_ = InterpolateTwoTables(
-          data_.sq.wave[0], data_.sq.wave[1],
-          phase_, data_.sq.balance);
     }
   }
   

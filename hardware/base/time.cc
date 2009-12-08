@@ -55,8 +55,8 @@ TIMER_0_TICK {
 }
 
 uint32_t Delay(uint32_t delay) {
-  uint32_t t = milliseconds();
-  while (milliseconds() - t < delay);
+  uint32_t t = milliseconds() + delay;
+  while (milliseconds() < t);
 }
 
 uint32_t milliseconds() {

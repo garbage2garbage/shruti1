@@ -58,15 +58,16 @@ WAVETABLE_SIZE = 256
 # The Juno-6 / Juno-60 waveforms have a brighter harmonic content, which can be
 # recreated by adding to the signal a 1-pole high-pass filtered version of
 # itself.
-JUNINESS = 2.0
+JUNINESS = 1.0
 
 
 # If you look at the bandlimited waveform produced by the approach described
 # in the BLIT paper, you'll find that they are not causal: it is as if the
 # band-limiting filter "anticipated" the discontinuity and started the
 # oscillations/ringing to smooth the discontinuity *before* it happens.
+# Such things do not exist in nature.
 # A way of avoiding this is to use a causal version of the band-limiting filter,
-# obtained by minimum phase reconstruction of the sinc.
+# obtained by minimum phase reconstruction of the sinc. It doesn't sound better.
 CAUSAL = False
 
 
