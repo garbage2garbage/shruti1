@@ -120,7 +120,7 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_RANGE 18  // range
 #define STR_RES_OPERATOR 19  // operator
 #define STR_RES_DETUNE 20  // detune
-#define STR_RES_ENVTVCF 21  // env~vcf
+#define STR_RES_ENV1TVCF 21  // env1~vcf
 #define STR_RES_LFO2TVCF 22  // lfo2~vcf
 #define STR_RES_OSC_BAL 23  // osc bal
 #define STR_RES_SUB_OSC_ 24  // sub osc.

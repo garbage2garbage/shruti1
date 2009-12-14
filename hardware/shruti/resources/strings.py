@@ -42,7 +42,7 @@ parameter
 range
 operator
 detune
-env~vcf
+env1~vcf
 lfo2~vcf
 osc bal
 sub osc.

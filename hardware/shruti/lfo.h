@@ -74,7 +74,7 @@ class Lfo {
   uint16_t phase_;
   uint16_t previous_phase_;
   
-  // Copy of the algorithm used by this oscillator.
+  // Copy of the algorithm used by this lfo.
   uint8_t algorithm_;
 
   // Current value of S&H.

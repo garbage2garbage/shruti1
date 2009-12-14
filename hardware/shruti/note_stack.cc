@@ -41,7 +41,7 @@ void NoteStack::NoteOn(uint8_t note, uint8_t velocity) {
   // stack.
   if (size_ == kNoteStackSize) {
     uint8_t least_recent_note = 0;
-    for (int i = 1; i <= kNoteStackSize; ++i) {
+    for (uint8_t i = 1; i <= kNoteStackSize; ++i) {
       if (pool_[i].next_ptr == 0) {
         least_recent_note = pool_[i].note;
       }
@@ -50,7 +50,7 @@ void NoteStack::NoteOn(uint8_t note, uint8_t velocity) {
   }
   // Now we are ready to insert the new note. Find a free slot to insert it.
   uint8_t free_slot = 0;
-  for (int i = 1; i <= kNoteStackSize; ++i) {
+  for (uint8_t i = 1; i <= kNoteStackSize; ++i) {
     if (pool_[i].next_ptr == 0 && pool_[i].note == 0) {
       free_slot = i;
     }
@@ -60,9 +60,9 @@ void NoteStack::NoteOn(uint8_t note, uint8_t velocity) {
   pool_[free_slot].velocity = velocity;
   root_ptr_ = free_slot;
   // The last step consists in inserting the note in the sorted list.
-  for (int i = 0; i < size_; ++i) {
+  for (uint8_t i = 0; i < size_; ++i) {
     if (pool_[sorted_ptr_[i]].note > note) {
-      for (int j = size_; j > i; --j) {
+      for (uint8_t j = size_; j > i; --j) {
         sorted_ptr_[j] = sorted_ptr_[j - 1];
       }
       sorted_ptr_[i] = free_slot;
@@ -93,9 +93,9 @@ void NoteStack::NoteOff(uint8_t note) {
     } else {
       root_ptr_ = pool_[current].next_ptr;
     }
-    for (int i = 0; i < size_; ++i) {
+    for (uint8_t i = 0; i < size_; ++i) {
       if (sorted_ptr_[i] == current) {
-        for (int j = i; j < size_ - 1; ++j) {
+        for (uint8_t j = i; j < size_ - 1; ++j) {
           sorted_ptr_[j] = sorted_ptr_[j + 1];
         }
         break;
@@ -111,7 +111,7 @@ void NoteStack::NoteOff(uint8_t note) {
 /* static */
 void NoteStack::Clear() {
   size_ = 0;
-  for (int i = 1; i <= kNoteStackSize; ++i) {
+  for (uint8_t i = 1; i <= kNoteStackSize; ++i) {
     pool_[i].note = 0;
     pool_[i].velocity = 0;
     pool_[i].next_ptr = 0;

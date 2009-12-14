@@ -204,8 +204,8 @@ class Oscillator {
   static uint16_t phase_increment_;
   static uint16_t phase_increment_2_;
   
-  // Copy of the algorithm used by this oscillator. Change along with the
-  // Setup/Update/Render pointers.
+  // Copy of the algorithm used by this oscillator. When changing this, you
+  // should also update the Update/Render pointers.
   static uint8_t algorithm_;
   // Whether we are sweeping through the algorithms.
   static uint8_t sweeping_;
@@ -222,8 +222,8 @@ class Oscillator {
   // Union of state data used by each algorithm.
   static OscillatorData data_;
   
-  // A trio of pointers to the setup/update/render functions. update/render
-  // function might be NULL.
+  // A pair of pointers to the update/render functions. update function might be
+  // NULL.
   static AlgorithmFn fn_;
   
   static AlgorithmFn fn_table_[];
@@ -542,7 +542,7 @@ class Oscillator {
   DISALLOW_COPY_AND_ASSIGN(Oscillator);
 };
 
-#define Os Oscillator<id, mode>
+#define Osc Oscillator<id, mode>
 
 template<int id, OscillatorMode mode>
 uint16_t Oscillator<id, mode>::phase_increment_;
@@ -564,17 +564,17 @@ OscillatorData Oscillator<id, mode>::data_;
 template<int id, OscillatorMode mode> AlgorithmFn Oscillator<id, mode>::fn_;
 template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
-  { NULL, &Os::RenderSilence },
-  { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },
-  { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
-  { &Os::UpdatePulseSquare, &Os::RenderPulseSquare },
-  { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
-  { &Os::UpdateCz, &Os::RenderCz },
-  { &Os::UpdateFm, &Os::RenderFm },
-  { NULL, &Os::Render8BitLand },
-  { &Os::UpdateVowel, &Os::RenderVowel },
-  { &Os::UpdateWavetable64, &Os::RenderWavetable64 },
-  { &Os::UpdateSawTriangle, &Os::RenderSawTriangle },
+  { NULL, &Osc::RenderSilence },
+  { &Osc::UpdatePulseSquare, &Osc::RenderPulseSquare },
+  { &Osc::UpdateSawTriangle, &Osc::RenderSawTriangle },
+  { &Osc::UpdatePulseSquare, &Osc::RenderPulseSquare },
+  { &Osc::UpdateSawTriangle, &Osc::RenderSawTriangle },
+  { &Osc::UpdateCz, &Osc::RenderCz },
+  { &Osc::UpdateFm, &Osc::RenderFm },
+  { NULL, &Osc::Render8BitLand },
+  { &Osc::UpdateVowel, &Osc::RenderVowel },
+  { &Osc::UpdateWavetable64, &Osc::RenderWavetable64 },
+  { &Osc::UpdateSawTriangle, &Osc::RenderSawTriangle },
 };
 
 }  // namespace hardware_shruti

@@ -46,7 +46,7 @@ static const prog_char str_res_parameter[] PROGMEM = "parameter";
 static const prog_char str_res_range[] PROGMEM = "range";
 static const prog_char str_res_operator[] PROGMEM = "operator";
 static const prog_char str_res_detune[] PROGMEM = "detune";
-static const prog_char str_res_envTvcf[] PROGMEM = "env~vcf";
+static const prog_char str_res_env1Tvcf[] PROGMEM = "env1~vcf";
 static const prog_char str_res_lfo2Tvcf[] PROGMEM = "lfo2~vcf";
 static const prog_char str_res_osc_bal[] PROGMEM = "osc bal";
 static const prog_char str_res_sub_osc_[] PROGMEM = "sub osc.";
@@ -292,7 +292,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_range,
   str_res_operator,
   str_res_detune,
-  str_res_envTvcf,
+  str_res_env1Tvcf,
   str_res_lfo2Tvcf,
   str_res_osc_bal,
   str_res_sub_osc_,

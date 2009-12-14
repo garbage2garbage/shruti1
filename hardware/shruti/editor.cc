@@ -115,7 +115,7 @@ static const prog_char raw_parameter_definition[
   PRM_FILTER_ENV,
   0, 63,
   PAGE_FILTER_FILTER, UNIT_INT8,
-  STR_RES_ENVTVCF, STR_RES_ENVTVCF,
+  STR_RES_ENV1TVCF, STR_RES_ENV1TVCF,
   
   PRM_FILTER_LFO,
   0, 63,
