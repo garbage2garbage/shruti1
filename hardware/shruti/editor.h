@@ -95,7 +95,6 @@ struct ParameterDefinition {
   uint8_t id;
   uint8_t min_value;
   uint8_t max_value;
-  ParameterPage page;
   ParameterUnit unit;
   ResourceId short_name;
   ResourceId long_name;
@@ -114,6 +113,7 @@ struct PageDefinition {
   ParameterGroup group;
   ResourceId name;
   UiType ui_type;
+  uint8_t first_parameter_index;
 };
 
 // For each type of page (basic parameter editor, step sequencer, load/save
@@ -121,7 +121,7 @@ struct PageDefinition {
 // - a function displaying the "overview" page.
 // - a function displaying a specific parameter value ("details").
 // - a function handling a change in one of the 4 editing pots.
-// - a function handling increment/decrement.
+// - a function handling presses on the increment/decrement buttons.
 struct UiHandler {
   void (*summary_page)();
   void (*details_page)();
@@ -145,15 +145,13 @@ class Editor {
   // Handles a press on the inc/dec buttons.
   static void HandleIncrement(int8_t direction);
   
-  // Display variants of the current page.
+  // Displays variants of the current page.
   static void DisplaySummary();
   static void DisplayDetails();
   
-  // Display two lines of text read from a resource.
+  // Displays two lines of text read from a resource.
   static void DisplaySplashScreen(ResourceId first_line);
   
-  // Use the UI default to reset the current patch.
-  static void ResetPatch();
   static inline ParameterPage current_page() { return current_page_; }
   static inline uint8_t cursor() { return cursor_; }
   static inline uint8_t subpage() { return subpage_; }
@@ -197,7 +195,6 @@ class Editor {
   // Used for the modulation matrix page only.
   static uint8_t last_visited_subpage_;
   static uint8_t current_controller_;
-  static uint8_t parameter_definition_offset_[kNumPages][kNumEditingPots];
 
   static char line_buffer_[kLcdWidth * kLcdHeight + 1];
 

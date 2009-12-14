@@ -59,211 +59,211 @@ static const prog_char raw_parameter_definition[
   // Osc 1.
   PRM_OSC_SHAPE_1,
   WAVEFORM_NONE, WAVEFORM_ANALOG_WAVETABLE,
-  PAGE_OSC_OSC_1, UNIT_WAVEFORM,
+  UNIT_WAVEFORM,
   STR_RES_SHAPE, STR_RES_SHAPE,
   
   PRM_OSC_PARAMETER_1,
   0, 127,
-  PAGE_OSC_OSC_1, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_PRM, STR_RES_PARAMETER,
   
   PRM_OSC_RANGE_1,
   -12, 12,
-  PAGE_OSC_OSC_1, UNIT_INT8,
+  UNIT_INT8,
   STR_RES_RNG, STR_RES_RANGE,
   
   PRM_OSC_OPTION_1,
   SUM, XOR,
-  PAGE_OSC_OSC_1, UNIT_OPERATOR,
+  UNIT_OPERATOR,
   STR_RES_OP, STR_RES_OPERATOR,
 
   // Osc 2.
   PRM_OSC_SHAPE_2,
   WAVEFORM_IMPULSE_TRAIN, WAVEFORM_TRIANGLE,
-  PAGE_OSC_OSC_2, UNIT_WAVEFORM,
+  UNIT_WAVEFORM,
   STR_RES_SHAPE, STR_RES_SHAPE,
   
   PRM_OSC_PARAMETER_2,
   0, 127,
-  PAGE_OSC_OSC_2, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_PRM, STR_RES_PARAMETER,
   
   PRM_OSC_RANGE_2,
   -24, 24, 
-  PAGE_OSC_OSC_2, UNIT_INT8,
+  UNIT_INT8,
   STR_RES_RNG, STR_RES_RANGE,
   
   PRM_OSC_OPTION_2,
   0, 127,
-  PAGE_OSC_OSC_2, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_TUN, STR_RES_DETUNE,
 
   // Mix balance.
   PRM_MIX_BALANCE,
   0, 63,
-  PAGE_OSC_OSC_MIX, UNIT_UINT8,
+  UNIT_UINT8,
   STR_RES_MIX, STR_RES_OSC_BAL,
 
   PRM_MIX_SUB_OSC,
   0, 63,
-  PAGE_OSC_OSC_MIX, UNIT_UINT8,
+  UNIT_UINT8,
   STR_RES_SUB, STR_RES_SUB_OSC_,
   
   PRM_MIX_NOISE,
   0, 63,
-  PAGE_OSC_OSC_MIX, UNIT_UINT8,
+  UNIT_UINT8,
   STR_RES_NOI, STR_RES_NOISE,
 
   PRM_MIX_SUB_OSC_SHAPE,
   WAVEFORM_SQUARE, WAVEFORM_TRIANGLE,
-  PAGE_OSC_OSC_MIX, UNIT_WAVEFORM, 
+  UNIT_WAVEFORM, 
   STR_RES_SHAPE, STR_RES_SHAPE,
   
   // Filter.
   PRM_FILTER_CUTOFF,
   0, 127,
-  PAGE_FILTER_FILTER, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_CUT, STR_RES_CUTOFF,
   
   PRM_FILTER_RESONANCE,
   0, 63,
-  PAGE_FILTER_FILTER, UNIT_UINT8,
+  UNIT_UINT8,
   STR_RES_RES, STR_RES_RESONANCE,
   
   PRM_FILTER_ENV,
   0, 63,
-  PAGE_FILTER_FILTER, UNIT_INT8,
+  UNIT_INT8,
   STR_RES_ENV1TVCF, STR_RES_ENV1TVCF,
   
   PRM_FILTER_LFO,
   0, 63,
-  PAGE_FILTER_FILTER, UNIT_INT8,
+  UNIT_INT8,
   STR_RES_LFO2TVCF, STR_RES_LFO2TVCF,
 
   // Env 1.
   PRM_ENV_ATTACK_1,
   0, 127,
-  PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_ATK, STR_RES_ATTACK,
   
   PRM_ENV_DECAY_1,
   0, 127,
-  PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_DECAY, STR_RES_DECAY,
   
   PRM_ENV_SUSTAIN_1,
   0, 127,
-  PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_SUSTAIN, STR_RES_SUSTAIN,
   
   PRM_ENV_RELEASE_1,
   0, 127,
-  PAGE_MOD_ENV_1, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_RELEASE, STR_RES_RELEASE,
 
   // Env 2.
   PRM_ENV_ATTACK_2,
   0, 127,
-  PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_ATK, STR_RES_ATTACK,
   
   PRM_ENV_DECAY_2,
   0, 127,
-  PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_DECAY, STR_RES_DECAY,
   
   PRM_ENV_SUSTAIN_2,
   0, 127,
-  PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_SUSTAIN, STR_RES_SUSTAIN,
   
   PRM_ENV_RELEASE_2,
   0, 127,
-  PAGE_MOD_ENV_2, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_RELEASE, STR_RES_RELEASE,
 
   // Lfo.
   PRM_LFO_WAVE_1,
   LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_RAMP,
-  PAGE_MOD_LFO, UNIT_LFO_WAVEFORM,
+  UNIT_LFO_WAVEFORM,
   STR_RES_WV1, STR_RES_LFO1_WAVE,
   
   PRM_LFO_RATE_1,
   0, 127 + 16,
-  PAGE_MOD_LFO, UNIT_LFO_RATE,
+  UNIT_LFO_RATE,
   STR_RES_RT1, STR_RES_LFO1_RATE,
   
   PRM_LFO_WAVE_2,
   LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_RAMP,
-  PAGE_MOD_LFO, UNIT_LFO_WAVEFORM,
+  UNIT_LFO_WAVEFORM,
   STR_RES_WV2, STR_RES_LFO2_WAVE,
   
   PRM_LFO_RATE_2,
   0, 127 + 16,
-  PAGE_MOD_LFO, UNIT_LFO_RATE,
+  UNIT_LFO_RATE,
   STR_RES_RT2, STR_RES_LFO2_RATE,
   
   // Modulations.
   PRM_MOD_ROW,
   0, kModulationMatrixSize - 1,
-  PAGE_MOD_MATRIX, UNIT_INDEX,
+  UNIT_INDEX,
   STR_RES_MOD_, STR_RES_MOD_,
 
   PRM_MOD_SOURCE,
   0, kNumModulationSources - 1,
-  PAGE_MOD_MATRIX, UNIT_MODULATION_SOURCE,
+  UNIT_MODULATION_SOURCE,
   STR_RES_SRC, STR_RES_SOURCE,
   
   PRM_MOD_DESTINATION,
   0, kNumModulationDestinations - 1,
-  PAGE_MOD_MATRIX, UNIT_MODULATION_DESTINATION,
+  UNIT_MODULATION_DESTINATION,
   STR_RES_DST, STR_RES_DEST_,
   
   PRM_MOD_AMOUNT,
   -63, 63,
-  PAGE_MOD_MATRIX, UNIT_INT8,
+  UNIT_INT8,
   STR_RES_AMT, STR_RES_AMOUNT,
 
   // Arpeggiator.
   PRM_ARP_TEMPO,
   24, 240,
-  PAGE_PLAY_ARP, UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
+  UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
   STR_RES_BPM, STR_RES_TEMPO,
   
   PRM_ARP_OCTAVE,
   OFF, 4,
-  PAGE_PLAY_ARP, UNIT_UINT8,
+  UNIT_UINT8,
   STR_RES_OCTAVE, STR_RES_OCTAVE,
   
   PRM_ARP_PATTERN,
   0, 23, 
-  PAGE_PLAY_ARP, UNIT_PATTERN,
+  UNIT_PATTERN,
   STR_RES_PATTERN, STR_RES_PATTERN,
   
   PRM_ARP_SWING,
   0, 127, 
-  PAGE_PLAY_ARP, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_SWG, STR_RES_SWING,
   
   // Keyboard settings.
   PRM_KBD_OCTAVE,
   -2, +2,
-  PAGE_PLAY_KBD, UNIT_INT8,
+  UNIT_INT8,
   STR_RES_OCTAVE, STR_RES_OCTAVE,
   
   PRM_KBD_RAGA,
   0, 77, 
-  PAGE_PLAY_KBD, UNIT_RAGA,
+  UNIT_RAGA,
   STR_RES_RAGA, STR_RES_RAGA,
   
   PRM_KBD_PORTAMENTO,
   0, 127,
-  PAGE_PLAY_KBD, UNIT_RAW_UINT8,
+  UNIT_RAW_UINT8,
   STR_RES_PRT, STR_RES_PORTA,
   
   PRM_KBD_MIDI_CHANNEL,
   0, 16, 
-  PAGE_PLAY_KBD, UNIT_UINT8,
+  UNIT_UINT8,
   STR_RES_CHN, STR_RES_MIDI_CHAN
 };
 
@@ -279,18 +279,18 @@ const UiHandler Editor::ui_handler_[] = {
 
 /* static */
 const PageDefinition Editor::page_definition_[] = {
-  { PAGE_OSC_OSC_1, GROUP_OSC, STR_RES_OSCILLATOR_1, PARAMETER_EDITOR },
-  { PAGE_OSC_OSC_2, GROUP_OSC, STR_RES_OSCILLATOR_2, PARAMETER_EDITOR },
-  { PAGE_OSC_OSC_MIX, GROUP_OSC, STR_RES_MIXER, PARAMETER_EDITOR },
-  { PAGE_FILTER_FILTER, GROUP_FILTER, STR_RES_FILTER, PARAMETER_EDITOR },
-  { PAGE_MOD_ENV_1, GROUP_MOD, STR_RES_ENVELOPE_1, PARAMETER_EDITOR },
-  { PAGE_MOD_ENV_2, GROUP_MOD, STR_RES_ENVELOPE_2, PARAMETER_EDITOR },
-  { PAGE_MOD_LFO, GROUP_MOD, STR_RES_LFOS, PARAMETER_EDITOR },
-  { PAGE_MOD_MATRIX, GROUP_MOD, STR_RES_MODULATION, PARAMETER_EDITOR },
-  { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_ARPEGGIO, PARAMETER_EDITOR },
-  { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER, STEP_SEQUENCER },
-  { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD, PARAMETER_EDITOR },
-  { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_LOAD_SAVE_PATCH, LOAD_SAVE }
+  { PAGE_OSC_OSC_1, GROUP_OSC, STR_RES_OSCILLATOR_1, PARAMETER_EDITOR, 0 },
+  { PAGE_OSC_OSC_2, GROUP_OSC, STR_RES_OSCILLATOR_2, PARAMETER_EDITOR, 4 },
+  { PAGE_OSC_OSC_MIX, GROUP_OSC, STR_RES_MIXER, PARAMETER_EDITOR, 8 },
+  { PAGE_FILTER_FILTER, GROUP_FILTER, STR_RES_FILTER, PARAMETER_EDITOR, 12 },
+  { PAGE_MOD_ENV_1, GROUP_MOD, STR_RES_ENVELOPE_1, PARAMETER_EDITOR, 16 },
+  { PAGE_MOD_ENV_2, GROUP_MOD, STR_RES_ENVELOPE_2, PARAMETER_EDITOR, 20 },
+  { PAGE_MOD_LFO, GROUP_MOD, STR_RES_LFOS, PARAMETER_EDITOR, 24 },
+  { PAGE_MOD_MATRIX, GROUP_MOD, STR_RES_MODULATION, PARAMETER_EDITOR, 28 },
+  { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_ARPEGGIO, PARAMETER_EDITOR, 32 },
+  { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER, STEP_SEQUENCER, 0 },
+  { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD, PARAMETER_EDITOR, 36 },
+  { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_LOAD_SAVE_PATCH, LOAD_SAVE, 0 }
 };
 
 /* <static> */
@@ -307,7 +307,6 @@ ParameterPage Editor::last_visited_page_[kNumGroups] = {
     PAGE_LOAD_SAVE
 };
 uint8_t Editor::current_controller_;
-uint8_t Editor::parameter_definition_offset_[kNumPages][kNumEditingPots];
 uint8_t Editor::last_visited_subpage_ = 0;
 
 char Editor::line_buffer_[kLcdWidth * kLcdHeight + 1];
@@ -321,10 +320,6 @@ uint8_t Editor::previous_patch_number_ = 0;
 
 /* static */
 void Editor::Init() {
-  for (uint8_t i = 0; i < kNumEditableParameters; ++i) {
-    parameter_definition_offset_[parameter_definition(i).page]
-        [i % kNumEditingPots] = i;
-  }
   // Check that the pages are in the right order in the PageDefinition
   // structure. Otherwise we won't be able to do fancy addressing.
   for (uint8_t i = 0; i < kNumPages; ++i) {
@@ -554,7 +549,7 @@ void Editor::DisplayEditSummaryPage() {
   // foo bar baz bad
   //  63 127   0   0
   for (uint8_t i = 0; i < kNumEditingPots; ++i) {
-    uint8_t index = parameter_definition_offset_[current_page_][i];
+    uint8_t index = page_definition_[current_page_].first_parameter_index + i;
     const ParameterDefinition& parameter = parameter_definition(index);
     ResourcesManager::LoadStringResource(
         parameter.short_name,
@@ -585,13 +580,13 @@ void Editor::DisplayEditDetailsPage() {
   // amount        63
   if (current_page_ == PAGE_MOD_MATRIX) {
     const ParameterDefinition& current_source = parameter_definition(
-        parameter_definition_offset_[PAGE_MOD_MATRIX][1]);
+        page_definition_[PAGE_MOD_MATRIX].first_parameter_index + 1);
     PrettyPrintParameterValue(
         current_source,
         line_buffer_ + 4,
         kColumnWidth - 1);
     const ParameterDefinition& current_destination = parameter_definition(
-        parameter_definition_offset_[PAGE_MOD_MATRIX][2]);
+        page_definition_[PAGE_MOD_MATRIX].first_parameter_index + 2);
     PrettyPrintParameterValue(
         current_destination,
         line_buffer_ + kColumnWidth + 4,
@@ -604,10 +599,10 @@ void Editor::DisplayEditDetailsPage() {
     AlignLeft(line_buffer_ + kColumnWidth + 4, kLcdWidth - kColumnWidth - 4);
     display.Print(0, line_buffer_);
   }
-  uint8_t index =
-      parameter_definition_offset_[current_page_][current_controller_];
+  uint8_t index = page_definition_[current_page_].first_parameter_index + \ 
+      current_controller_;
   const ParameterDefinition& parameter = parameter_definition(index);
-  const PageDefinition& page = page_definition_[parameter.page];
+  const PageDefinition& page = page_definition_[current_page_];
 
   if (current_page_ != PAGE_MOD_MATRIX) {
     ResourcesManager::LoadStringResource(
@@ -635,7 +630,8 @@ void Editor::DisplayEditDetailsPage() {
 /* static */
 void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
   uint8_t new_value;
-  uint8_t index = parameter_definition_offset_[current_page_][controller_index];
+  uint8_t index = page_definition_[current_page_].first_parameter_index + \
+      controller_index;
   const ParameterDefinition& parameter = parameter_definition(index);
 
   // Handle the simple case when the parameter can only take one value.
@@ -693,8 +689,8 @@ uint8_t Editor::GetParameterWithHacks(uint8_t id) {
 
 /* static */
 void Editor::HandleEditIncrement(int8_t direction) {
-  uint8_t index = parameter_definition_offset_[current_page_][
-      current_controller_];
+  uint8_t index = page_definition_[current_page_].first_parameter_index + \
+      current_controller_;
   const ParameterDefinition& parameter = parameter_definition(index);
   
   int16_t value = GetParameterWithHacks(parameter.id);
@@ -776,11 +772,6 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
   } else {
     Itoa<int16_t>(value, width, buffer);
   }
-}
-
-/* static */
-void Editor::ResetPatch() {
-  engine.ResetPatch();
 }
 
 /* static */

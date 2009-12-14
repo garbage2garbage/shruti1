@@ -177,7 +177,7 @@ class Display {
     if (DisplaySerialOutput::writable() < 3) {
       return;
     }
-    // It is now safe to assuma that all writes of 3 bytes to the display buffer
+    // It is now safe to assume that all writes of 3 bytes to the display buffer
     // will not block.
     
     // Blink the cursor and clears the status character.
