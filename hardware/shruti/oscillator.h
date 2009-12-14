@@ -142,10 +142,10 @@ class Oscillator {
     if (mode == SUB_OSCILLATOR) {
       RenderSub();
     } else if (mode == LOW_COMPLEXITY) {
-      if (algorithm_ & 1) {
+      if (algorithm_corrected_ & 1) {
         RenderPulseSquare();
       } else {
-        RenderSawTriangle();
+        RenderSimpleWavetable();
       }
     } else {
       (*fn_.render)();
@@ -171,16 +171,25 @@ class Oscillator {
       phase_increment_ = increment;
       phase_increment_2_ = increment << 1;
       if (mode == LOW_COMPLEXITY) {
-        if (algorithm_ & 1) {
+        if (algorithm_ == WAVEFORM_SQUARE && parameter_ == 0) {
+          algorithm_corrected_ = algorithm_ + 1;
+        } else {
+          algorithm_corrected_ = algorithm_;
+        }
+        if (algorithm_corrected_ & 1) {
           UpdatePulseSquare();
         } else {
-          UpdateSawTriangle();
+          UpdateSimpleWavetable();
         }
       } else {
         if (sweeping_) {
           algorithm_ = (parameter >> 5) + 1;
           fn_ = fn_table_[algorithm_];
           parameter_ = (parameter & 0x1f) << 2;
+        }
+        // A hack: when pulse width is set to 0, use a simple wavetable.
+        if (algorithm_ == WAVEFORM_SQUARE) {
+          fn_ = fn_table_[algorithm_ + (parameter_ == 0 ? 1 : 0)];
         }
         if (fn_.update) {
           (*fn_.update)();
@@ -207,6 +216,7 @@ class Oscillator {
   // Copy of the algorithm used by this oscillator. When changing this, you
   // should also update the Update/Render pointers.
   static uint8_t algorithm_;
+  static uint8_t algorithm_corrected_;
   // Whether we are sweeping through the algorithms.
   static uint8_t sweeping_;
   
@@ -286,48 +296,29 @@ class Oscillator {
     uint8_t note = Swap4(note_ - 12);
     uint8_t wave_index = note & 0xf;
     data_.sq.balance = note & 0xf0;
-    uint8_t wavetable_base;
-    uint8_t wavetable_size;
-    
-    if (parameter_ != 0 || algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
-      // TODO(pichenettes): find better formula for leaky integrator constant.
-      data_.sq.leak = 255 - ((note_ - 12) >> 3);
-      data_.sq.shift = static_cast<uint16_t>(parameter_ + 127) << 8;
-      wavetable_base = WAV_RES_BANDLIMITED_PULSE_1;
-      wavetable_size = kNumZonesHalfSampleRate;
-    } else {
-      data_.sq.leak = 0;
-      wavetable_base = WAV_RES_BANDLIMITED_SQUARE_0;
-      wavetable_size = kNumZonesFullSampleRate;
-    }
-    data_.sq.wave[0] = waveform_table[wavetable_base + wave_index];
-    wave_index = AddClip(wave_index, 1, wavetable_size);
-    data_.sq.wave[1] = waveform_table[wavetable_base + wave_index];
+    data_.sq.leak = 255 - ((note_ - 12) >> 3);
+    data_.sq.shift = static_cast<uint16_t>(parameter_ + 127) << 8;
+    data_.sq.wave[0] = waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
+    wave_index = AddClip(wave_index, 1, kNumZonesHalfSampleRate);
+    data_.sq.wave[1] = waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
   }
   static void RenderPulseSquare() {
-    if (data_.sq.leak) {
-      HALF_SAMPLE_RATE;
-    }
-    held_sample_ = InterpolateTwoTables(
+    HALF_SAMPLE_RATE;
+    
+    int16_t blit = InterpolateTwoTables(
         data_.sq.wave[0],
         data_.sq.wave[1],
         phase_,
         data_.sq.balance);
-
-    if (data_.sq.leak) {
-      int16_t blit = held_sample_;
-      blit -= InterpolateSample(data_.sq.wave[0], phase_ + data_.sq.shift);
-      phase_ += phase_increment_2_;
-      if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
-        held_sample_ = Clip8(blit + 128);
-      } else {
-        int8_t square = SignedClip8(
-            SignedMulScale8(data_.sq.square, data_.sq.leak) + blit);
-        data_.sq.square = square;
-        held_sample_ = square + 128;
-      }
+    blit -= InterpolateSample(data_.sq.wave[0], phase_ + data_.sq.shift);
+    phase_ += phase_increment_2_;
+    if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
+      held_sample_ = Clip8(blit + 128);
     } else {
-      phase_ += phase_increment_;
+      int8_t square = SignedClip8(
+          SignedMulScale8(data_.sq.square, data_.sq.leak) + blit);
+      data_.sq.square = square;
+      held_sample_ = square + 128;
     }
   }
   
@@ -354,19 +345,20 @@ class Oscillator {
   }
 
   // ------- Interpolation between two waveforms from two wavetables -----------
-  static void UpdateSawTriangle() {
+  static void UpdateSimpleWavetable() {
     uint8_t note = Swap4(note_ - 12);
     uint8_t wave_index = note & 0xf;
     uint8_t base_resource_id = algorithm_ == WAVEFORM_SAW ?
         WAV_RES_BANDLIMITED_SAW_0 :
-        WAV_RES_BANDLIMITED_TRIANGLE_0;
+        (algorithm_ == WAVEFORM_SQUARE ? WAV_RES_BANDLIMITED_SQUARE_0  : 
+        WAV_RES_BANDLIMITED_TRIANGLE_0);
       
     data_.st.wave[0] = waveform_table[base_resource_id + wave_index];
     wave_index = AddClip(wave_index, 1, kNumZonesFullSampleRate);
     data_.st.wave[1] = waveform_table[base_resource_id + wave_index];
     data_.st.balance = note & 0xf0;
   }
-  static void RenderSawTriangle() {
+  static void RenderSimpleWavetable() {
     phase_ += phase_increment_;
     uint8_t sample = InterpolateTwoTables(
         data_.st.wave[0], data_.st.wave[1],
@@ -475,6 +467,11 @@ class Oscillator {
   }
   
   // ------- Vowel ------------------------------------------------------------
+  //
+  // The algorithm used here is a reimplementation of the synthesis algorithm
+  // used in Cantarino, the Arduino speech synthesizer, by Peter Knight.
+  // http://code.google.com/p/tinkerit/wiki/Cantarino
+  //
   static void UpdateVowel() {
     data_.vw.update++;
     if (data_.vw.update == kVowelControlRateDecimation) {
@@ -551,6 +548,8 @@ uint16_t Oscillator<id, mode>::phase_increment_2_;
 
 template<int id, OscillatorMode mode> uint16_t Oscillator<id, mode>::phase_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::algorithm_;
+template<int id, OscillatorMode mode>
+uint8_t Oscillator<id, mode>::algorithm_corrected_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::parameter_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::note_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::sweeping_;
@@ -566,15 +565,15 @@ template<int id, OscillatorMode mode>
 AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { NULL, &Osc::RenderSilence },
   { &Osc::UpdatePulseSquare, &Osc::RenderPulseSquare },
-  { &Osc::UpdateSawTriangle, &Osc::RenderSawTriangle },
+  { &Osc::UpdateSimpleWavetable, &Osc::RenderSimpleWavetable },
   { &Osc::UpdatePulseSquare, &Osc::RenderPulseSquare },
-  { &Osc::UpdateSawTriangle, &Osc::RenderSawTriangle },
+  { &Osc::UpdateSimpleWavetable, &Osc::RenderSimpleWavetable },
   { &Osc::UpdateCz, &Osc::RenderCz },
   { &Osc::UpdateFm, &Osc::RenderFm },
   { NULL, &Osc::Render8BitLand },
   { &Osc::UpdateVowel, &Osc::RenderVowel },
   { &Osc::UpdateWavetable64, &Osc::RenderWavetable64 },
-  { &Osc::UpdateSawTriangle, &Osc::RenderSawTriangle },
+  { &Osc::RenderSimpleWavetable, &Osc::RenderSimpleWavetable },
 };
 
 }  // namespace hardware_shruti
