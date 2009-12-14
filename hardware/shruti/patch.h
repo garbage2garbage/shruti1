@@ -60,7 +60,7 @@ class Patch {
   uint8_t keep_me_at_the_top;
 
   // Offset: 0-8
-  uint8_t osc_algorithm[2];
+  uint8_t osc_shape[2];
   uint8_t osc_parameter[2];
   int8_t osc_range[2];
   uint8_t osc_option[2];
@@ -69,7 +69,7 @@ class Patch {
   uint8_t mix_balance;
   uint8_t mix_sub_osc;
   uint8_t mix_noise;
-  uint8_t mix_sub_osc_algorithm;
+  uint8_t mix_sub_osc_shape;
 
   // Offset: 12-16
   uint8_t filter_cutoff;
@@ -196,8 +196,8 @@ enum ModulationDestination {
 static const uint8_t kNumModulationDestinations = 11;
 
 enum Parameter {
-  PRM_OSC_ALGORITHM_1,
-  PRM_OSC_ALGORITHM_2,
+  PRM_OSC_SHAPE_1,
+  PRM_OSC_SHAPE_2,
   PRM_OSC_PARAMETER_1,
   PRM_OSC_PARAMETER_2,
   PRM_OSC_RANGE_1,
@@ -208,7 +208,7 @@ enum Parameter {
   PRM_MIX_BALANCE,
   PRM_MIX_SUB_OSC,
   PRM_MIX_NOISE,
-  PRM_MIX_SUB_OSC_ALGORITHM,
+  PRM_MIX_SUB_OSC_SHAPE,
 
   PRM_FILTER_CUTOFF,
   PRM_FILTER_RESONANCE,

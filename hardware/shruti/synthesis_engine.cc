@@ -259,8 +259,8 @@ void SynthesisEngine::SetParameter(
       parameter_index <= PRM_LFO_RATE_2) {
     UpdateModulationIncrements();
   }
-  if ((parameter_index <= PRM_OSC_ALGORITHM_2) ||
-      (parameter_index == PRM_MIX_SUB_OSC_ALGORITHM)) {
+  if ((parameter_index <= PRM_OSC_SHAPE_2) ||
+      (parameter_index == PRM_MIX_SUB_OSC_SHAPE)) {
     UpdateOscillatorAlgorithms();
   }
   // A copy of those parameters is stored by the note dispatcher/arpeggiator,
@@ -287,9 +287,9 @@ void SynthesisEngine::SetParameter(
 
 /* static */
 void SynthesisEngine::UpdateOscillatorAlgorithms() {
-  Osc1::SetupAlgorithm(patch_.osc_algorithm[0]);
-  Osc2::SetupAlgorithm(patch_.osc_algorithm[1]);
-  SubOsc::SetupAlgorithm(patch_.mix_sub_osc_algorithm);
+  Osc1::SetupAlgorithm(patch_.osc_shape[0]);
+  Osc2::SetupAlgorithm(patch_.osc_shape[1]);
+  SubOsc::SetupAlgorithm(patch_.mix_sub_osc_shape);
 }
 
 /* static */
@@ -563,7 +563,7 @@ void Voice::Control() {
   for (uint8_t i = 0; i < kNumOscillators; ++i) {
     int16_t pitch = pitch_value_;
     // -24 / +24 semitones by the range controller.
-    if (i == 0 && engine.patch_.osc_algorithm[0] == WAVEFORM_FM) {
+    if (i == 0 && engine.patch_.osc_shape[0] == WAVEFORM_FM) {
       Osc1::UpdateSecondaryParameter(engine.patch_.osc_range[i] + 12);
     } else {
       pitch += static_cast<int16_t>(engine.patch_.osc_range[i]) << 7;
@@ -648,7 +648,7 @@ void Voice::Audio() {
   
   // Disable sub oscillator and noise when the "vowel" waveform is used - it is
   // just too costly.
-  if (engine.patch_.osc_algorithm[0] != WAVEFORM_VOWEL) {
+  if (engine.patch_.osc_shape[0] != WAVEFORM_VOWEL) {
     mix = Mix(
         mix,
         SubOsc::Render(),

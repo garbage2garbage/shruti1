@@ -115,7 +115,7 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_CHN 13  // chn
 #define STR_RES_BPM 14  // bpm
 #define STR_RES_SWG 15  // swg
-#define STR_RES_ALGORITHM 16  // algorithm
+#define STR_RES_SHAPE 16  // shape
 #define STR_RES_PARAMETER 17  // parameter
 #define STR_RES_RANGE 18  // range
 #define STR_RES_OPERATOR 19  // operator

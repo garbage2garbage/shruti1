@@ -38,7 +38,7 @@ class Lfo {
  public:
   Lfo() { }
   uint8_t Render() {
-    switch (algorithm_) {
+    switch (shape_) {
       case LFO_WAVEFORM_S_H:
         if (phase_ < previous_phase_) {
           value_ = Random::GetByte();
@@ -61,8 +61,8 @@ class Lfo {
   void Increment() {
     phase_ += phase_increment_;
   }
-  void Update(uint8_t algorithm, uint16_t increment) {
-    algorithm_ = algorithm;
+  void Update(uint8_t shape, uint16_t increment) {
+    shape_ = shape;
     phase_increment_ = increment;
   }
 
@@ -74,8 +74,8 @@ class Lfo {
   uint16_t phase_;
   uint16_t previous_phase_;
   
-  // Copy of the algorithm used by this lfo.
-  uint8_t algorithm_;
+  // Copy of the shape used by this lfo.
+  uint8_t shape_;
 
   // Current value of S&H.
   uint8_t value_;

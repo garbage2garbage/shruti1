@@ -36,13 +36,31 @@ namespace hardware_shruti {
 /* extern */
 Editor editor;
 
+static const prog_char units_definitions[UNIT_TEMPO_WITH_EXTERNAL_CLOCK + 1]
+    PROGMEM = {
+  0,
+  0,
+  0,
+  STR_RES_OFF,
+  STR_RES_NONE,
+  STR_RES_1S2,
+  STR_RES_TRI,
+  0,
+  0,
+  STR_RES_LFO1,
+  STR_RES_CUTOFF,
+  STR_RES_3_1,
+  STR_RES_EQUAL,
+  0,
+};
+
 static const prog_char raw_parameter_definition[
     kNumEditableParameters * sizeof(ParameterDefinition)] PROGMEM = {
   // Osc 1.
-  PRM_OSC_ALGORITHM_1,
+  PRM_OSC_SHAPE_1,
   WAVEFORM_NONE, WAVEFORM_ANALOG_WAVETABLE,
   PAGE_OSC_OSC_1, UNIT_WAVEFORM,
-  STR_RES_ALGORITHM, STR_RES_ALGORITHM,
+  STR_RES_SHAPE, STR_RES_SHAPE,
   
   PRM_OSC_PARAMETER_1,
   0, 127,
@@ -60,10 +78,10 @@ static const prog_char raw_parameter_definition[
   STR_RES_OP, STR_RES_OPERATOR,
 
   // Osc 2.
-  PRM_OSC_ALGORITHM_2,
+  PRM_OSC_SHAPE_2,
   WAVEFORM_IMPULSE_TRAIN, WAVEFORM_TRIANGLE,
   PAGE_OSC_OSC_2, UNIT_WAVEFORM,
-  STR_RES_ALGORITHM, STR_RES_ALGORITHM,
+  STR_RES_SHAPE, STR_RES_SHAPE,
   
   PRM_OSC_PARAMETER_2,
   0, 127,
@@ -96,10 +114,10 @@ static const prog_char raw_parameter_definition[
   PAGE_OSC_OSC_MIX, UNIT_UINT8,
   STR_RES_NOI, STR_RES_NOISE,
 
-  PRM_MIX_SUB_OSC_ALGORITHM,
+  PRM_MIX_SUB_OSC_SHAPE,
   WAVEFORM_SQUARE, WAVEFORM_TRIANGLE,
   PAGE_OSC_OSC_MIX, UNIT_WAVEFORM, 
-  STR_RES_ALGORITHM, STR_RES_ALGORITHM,
+  STR_RES_SHAPE, STR_RES_SHAPE,
   
   // Filter.
   PRM_FILTER_CUTOFF,
@@ -185,7 +203,7 @@ static const prog_char raw_parameter_definition[
   PAGE_MOD_LFO, UNIT_LFO_RATE,
   STR_RES_RT2, STR_RES_LFO2_RATE,
   
-  // Modulation
+  // Modulations.
   PRM_MOD_ROW,
   0, kModulationMatrixSize - 1,
   PAGE_MOD_MATRIX, UNIT_INDEX,
@@ -227,7 +245,7 @@ static const prog_char raw_parameter_definition[
   PAGE_PLAY_ARP, UNIT_RAW_UINT8,
   STR_RES_SWG, STR_RES_SWING,
   
-  // Keyboard management.
+  // Keyboard settings.
   PRM_KBD_OCTAVE,
   -2, +2,
   PAGE_PLAY_KBD, UNIT_INT8,
@@ -288,7 +306,7 @@ ParameterPage Editor::last_visited_page_[kNumGroups] = {
     PAGE_PLAY_ARP,
     PAGE_LOAD_SAVE
 };
-uint8_t Editor::current_controller_ = 0;
+uint8_t Editor::current_controller_;
 uint8_t Editor::parameter_definition_offset_[kNumPages][kNumEditingPots];
 uint8_t Editor::last_visited_subpage_ = 0;
 
@@ -326,27 +344,20 @@ void Editor::ToggleGroup(ParameterGroup group) {
     current_page_ = PAGE_LOAD_SAVE;
     EnterLoadSaveMode();
   } else {
-    uint8_t first_in_group = 255;
-    uint8_t last_in_group = 255;
-  
-    // Get the first and last page in the requested group.
-    for (uint8_t i = 0; i < kNumPages; ++i) {
-      if (page_definition_[i].group == group) {
-        if (first_in_group == 255) {
-          first_in_group = i;
-        }
-        last_in_group = i;
-      }
-    }
+    // If we move to another group, go to the last visited page in this group.
     if (group != page_definition_[current_page_].group) {
-      // If we move to another group, go to the last visited page in this group.
       current_page_ = last_visited_page_[group];
     } else {
-      // Otherwise, cycle the pages in the current group.
-      if (current_page_ == last_in_group) {
-        current_page_ = first_in_group;
-      } else {
-        current_page_ = current_page_ + 1;
+      // Otherwise, switch to the next page. If the next page if outside the
+      // group, go back to the first page in the group.
+      current_page_ = current_page_ + 1;
+      if (page_definition_[current_page_].group != group) {
+        for (uint8_t i = 0; i < kNumPages; ++i) {
+          if (page_definition_[i].group == group) {
+            current_page_ = i;
+            break;
+          }
+        }
       }
     }
     // When switching to the modulation matrix page, go back to the previously
@@ -705,8 +716,8 @@ void Editor::HandleEditIncrement(int8_t direction) {
 /* static */
 void Editor::DisplaySplashScreen(ResourceId first_line) {
   // 0123456789abcdef
-  //     mutable 
-  //   instruments
+  // mutable 
+  // instruments sh-1
   for (uint8_t i = 0; i < 2; ++i) {
     ResourcesManager::LoadStringResource(
         first_line + i,
@@ -721,58 +732,47 @@ void Editor::DisplaySplashScreen(ResourceId first_line) {
 void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
                                        char* buffer, uint8_t width) {
   int16_t value = GetParameterWithHacks(parameter.id);
-  ResourceId base = 0;
+  ResourceId text = ResourcesManager::Lookup<uint8_t, uint8_t>(
+      units_definitions,
+      parameter.unit);
   char prefix = '\0';
   switch (parameter.unit) {
     case UNIT_INT8:
       value = int16_t(int8_t(value));
       break;
-    case UNIT_BOOLEAN:
-      base = STR_RES_OFF;
-      break;
-    case UNIT_OPERATOR:
-      base = STR_RES_1S2;
-      break;
-    case UNIT_WAVEFORM:
-      base = STR_RES_NONE;
-      break;
-    case UNIT_LFO_WAVEFORM:
-      base = STR_RES_TRI;
-      break;
-    case UNIT_RAGA:
-      base = STR_RES_EQUAL;
-      break;
     case UNIT_INDEX:
       value++;
       break;
-    case UNIT_PATTERN:
-      base = STR_RES_3_1;
-      break;
     case UNIT_MODULATION_SOURCE:
-      base = (width <= 4) ? STR_RES_LF1 : STR_RES_LFO1;
+      if (width <= 4) {
+        text = STR_RES_LF1;
+      }
       break;
     case UNIT_MODULATION_DESTINATION:
-      base = (width <= 4) ? STR_RES_CUT : STR_RES_CUTOFF;
+      if (width <= 4) {
+        text = STR_RES_CUT;
+      }
       break;
     case UNIT_LFO_RATE:
       if (value >= 16) {
         value = value - 16;
       } else {
         ++value;
-        prefix = '/';
+        prefix = 'x';
       }
       break;
     case UNIT_TEMPO_WITH_EXTERNAL_CLOCK:
       if (value == 39) {
         value = 0;
-        base = STR_RES_EXTERN;
+        text = STR_RES_EXTERN;
       }
   }
   if (prefix) {
     *buffer++ = prefix;
+    --width;
   }
-  if (base) {
-    ResourcesManager::LoadStringResource(base + value, buffer, width);
+  if (text) {
+    ResourcesManager::LoadStringResource(text + value, buffer, width);
   } else {
     Itoa<int16_t>(value, width, buffer);
   }

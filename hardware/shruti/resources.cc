@@ -41,7 +41,7 @@ static const prog_char str_res_prt[] PROGMEM = "prt";
 static const prog_char str_res_chn[] PROGMEM = "chn";
 static const prog_char str_res_bpm[] PROGMEM = "bpm";
 static const prog_char str_res_swg[] PROGMEM = "swg";
-static const prog_char str_res_algorithm[] PROGMEM = "algorithm";
+static const prog_char str_res_shape[] PROGMEM = "shape";
 static const prog_char str_res_parameter[] PROGMEM = "parameter";
 static const prog_char str_res_range[] PROGMEM = "range";
 static const prog_char str_res_operator[] PROGMEM = "operator";
@@ -287,7 +287,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_chn,
   str_res_bpm,
   str_res_swg,
-  str_res_algorithm,
+  str_res_shape,
   str_res_parameter,
   str_res_range,
   str_res_operator,

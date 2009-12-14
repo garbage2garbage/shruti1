@@ -37,7 +37,7 @@ chn
 bpm
 swg
 
-algorithm
+shape
 parameter
 range
 operator

@@ -124,12 +124,12 @@ class Oscillator {
  public:
    // Called whenever the parameters of the oscillator change. Can be used
    // to pre-compute parameters, set tables, etc.
-   static inline void SetupAlgorithm(uint8_t algorithm) {
-     if (algorithm != algorithm_) {
-       algorithm_ = algorithm;
+   static inline void SetupAlgorithm(uint8_t shape) {
+     if (shape != shape_) {
+       shape_ = shape;
        if (mode == FULL) {
-         fn_ = fn_table_[algorithm];
-         sweeping_ = algorithm_ == WAVEFORM_ANALOG_WAVETABLE;
+         fn_ = fn_table_[shape];
+         sweeping_ = shape_ == WAVEFORM_ANALOG_WAVETABLE;
        }
        Reset();
      }
@@ -142,7 +142,7 @@ class Oscillator {
     if (mode == SUB_OSCILLATOR) {
       RenderSub();
     } else if (mode == LOW_COMPLEXITY) {
-      if (algorithm_corrected_ & 1) {
+      if (shape_corrected_ & 1) {
         RenderPulseSquare();
       } else {
         RenderSimpleWavetable();
@@ -153,7 +153,7 @@ class Oscillator {
     return held_sample_;
   }
   static inline void Reset() {
-    if (mode == FULL && algorithm_ == WAVEFORM_WAVETABLE) {
+    if (mode == FULL && shape_ == WAVEFORM_WAVETABLE) {
       data_.wt.smooth_parameter = parameter_ * 64;
     }
   }
@@ -171,25 +171,25 @@ class Oscillator {
       phase_increment_ = increment;
       phase_increment_2_ = increment << 1;
       if (mode == LOW_COMPLEXITY) {
-        if (algorithm_ == WAVEFORM_SQUARE && parameter_ == 0) {
-          algorithm_corrected_ = algorithm_ + 1;
+        if (shape_ == WAVEFORM_SQUARE && parameter_ == 0) {
+          shape_corrected_ = shape_ + 1;
         } else {
-          algorithm_corrected_ = algorithm_;
+          shape_corrected_ = shape_;
         }
-        if (algorithm_corrected_ & 1) {
+        if (shape_corrected_ & 1) {
           UpdatePulseSquare();
         } else {
           UpdateSimpleWavetable();
         }
       } else {
         if (sweeping_) {
-          algorithm_ = (parameter >> 5) + 1;
-          fn_ = fn_table_[algorithm_];
+          shape_ = (parameter >> 5) + 1;
+          fn_ = fn_table_[shape_];
           parameter_ = (parameter & 0x1f) << 2;
         }
         // A hack: when pulse width is set to 0, use a simple wavetable.
-        if (algorithm_ == WAVEFORM_SQUARE) {
-          fn_ = fn_table_[algorithm_ + (parameter_ == 0 ? 1 : 0)];
+        if (shape_ == WAVEFORM_SQUARE) {
+          fn_ = fn_table_[shape_ + (parameter_ == 0 ? 1 : 0)];
         }
         if (fn_.update) {
           (*fn_.update)();
@@ -213,11 +213,11 @@ class Oscillator {
   static uint16_t phase_increment_;
   static uint16_t phase_increment_2_;
   
-  // Copy of the algorithm used by this oscillator. When changing this, you
+  // Copy of the shape used by this oscillator. When changing this, you
   // should also update the Update/Render pointers.
-  static uint8_t algorithm_;
-  static uint8_t algorithm_corrected_;
-  // Whether we are sweeping through the algorithms.
+  static uint8_t shape_;
+  static uint8_t shape_corrected_;
+  // Whether we are sweeping through the shapes.
   static uint8_t sweeping_;
   
   // Current value of the oscillator parameter.
@@ -229,7 +229,7 @@ class Oscillator {
   // Current MIDI note (used for wavetable selection).
   static uint8_t note_;
   
-  // Union of state data used by each algorithm.
+  // Union of state data used by each shape.
   static OscillatorData data_;
   
   // A pair of pointers to the update/render functions. update function might be
@@ -312,7 +312,7 @@ class Oscillator {
         data_.sq.balance);
     blit -= InterpolateSample(data_.sq.wave[0], phase_ + data_.sq.shift);
     phase_ += phase_increment_2_;
-    if (algorithm_ == WAVEFORM_IMPULSE_TRAIN) {
+    if (shape_ == WAVEFORM_IMPULSE_TRAIN) {
       held_sample_ = Clip8(blit + 128);
     } else {
       int8_t square = SignedClip8(
@@ -326,7 +326,7 @@ class Oscillator {
   static void UpdateSub() {
     uint8_t note = Swap4(note_);
     uint8_t wave_index = note & 0xf;
-    uint8_t base_resource_id = algorithm_ == WAVEFORM_SQUARE ?
+    uint8_t base_resource_id = shape_ == WAVEFORM_SQUARE ?
         WAV_RES_BANDLIMITED_SQUARE_1 :
         WAV_RES_BANDLIMITED_TRIANGLE_1;
 
@@ -348,9 +348,9 @@ class Oscillator {
   static void UpdateSimpleWavetable() {
     uint8_t note = Swap4(note_ - 12);
     uint8_t wave_index = note & 0xf;
-    uint8_t base_resource_id = algorithm_ == WAVEFORM_SAW ?
+    uint8_t base_resource_id = shape_ == WAVEFORM_SAW ?
         WAV_RES_BANDLIMITED_SAW_0 :
-        (algorithm_ == WAVEFORM_SQUARE ? WAV_RES_BANDLIMITED_SQUARE_0  : 
+        (shape_ == WAVEFORM_SQUARE ? WAV_RES_BANDLIMITED_SQUARE_0  : 
         WAV_RES_BANDLIMITED_TRIANGLE_0);
       
     data_.st.wave[0] = waveform_table[base_resource_id + wave_index];
@@ -376,7 +376,7 @@ class Oscillator {
     // /    |/                   /        \
     //
     if (sample < parameter_) {
-      if (algorithm_ == WAVEFORM_SAW) {
+      if (shape_ == WAVEFORM_SAW) {
         // Add a discontinuity.
         sample += parameter_ >> 1;
       } else {
@@ -468,7 +468,7 @@ class Oscillator {
   
   // ------- Vowel ------------------------------------------------------------
   //
-  // The algorithm used here is a reimplementation of the synthesis algorithm
+  // The shape used here is a reimplementation of the synthesis shape
   // used in Cantarino, the Arduino speech synthesizer, by Peter Knight.
   // http://code.google.com/p/tinkerit/wiki/Cantarino
   //
@@ -547,9 +547,9 @@ template<int id, OscillatorMode mode>
 uint16_t Oscillator<id, mode>::phase_increment_2_;
 
 template<int id, OscillatorMode mode> uint16_t Oscillator<id, mode>::phase_;
-template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::algorithm_;
+template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::shape_;
 template<int id, OscillatorMode mode>
-uint8_t Oscillator<id, mode>::algorithm_corrected_;
+uint8_t Oscillator<id, mode>::shape_corrected_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::parameter_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::note_;
 template<int id, OscillatorMode mode> uint8_t Oscillator<id, mode>::sweeping_;
