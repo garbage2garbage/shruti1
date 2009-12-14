@@ -217,7 +217,7 @@ class Oscillator {
   // should also update the Update/Render pointers.
   static uint8_t shape_;
   static uint8_t shape_corrected_;
-  // Whether we are sweeping through the shapes.
+  // Whether we are sweeping through the algorithms.
   static uint8_t sweeping_;
   
   // Current value of the oscillator parameter.
@@ -229,7 +229,7 @@ class Oscillator {
   // Current MIDI note (used for wavetable selection).
   static uint8_t note_;
   
-  // Union of state data used by each shape.
+  // Union of state data used by each algorithm.
   static OscillatorData data_;
   
   // A pair of pointers to the update/render functions. update function might be
@@ -468,7 +468,7 @@ class Oscillator {
   
   // ------- Vowel ------------------------------------------------------------
   //
-  // The shape used here is a reimplementation of the synthesis shape
+  // The algorithm used here is a reimplementation of the synthesis algorithm
   // used in Cantarino, the Arduino speech synthesizer, by Peter Knight.
   // http://code.google.com/p/tinkerit/wiki/Cantarino
   //
