@@ -19,6 +19,8 @@
 
 #include "hardware/shruti/note_stack.h"
 
+#include <string.h>
+
 namespace hardware_shruti {
 
 /* static */
@@ -31,16 +33,16 @@ NoteEntry NoteStack::pool_[kNoteStackSize + 1];
 uint8_t NoteStack::root_ptr_;
 
 /* static */
-uint8_t NoteStack::sorted_ptr_[kNoteStackSize];
+uint8_t NoteStack::sorted_ptr_[kNoteStackSize + 1];
 
 /* static */
 void NoteStack::NoteOn(uint8_t note, uint8_t velocity) {
-  // Remove the note from the list first.
+  // Remove the note from the list first (in case it is already here).
   NoteOff(note);
   // In case of saturation, remove the least recently played note from the
   // stack.
   if (size_ == kNoteStackSize) {
-    uint8_t least_recent_note = 0;
+    uint8_t least_recent_note;
     for (uint8_t i = 1; i <= kNoteStackSize; ++i) {
       if (pool_[i].next_ptr == 0) {
         least_recent_note = pool_[i].note;
@@ -49,7 +51,7 @@ void NoteStack::NoteOn(uint8_t note, uint8_t velocity) {
     NoteOff(least_recent_note);
   }
   // Now we are ready to insert the new note. Find a free slot to insert it.
-  uint8_t free_slot = 0;
+  uint8_t free_slot;
   for (uint8_t i = 1; i <= kNoteStackSize; ++i) {
     if (pool_[i].next_ptr == 0 && pool_[i].note == 0) {
       free_slot = i;
@@ -111,12 +113,8 @@ void NoteStack::NoteOff(uint8_t note) {
 /* static */
 void NoteStack::Clear() {
   size_ = 0;
-  for (uint8_t i = 1; i <= kNoteStackSize; ++i) {
-    pool_[i].note = 0;
-    pool_[i].velocity = 0;
-    pool_[i].next_ptr = 0;
-    sorted_ptr_[i] = 0;
-  }
+  memset(pool_ + 1, 0, sizeof(NoteEntry) * kNoteStackSize);
+  memset(sorted_ptr_ + 1, 0, sizeof(NoteEntry));
   root_ptr_ = 0;  
 }
 

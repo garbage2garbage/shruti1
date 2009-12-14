@@ -45,12 +45,15 @@ class Lfo {
         }
         previous_phase_ = phase_;
         return value_;
+        
       case LFO_WAVEFORM_TRIANGLE:
         return (phase_ & 0X8000) ?
             phase_ >> 7 :
             ~static_cast<uint8_t>(phase_ >> 7);
+            
       case LFO_WAVEFORM_SQUARE:
         return (phase_ & 0x8000) ? 255 : 0;
+        
       default:
         return phase_ >> 8;
     }

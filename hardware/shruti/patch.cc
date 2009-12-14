@@ -151,6 +151,7 @@ void Patch::SysExReceive(uint8_t sysex_byte) {
         sysex_reception_state_ = RECEIVING_FOOTER;
       }
       break;
+      
     case RECEIVING_DATA:
       {
         uint8_t i = sysex_bytes_received_ >> 1;
@@ -168,6 +169,7 @@ void Patch::SysExReceive(uint8_t sysex_byte) {
         }
       }
     break;
+    
   case RECEIVING_FOOTER:
     if (sysex_byte == 0xf7 &&
         sysex_reception_checksum_ == load_save_buffer_[kSerializedPatchSize] &&

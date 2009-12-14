@@ -73,7 +73,7 @@ class NoteStack {
   static uint8_t size_;
   static NoteEntry pool_[kNoteStackSize + 1];  // First element is a dummy node!
   static uint8_t root_ptr_;  // Base 1.
-  static uint8_t sorted_ptr_[kNoteStackSize];  // Base 1.
+  static uint8_t sorted_ptr_[kNoteStackSize + 1];  // Base 1.
 
   DISALLOW_COPY_AND_ASSIGN(NoteStack);
 };
