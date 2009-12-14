@@ -103,15 +103,8 @@ void SynthesisEngine::ResetPatch() {
   TouchPatch();
 }
 
-#define IGNORE_OTHER_CHANNELS \
-  if (patch_.kbd_midi_channel != 0 && \
-      patch_.kbd_midi_channel != (channel + 1)) { \
-    return; \
-  }
-
 /* static */
 void SynthesisEngine::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
-  IGNORE_OTHER_CHANNELS;
   // If the note controller is not active, we are not currently playing a
   // sequence, so we retrigger the LFOs.
   if (!controller_.active()) {
@@ -130,14 +123,12 @@ void SynthesisEngine::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
 
 /* static */
 void SynthesisEngine::NoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
-  IGNORE_OTHER_CHANNELS;
   controller_.NoteOff(note);
 }
 
 /* static */
 void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
                                     uint8_t value) {
-  IGNORE_OTHER_CHANNELS;
   switch (controller) {
     case hardware_midi::kModulationWheelMsb:
       modulation_sources_[MOD_SRC_WHEEL] = (value << 1);
@@ -169,26 +160,28 @@ void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
 }
 
 /* static */
+uint8_t SynthesisEngine::CheckChannel(uint8_t channel) {
+  return patch_.kbd_midi_channel == 0 ||
+         patch_.kbd_midi_channel == (channel + 1);
+}
+
+/* static */
 void SynthesisEngine::PitchBend(uint8_t channel, uint16_t pitch_bend) {
-  IGNORE_OTHER_CHANNELS;
   modulation_sources_[MOD_SRC_PITCH_BEND] = ShiftRight6(pitch_bend);
 }
 
 /* static */
 void SynthesisEngine::AllSoundOff(uint8_t channel) {
-  IGNORE_OTHER_CHANNELS;
   controller_.AllSoundOff();
 }
 
 /* static */
 void SynthesisEngine::AllNotesOff(uint8_t channel) {
-  IGNORE_OTHER_CHANNELS;
   controller_.AllNotesOff();
 }
 
 /* static */
 void SynthesisEngine::ResetAllControllers(uint8_t channel) {
-  IGNORE_OTHER_CHANNELS;
   modulation_sources_[MOD_SRC_PITCH_BEND] = 128;
   modulation_sources_[MOD_SRC_WHEEL] = 0;
 }
@@ -197,14 +190,12 @@ void SynthesisEngine::ResetAllControllers(uint8_t channel) {
 // which this message has been received.
 /* static */
 void SynthesisEngine::OmniModeOff(uint8_t channel) {
-  IGNORE_OTHER_CHANNELS;
   patch_.kbd_midi_channel = channel + 1;
 }
 
 // Enable Omni mode.
 /* static */
 void SynthesisEngine::OmniModeOn(uint8_t channel) {
-  IGNORE_OTHER_CHANNELS;
   patch_.kbd_midi_channel = 0;
 }
 

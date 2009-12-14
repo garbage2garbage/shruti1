@@ -68,7 +68,7 @@ uint32_t milliseconds() {
   return m;
 }
 
-void SetupClock() {
+void InitClock() {
   MutableTimer0::set_prescaler(3);
   MutableTimer0::set_mode(TIMER_FAST_PWM);
   MutableTimer0::Start();

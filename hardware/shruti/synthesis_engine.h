@@ -146,6 +146,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static void SysExStart();
   static void SysExByte(uint8_t sysex_byte);
   static void SysExEnd();
+  static uint8_t CheckChannel(uint8_t channel);
   
   static void Audio();
   static void Control();

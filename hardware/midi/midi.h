@@ -63,6 +63,8 @@ struct MidiDevice {
   static void Stop() { }
   static void ActiveSensing() { }
   static void Reset() { }
+  
+  static uint8_t CheckChannel(uint8_t channel) { return 1; }
 };
 
 template<typename Device>
@@ -155,7 +157,18 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
   
   uint8_t hi = status & 0xf0;
   uint8_t lo = status & 0x0f;
-  switch(hi) {
+  
+  // If this is a channel-specific message, check first that the receiver is
+  // tune to this channel.
+  if (hi != 0xf0 && !Device::CheckChannel(lo)) {
+    return;
+  }
+  
+  switch (hi) {
+    case 0x80:
+      Device::NoteOff(lo, data_[0], data_[1]);
+      break;
+
     case 0x90:
       if (data_[1]) {
         Device::NoteOn(lo, data_[0], data_[1]);
@@ -163,12 +176,11 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
         Device::NoteOff(lo, data_[0], 0);
       }
       break;
-    case 0x80:
-      Device::NoteOff(lo, data_[0], data_[1]);
-      break;
+
     case 0xa0:
       Device::Aftertouch(lo, data_[0], data_[1]);
       break;
+
     case 0xb0:
       switch (data_[0]) {
         case 0x78:
@@ -200,15 +212,19 @@ void MidiStreamParser<Device>::MessageReceived(uint8_t status) {
           break;
       }
       break;
+      
     case 0xc0:
       Device::ProgramChange(lo, data_[0]);
       break;
+      
     case 0xd0:
       Device::Aftertouch(lo, data_[0]);
       break;
+      
     case 0xe0:
       Device::PitchBend(lo, (static_cast<uint16_t>(data_[1]) << 7) + data_[0]);
       break;
+      
     case 0xf0:
       switch(lo) {
         case 0x0:

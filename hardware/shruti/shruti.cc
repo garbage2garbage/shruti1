@@ -288,7 +288,7 @@ TIMER_2_TICK {
   audio.EmitSample();
 }
 
-void Setup() {
+void Init() {
   display.Init();
   scheduler.Init();
   display.Init();
@@ -320,7 +320,7 @@ void Setup() {
 }
 
 int main(void) {
-  InitAtmega();
-  Setup();
+  InitAtmega(false);  // Do not initialize timers 1 & 2.
+  Init();
   scheduler.Run();
 }

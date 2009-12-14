@@ -28,7 +28,7 @@ uint32_t milliseconds();
 
 uint32_t Delay(uint32_t delay);
 
-void SetupClock();
+void InitClock();
 
 }  // namespace hardware_base
 

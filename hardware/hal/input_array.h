@@ -29,8 +29,8 @@
 // change in the ADC value that will raise an EVENT_CHANGED. This can be used,
 // for example, to avoid a costly update of internal variables to reflect a
 // change in the value read by a potentiometer - a change which turns out to be
-// only noise. Since the ATMega ADC is 10 bits, set this to 3, for example,
-// if you only need 7 bits of resolution.
+// only noise. Since the ATMega ADC is 10 bits, set this to 8 (1 << 3),
+// for example, if you only need 7 bits of resolution.
 
 #ifndef HARDWARE_HAL_INPUT_ARRAY_H_
 #define HARDWARE_HAL_INPUT_ARRAY_H_
