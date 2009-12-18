@@ -169,7 +169,7 @@ TASK_BEGIN_NEAR
     }
     TASK_SWITCH;
     
-#ifdef HAS_EASTER_EGG    
+#ifdef HAS_EASTER_EGG
     if (engine.zobi() == 18) {
       editor.DisplaySplashScreen(STR_RES_P_ORLEANS_21_MN);
     } else
@@ -291,7 +291,7 @@ TIMER_2_TICK {
 void Init() {
   display.Init();
   scheduler.Init();
-  display.Init();
+  display.Init();  // I do mean this... the display may take time to boot...
   editor.Init();
   audio.Init();
 

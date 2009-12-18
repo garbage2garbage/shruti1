@@ -20,9 +20,7 @@
 #ifndef HARDWARE_HAL_ADC_H_
 #define HARDWARE_HAL_ADC_H_
 
-#ifndef __TEST__
 #include <avr/io.h>
-#endif  // !__TEST__
 
 #include "hardware/hal/hal.h"
 #include "hardware/utils/logging.h"
@@ -34,8 +32,6 @@ enum AdcReference {
   ADC_DEFAULT = 1,
   ADC_INTERNAL = 3
 };
-
-#ifndef __TEST__
 
 IORegister(ADCSRA);
 IORegister(ADMUX);
@@ -95,21 +91,6 @@ struct AnalogInput {
     return Adc::Read(pin);
   }
 };
-
-#else
-
-template<int pin>
-struct AnalogInput {
-  static uint16_t counter_;
-  static int16_t Read() {
-    LOG(INFO) << "analog_pin_" << pin << "\readout\t" << int(counter_);
-    counter_ = (counter_ + 1) & 1023;
-    return counter_;
-  }
-};
-template<int pin> AnalogInput<pin>::counter_ = 0;
-
-#endif  // !__TEST__
 
 }  // namespace hardware_hal
 

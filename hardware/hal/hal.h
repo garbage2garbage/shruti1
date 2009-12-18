@@ -21,9 +21,7 @@
 #ifndef HARDWARE_HAL_HAL_H_
 #define HARDWARE_HAL_HAL_H_
 
-#ifndef __TEST__
 #include <avr/io.h>
-#endif  // !__TEST__
 
 #include "hardware/base/base.h"
 #include "hardware/hal/size_to_type.h"
@@ -44,14 +42,12 @@ enum DigitalValue {
 // arguments because they are of the form: (*(volatile uint8_t *)(0x80))
 // The following define wraps this reference into a class to make it easier to
 // pass it as a template argument.
-#ifndef __TEST__
 #define IORegister(reg) struct reg##Register { \
   static volatile uint8_t* ptr() { return &reg; } \
 };
 #define SpecialFunctionRegister(reg) struct reg##Register { \
   static volatile uint8_t* ptr() { return &_SFR_BYTE(reg); } \
 };
-#endif !__TEST__
 
 // Represents a bit in an i/o port register.
 template<typename Register, uint8_t bit>

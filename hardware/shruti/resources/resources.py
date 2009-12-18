@@ -49,14 +49,7 @@ types = ['uint8_t', 'uint16_t']
 includes = """
 #include "hardware/base/base.h"
 
-#ifdef __TEST__
-#define prog_char char
-#define prog_uint16_t uint16_t
-#define prog_uint8_t uint8_t
-#define PROGMEM
-#else
 #include <avr/pgmspace.h>
-#endif
 """
 create_specialized_manager = True
 

@@ -34,9 +34,7 @@
 #ifndef HARDWARE_HAL_GPIO_H_
 #define HARDWARE_HAL_GPIO_H_
 
-#ifndef __TEST__
 #include <avr/io.h>
-#endif  // !__TEST__
 
 #include "hardware/hal/hal.h"
 #include "hardware/hal/timer.h"
@@ -49,8 +47,6 @@ enum PinMode {
   DIGITAL_OUTPUT = 1,
   ANALOG_OUTPUT = 2
 };
-
-#ifndef __TEST__
 
 // All the registers used in the following definitions are wrapped here.
 IORegister(DDRB);
@@ -187,32 +183,6 @@ struct Gpio {
   static uint8_t value() { return Impl::value(); }
   static uint8_t number() { return n; }
 };
-
-#else
-
-template<int n>
-struct Gpio {
-  static void set_mode(uint8_t mode) {
-    LOG(INFO) << "pin_" << n << "\tmode\t" << int(mode);
-  }
-  static void High() {
-    LOG(INFO) << "pin_" << n << "\tvalue\t1";
-  }
-  static void Low() {
-    LOG(INFO) << "pin_" << n << "\tvalue\t0";
-  }
-  static void set_value(uint8_t value) {
-    LOG(INFO) << "pin_" << n << "\tvalue\t" << int(value ? 1 : 0);
-  }
-  static uint8_t value() {
-    LOG(INFO) << "pin_" << n << "\tread\t1";
-  }
-  static uint16_t number() {
-    return n;
-  }
-};
-
-#endif  // !__TEST__
 
 template<int pin>
 struct DigitalInput {

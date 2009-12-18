@@ -20,19 +20,15 @@
 #ifndef HARDWARE_HAL_TIMER_H_
 #define HARDWARE_HAL_TIMER_H_
 
-#ifndef __TEST__
 // interrupt.h is not strictly needed here, but .cc files including the timer
 // classes are likely to also define interrupt handlers (and we have macros for
 // that).
 #include <avr/interrupt.h>
 #include <avr/io.h>
-#endif  // !__TEST__
 
 #include "hardware/hal/hal.h"
 
 namespace hardware_hal {
-
-#ifndef __TEST__
 
 SpecialFunctionRegister(TCCR0A);
 SpecialFunctionRegister(TCCR0B);
@@ -201,8 +197,6 @@ typedef TimerImpl<
 #define TIMER_0_TICK ISR(TIMER0_OVF_vect)
 #define TIMER_1_TICK ISR(TIMER1_OVF_vect)
 #define TIMER_2_TICK ISR(TIMER2_OVF_vect)
-
-#endif  // !__TEST__
 
 }  // namespace hardware_hal
 

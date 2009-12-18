@@ -20,7 +20,6 @@
 #include "hardware/hal/serial.h"
 #include "hardware/hal/gpio.h"
 
-#ifndef __TEST__
 #include <avr/interrupt.h>
 
 using namespace hardware_hal;
@@ -28,5 +27,3 @@ using namespace hardware_hal;
 ISR(USART_RX_vect) {
   SerialInput<SerialPort0>::Received();
 }
-
-#endif // !__TEST__

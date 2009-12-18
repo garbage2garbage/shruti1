@@ -25,11 +25,8 @@
 
 #include "hardware/base/base.h"
 
-#ifdef __TEST__
 #include <string.h>
-#else
 #include <avr/pgmspace.h>
-#endif  // __TEST__
 
 namespace hardware_resources {
 
@@ -54,12 +51,8 @@ class ResourcesManager {
     if (!Tables::string_table()) {
       return;
     }
-#ifdef __TEST__
-    strncpy(buffer, Tables::string_table()[resource], buffer_size);
-#else
     char* address = (char*)(pgm_read_word(&(Tables::string_table()[resource])));
     strncpy_P(buffer, address, buffer_size);
-#endif  // __TEST__
   }
   
   template<typename ResultType, typename IndexType>
@@ -67,49 +60,29 @@ class ResourcesManager {
     if (!Tables::lookup_table_table()) {
       return 0;
     };
-#ifdef __TEST__
-    return ResultType(Tables::lookup_table_table()[resource][i]);
-#else
     uint16_t* address = (uint16_t*)(
     pgm_read_word(&(Tables::lookup_table_table()[resource])));
     return ResultType(pgm_read_word(address + i));
-#endif  // __TEST__
   }
   
   template<typename ResultType, typename IndexType>
   static inline ResultType Lookup(const prog_char* p, IndexType i) {
-#ifdef __TEST__
-    return ResultType(p[i]);
-#else
     return ResultType(pgm_read_byte(p + i));
-#endif  // __TEST__
   }
 
   template<typename ResultType, typename IndexType>
   static inline ResultType Lookup(const prog_uint8_t* p, IndexType i) {
-#ifdef __TEST__
-    return ResultType(p[i]);
-#else
     return ResultType(pgm_read_byte(p + i));
-#endif  // __TEST__
   }
   
   template<typename ResultType, typename IndexType>
   static inline ResultType Lookup(const prog_uint16_t* p, IndexType i) {
-#ifdef __TEST__
-    return ResultType(p[i]);
-#else
     return ResultType(pgm_read_word(p + i));
-#endif  // __TEST__
   }
 
   template<typename T>
   static void Load(const prog_char* p, uint8_t i, T* destination) {
-#ifdef __TEST__
-    memcpy(destination, p + i * sizeof(T), sizeof(T));
-#else
     memcpy_P(destination, p + i * sizeof(T), sizeof(T));
-#endif  // __TEST__
   }
 };
 
