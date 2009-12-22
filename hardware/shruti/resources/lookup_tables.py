@@ -29,8 +29,8 @@ lookup_tables = []
 
 sample_rate = 31250.0
 control_rate = sample_rate / 32
-min_frequency = 1.0 / 8.0  # Hertz
-max_frequency = 20.0  # Hertz
+min_frequency = 1.0 / 16.0  # Hertz
+max_frequency = 100.0  # Hertz
 
 excursion = 65536
 num_values = 128

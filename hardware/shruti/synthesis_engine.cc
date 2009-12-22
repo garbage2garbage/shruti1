@@ -66,19 +66,19 @@ void SynthesisEngine::Init() {
 
 static const prog_char empty_patch[] PROGMEM = {
     99,
-    WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 0,
+    WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 32,
     0, 0, 0, 0,
-    32, 0, 0, WAVEFORM_SQUARE,
+    16, 0, 0, WAVEFORM_SQUARE,
     120, 0, 0, 0,
     20, 0,
     60, 40,
-    20, 100,
+    20, 80,
     60, 40,
-    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 80, 3,
+    LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_TRIANGLE, 96, 3,
     MOD_SRC_LFO_1, MOD_DST_VCO_1, 0,
     MOD_SRC_LFO_1, MOD_DST_VCO_2, 0,
-    MOD_SRC_LFO_2, MOD_DST_PWM_1, 0,
-    MOD_SRC_LFO_2, MOD_DST_PWM_2, 0,
+    MOD_SRC_LFO_1, MOD_DST_PWM_1, 0,
+    MOD_SRC_LFO_1, MOD_DST_PWM_2, 0,
     MOD_SRC_LFO_2, MOD_DST_MIX_BALANCE, 0,
     // By default, the resonance tracks the note. This value was empirically
     // obtained and it is not clear whether it depends on the positive supply
