@@ -16,7 +16,7 @@ Hybrid digital / analog synthesis.
 - cheap 8bit waveforms with plenty of aliasing.
 - 32 waveforms sweepable wavetable.
 - "sweep" oscillator which scans through all the waveforms (think wave table
-  scan, when controlled by a LFO or Envelope, or wave sequence).
+  scan, when controlled by a LFO or envelope, or wave sequence).
 * Noise & sub-oscillator (triangle or square).
 * 2 LFO (square, sawtooth, triangle, sample & hold), syncable to tempo.
 * 2 ADSR envelopes.
