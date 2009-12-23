@@ -31,6 +31,6 @@ build/$(TARGET).top_symbols:	build/$(TARGET).sym
 		python hardware/tools/largest_symbols.py $< | c++filt -n > $@
 
 fsize:	size
-		cat firmware_size | cut -f1,2 | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
+		cat firmware_size | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
 
 size_report:	build/$(TARGET).lss build/$(TARGET).top_symbols
