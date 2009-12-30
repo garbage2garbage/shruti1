@@ -19,7 +19,7 @@
 #
 # Generates .cc and .h files for string, lookup tables, etc.
 
-"""Compiles python string tables/arrays into a .cc and .h file.
+"""Compiles python string tables/arrays into .cc and .h files.
 
 TODO(pichenettes): rewrite this using the django templating engine.
 """

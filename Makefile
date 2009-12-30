@@ -25,7 +25,7 @@ include arduino_project.mk
 RES_PATH     = hardware/shruti/resources
 
 resources:	$(wildcard $(RES_PATH)/*.py)
-		python hardware/resources/arc.py hardware/shruti/resources/resources.py
+		python hardware/resources/resources_compiler.py hardware/shruti/resources/resources.py
 
 fsize:	size
 		cat firmware_size | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
