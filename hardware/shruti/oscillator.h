@@ -130,7 +130,7 @@ class Oscillator {
    // Called whenever the parameters of the oscillator change. Can be used
    // to pre-compute parameters, set tables, etc.
    static inline void SetupAlgorithm(uint8_t shape) {
-     if (shape != shape_) {
+     if (shape != shape_ || sweeping_) {
        shape_ = shape;
        if (mode == FULL) {
          fn_ = fn_table_[shape];
@@ -550,10 +550,13 @@ class Oscillator {
   // ------- Low-passed, then high-passed white noise --------------------------
   static void RenderFilteredNoise() {
     uint8_t innovation = Random::state_msb();
+    // This trick is used to avoid having a DC component (no innovation) when
+    // the parameter is set to its minimal or maximal value.
+    uint8_t offset = parameter_ == 127 ? 0 : 2;
     data_.no.lp_noise_sample = Mix(
         data_.no.lp_noise_sample,
         innovation,
-        2 + (parameter_ << 2));
+        offset + (parameter_ << 2));
     if (parameter_ >= 64) {
       held_sample_ = innovation - data_.no.lp_noise_sample;
     } else {
@@ -596,11 +599,11 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { &Osc::UpdateCz, &Osc::RenderCz },
   { &Osc::UpdateFm, &Osc::RenderFm },
   { NULL, &Osc::Render8BitLand },
+  { NULL, &Osc::RenderDirtyPwm },
+  { NULL, &Osc::RenderFilteredNoise },
   { &Osc::UpdateVowel, &Osc::RenderVowel },
   { &Osc::UpdateWavetable64, &Osc::RenderWavetable64 },
   { &Osc::RenderSimpleWavetable, &Osc::RenderSimpleWavetable },
-  { NULL, &Osc::RenderDirtyPwm },
-  { NULL, &Osc::RenderFilteredNoise },
 };
 
 }  // namespace hardware_shruti

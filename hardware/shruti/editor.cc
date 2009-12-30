@@ -58,7 +58,7 @@ static const prog_char raw_parameter_definition[
     kNumEditableParameters * sizeof(ParameterDefinition)] PROGMEM = {
   // Osc 1.
   PRM_OSC_SHAPE_1,
-  WAVEFORM_NONE, WAVEFORM_FILTERED_NOISE,
+  WAVEFORM_NONE, WAVEFORM_ANALOG_WAVETABLE,
   UNIT_WAVEFORM,
   STR_RES_SHAPE, STR_RES_SHAPE,
   

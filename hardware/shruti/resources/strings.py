@@ -95,11 +95,11 @@ triang
 cz
 fm
 8bits
+pwm
+noise
 vowel
 table
 sweep
-pwm
-noise
 
 1+2
 1>2
