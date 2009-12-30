@@ -362,6 +362,9 @@ size:	$(TARGET_ELF)
 		$(SIZE) $(TARGET_ELF) > firmware_size
 			cat firmware_size
 
+build/$(TARGET).top_symbols:	$(TARGET_ELF)
+		$(NM) $(TARGET_ELF) --size-sort -C -f bsd -r > $@
+
 eeprom_backup:
 		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ARD_OPTS) \
 			-U eeprom:r:$(EEPROM_DATA):i

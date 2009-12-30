@@ -27,10 +27,8 @@ RES_PATH     = hardware/shruti/resources
 resources:	$(wildcard $(RES_PATH)/*.py)
 		python hardware/resources/arc.py hardware/shruti/resources/resources.py
 
-build/$(TARGET).top_symbols:	build/$(TARGET).sym
-		python hardware/tools/largest_symbols.py $< | c++filt -n > $@
-
 fsize:	size
 		cat firmware_size | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
 
 size_report:	build/$(TARGET).lss build/$(TARGET).top_symbols
+
