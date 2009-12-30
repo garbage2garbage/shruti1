@@ -163,30 +163,6 @@ osc1+2
 subosc
 reso
 
-\x03 1
-\x04 1
-\x05 1
-? 1
-\x03 2
-\x04 2
-\x05 2
-? 2
-\x03 3
-\x04 3
-\x05 3
-? 3
-\x03 4
-\x04 4
-\x05 4
-? 4
-\x03 5
-\x04 5
-\x05 5
-? 5
-\x03 6
-\x04 6
-\x05 6
-? 6
 mutable
 instruments \x06\x07-1
 P.ORLEANS: 21 MN

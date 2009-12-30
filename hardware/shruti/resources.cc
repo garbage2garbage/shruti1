@@ -158,30 +158,6 @@ static const prog_char str_res__mix[] PROGMEM = " mix";
 static const prog_char str_res__noise[] PROGMEM = " noise";
 static const prog_char str_res_subosc[] PROGMEM = "subosc";
 static const prog_char str_res_reso[] PROGMEM = "reso";
-static const prog_char str_res_3_1[] PROGMEM = " 1";
-static const prog_char str_res_4_1[] PROGMEM = " 1";
-static const prog_char str_res_5_1[] PROGMEM = " 1";
-static const prog_char str_res___1[] PROGMEM = "? 1";
-static const prog_char str_res_3_2[] PROGMEM = " 2";
-static const prog_char str_res_4_2[] PROGMEM = " 2";
-static const prog_char str_res_5_2[] PROGMEM = " 2";
-static const prog_char str_res___2[] PROGMEM = "? 2";
-static const prog_char str_res_3_3[] PROGMEM = " 3";
-static const prog_char str_res_4_3[] PROGMEM = " 3";
-static const prog_char str_res_5_3[] PROGMEM = " 3";
-static const prog_char str_res___3[] PROGMEM = "? 3";
-static const prog_char str_res_3_4[] PROGMEM = " 4";
-static const prog_char str_res_4_4[] PROGMEM = " 4";
-static const prog_char str_res_5_4[] PROGMEM = " 4";
-static const prog_char str_res___4[] PROGMEM = "? 4";
-static const prog_char str_res_3_5[] PROGMEM = " 5";
-static const prog_char str_res_4_5[] PROGMEM = " 5";
-static const prog_char str_res_5_5[] PROGMEM = " 5";
-static const prog_char str_res___5[] PROGMEM = "? 5";
-static const prog_char str_res_3_6[] PROGMEM = " 6";
-static const prog_char str_res_4_6[] PROGMEM = " 6";
-static const prog_char str_res_5_6[] PROGMEM = " 6";
-static const prog_char str_res___6[] PROGMEM = "? 6";
 static const prog_char str_res_mutable[] PROGMEM = "mutable";
 static const prog_char str_res_instruments_671[] PROGMEM = "instruments -1";
 static const prog_char str_res_p_orleans_21_mn[] PROGMEM = "P.ORLEANS: 21 MN";
@@ -406,30 +382,6 @@ PROGMEM const prog_char* string_table[] = {
   str_res__noise,
   str_res_subosc,
   str_res_reso,
-  str_res_3_1,
-  str_res_4_1,
-  str_res_5_1,
-  str_res___1,
-  str_res_3_2,
-  str_res_4_2,
-  str_res_5_2,
-  str_res___2,
-  str_res_3_3,
-  str_res_4_3,
-  str_res_5_3,
-  str_res___3,
-  str_res_3_4,
-  str_res_4_4,
-  str_res_5_4,
-  str_res___4,
-  str_res_3_5,
-  str_res_4_5,
-  str_res_5_5,
-  str_res___5,
-  str_res_3_6,
-  str_res_4_6,
-  str_res_5_6,
-  str_res___6,
   str_res_mutable,
   str_res_instruments_671,
   str_res_p_orleans_21_mn,
@@ -717,7 +669,8 @@ const prog_uint16_t lut_res_scale_chalanata[] PROGMEM = {
      -10,    122,   -148,    -15, 
 };
 const prog_uint16_t lut_res_arpeggiator_patterns[] PROGMEM = {
-   21845,  30583,  62965,  46517,  21065,  54553, 
+   21845,  30583,  62965,  46517,  28527,   2313,  18761,  21065, 
+   18725,  56283,  30431,  43281,  54553,  28609,  53505, 
 };
 
 

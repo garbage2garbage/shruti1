@@ -49,9 +49,13 @@ static const prog_char units_definitions[UNIT_TEMPO_WITH_EXTERNAL_CLOCK + 1]
   0,
   STR_RES_LFO1,
   STR_RES_CUTOFF,
-  STR_RES_3_1,
+  0,
   STR_RES_EQUAL,
   0,
+};
+
+static const prog_char arp_pattern_prefix[4] PROGMEM = {
+  0x03, 0x04, 0x05, '?'  // Up, Down, UpDown, Random
 };
 
 static const prog_char raw_parameter_definition[
@@ -236,7 +240,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_OCTAVE, STR_RES_OCTAVE,
   
   PRM_ARP_PATTERN,
-  0, 23, 
+  0, kNumArpeggiatorPatterns * 4 - 1, 
   UNIT_PATTERN,
   STR_RES_PATTERN, STR_RES_PATTERN,
   
@@ -756,6 +760,12 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
         ++value;
         prefix = 'x';
       }
+      break;
+    case UNIT_PATTERN:
+      prefix = ResourcesManager::Lookup<uint8_t, uint8_t>(
+          arp_pattern_prefix,
+          value & 0x03);
+      value = (value >> 2) + 1;
       break;
     case UNIT_TEMPO_WITH_EXTERNAL_CLOCK:
       if (value == 39) {

@@ -289,6 +289,8 @@ enum OPERATOR {
 
 static const uint8_t kNumEditableParameters = 40;
 
+static const uint8_t kNumArpeggiatorPatterns = 15;
+
 }  // namespace hardware_shruti
 
 #endif  // HARDWARE_SHRUTI_PATCH_H_

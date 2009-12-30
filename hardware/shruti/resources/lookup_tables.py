@@ -329,5 +329,17 @@ lookup_tables.append(
       'ooo- ooo- ooo- ooo-',
       'o-o- oooo o-o- oooo',
       'o-o- oo-o o-o- oo-o',
+      'oooo -oo- oooo -oo-',
+
+      'o--o ---- o--o ----',
+      'o--o --o- o--o --o-',
       'o--o --o- -o-- o-o-',
-      'o--o o--- o-o- o-oo'])))
+      'o-o- -o-- o--o --o-',
+      'oo-o o-oo oo-o o-oo',
+      
+      'oooo o-oo -oo- ooo-',
+      'o--- o--- o--o -o-o',
+      'o--o o--- o-o- o-oo',
+      'o--- --oo oooo -oo-',
+      'o--- ---- o--- o-oo',
+      ])))
