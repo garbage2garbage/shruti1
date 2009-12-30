@@ -130,7 +130,7 @@ class Oscillator {
    // Called whenever the parameters of the oscillator change. Can be used
    // to pre-compute parameters, set tables, etc.
    static inline void SetupAlgorithm(uint8_t shape) {
-     if (shape != shape_ || sweeping_) {
+     if (shape != shape_ || (sweeping_ && shape != WAVEFORM_ANALOG_WAVETABLE)) {
        shape_ = shape;
        if (mode == FULL) {
          fn_ = fn_table_[shape];
