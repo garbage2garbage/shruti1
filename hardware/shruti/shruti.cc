@@ -21,7 +21,6 @@
 #include "hardware/hal/devices/output_array.h"
 #include "hardware/hal/input_array.h"
 #include "hardware/hal/gpio.h"
-#include "hardware/hal/pretty_printer.h"
 #include "hardware/hal/serial.h"
 #include "hardware/hal/timer.h"
 #include "hardware/midi/midi.h"
@@ -289,9 +288,9 @@ TIMER_2_TICK {
 }
 
 void Init() {
-  Delay(500);
   display.Init();
   scheduler.Init();
+  display.Init();
   editor.Init();
   audio.Init();
 

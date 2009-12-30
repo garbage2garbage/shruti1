@@ -89,7 +89,7 @@ class Display {
     // At worst, if the baud rate is already set, this will display glitchy
     // characters for a short amount of time (if the display is configured at
     // 2400 bps, they look like the infinity symbol).
-    Delay(250);
+    Delay(200);
     DisplayPanicSerialOutput::Write(124);
     if (baud_rate == 2400) {
       DisplayPanicSerialOutput::Write(11);
@@ -104,7 +104,7 @@ class Display {
     } else if (baud_rate == 19200) {
       DisplayPanicSerialOutput::Write(16);
     }
-    Delay(250);
+    Delay(200);
     DisplaySerialOutput::Init();
   }
   
