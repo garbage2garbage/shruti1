@@ -289,9 +289,9 @@ TIMER_2_TICK {
 }
 
 void Init() {
+  Delay(500);
   display.Init();
   scheduler.Init();
-  display.Init();  // I do mean this... the display may take time to boot...
   editor.Init();
   audio.Init();
 

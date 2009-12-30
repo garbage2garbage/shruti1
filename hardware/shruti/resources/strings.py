@@ -98,6 +98,8 @@ fm
 vowel
 table
 sweep
+pwm
+noise
 
 1+2
 1>2
@@ -157,7 +159,7 @@ osc1
 osc2
 osc1+2
  mix
-noise
+ noise
 subosc
 reso
 

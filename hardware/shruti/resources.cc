@@ -98,6 +98,8 @@ static const prog_char str_res_8bits[] PROGMEM = "8bits";
 static const prog_char str_res_vowel[] PROGMEM = "vowel";
 static const prog_char str_res_table[] PROGMEM = "table";
 static const prog_char str_res_sweep[] PROGMEM = "sweep";
+static const prog_char str_res_pwm[] PROGMEM = "pwm";
+static const prog_char str_res_noise[] PROGMEM = "noise";
 static const prog_char str_res_1S2[] PROGMEM = "1+2";
 static const prog_char str_res_1_2[] PROGMEM = "1>2";
 static const prog_char str_res_1P2[] PROGMEM = "1*2";
@@ -153,7 +155,7 @@ static const prog_char str_res_osc1[] PROGMEM = "osc1";
 static const prog_char str_res_osc2[] PROGMEM = "osc2";
 static const prog_char str_res_osc1S2[] PROGMEM = "osc1+2";
 static const prog_char str_res__mix[] PROGMEM = " mix";
-static const prog_char str_res_noise[] PROGMEM = "noise";
+static const prog_char str_res__noise[] PROGMEM = " noise";
 static const prog_char str_res_subosc[] PROGMEM = "subosc";
 static const prog_char str_res_reso[] PROGMEM = "reso";
 static const prog_char str_res_3_1[] PROGMEM = " 1";
@@ -344,6 +346,8 @@ PROGMEM const prog_char* string_table[] = {
   str_res_vowel,
   str_res_table,
   str_res_sweep,
+  str_res_pwm,
+  str_res_noise,
   str_res_1S2,
   str_res_1_2,
   str_res_1P2,
@@ -399,7 +403,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_osc2,
   str_res_osc1S2,
   str_res__mix,
-  str_res_noise,
+  str_res__noise,
   str_res_subosc,
   str_res_reso,
   str_res_3_1,

@@ -105,6 +105,10 @@ struct VowelSynthesizerData {
   uint8_t update;  // Update only every kVowelControlRateDecimation-th call.
 };
 
+struct FilteredNoiseData {
+  uint8_t lp_noise_sample;
+};
+
 union OscillatorData {
   PulseSquareOscillatorData sq;
   SawTriangleOscillatorData st;
@@ -112,6 +116,7 @@ union OscillatorData {
   FmOscillatorData fm;
   VowelSynthesizerData vw;
   Wavetable64OscillatorData wt;
+  FilteredNoiseData no;
 };
 
 struct AlgorithmFn {
@@ -536,6 +541,26 @@ class Oscillator {
     held_sample_ = SignedClip8(4 * result) + 128;
   }
   
+  // ------- Dirty PWM (kills kittens) -----------------------------------------
+  static void RenderDirtyPwm() {
+    phase_ += phase_increment_;
+    held_sample_ = (phase_ >> 8) < 127 + parameter_ ? 0 : 255;
+  }
+  
+  // ------- Low-passed, then high-passed white noise --------------------------
+  static void RenderFilteredNoise() {
+    uint8_t innovation = Random::state_msb();
+    data_.no.lp_noise_sample = Mix(
+        data_.no.lp_noise_sample,
+        innovation,
+        2 + (parameter_ << 2));
+    if (parameter_ >= 64) {
+      held_sample_ = innovation - data_.no.lp_noise_sample;
+    } else {
+      held_sample_ = data_.no.lp_noise_sample;
+    }
+  }
+  
   DISALLOW_COPY_AND_ASSIGN(Oscillator);
 };
 
@@ -574,6 +599,8 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { &Osc::UpdateVowel, &Osc::RenderVowel },
   { &Osc::UpdateWavetable64, &Osc::RenderWavetable64 },
   { &Osc::RenderSimpleWavetable, &Osc::RenderSimpleWavetable },
+  { NULL, &Osc::RenderDirtyPwm },
+  { NULL, &Osc::RenderFilteredNoise },
 };
 
 }  // namespace hardware_shruti
