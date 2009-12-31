@@ -17,75 +17,29 @@
 #
 # -----------------------------------------------------------------------------
 #
-# Resource strings for shruti-1.
+# Resource strings for shruti-1/shruti-4.
 
-strings = """
+
+# All these strings are specific to shruti-1.
+shruti1_strings = """
 prm
 rng
 op
 tun
-atk
-wv1
-rt1
-wv2
-rt2
-src
-dst
-amt
 prt
-chn
-bpm
-swg
+porta
 
-shape
 parameter
 range
 operator
 detune
-env1~vcf
-lfo2~vcf
 osc bal
 sub osc.
-resonance
-envelope 1
-envelope 2
-sequencer
-attack
-decay
-sustain
-release
-lfo1 wave
-lfo1 rate
-lfo2 wave
-lfo2 rate
-mod.
-source
-dest.
-amount
-octave
-raga
-porta
-midi chan
-tempo
 pattern
 swing
-
 oscillator 1
 oscillator 2
-mixer
-filter
-lfos
-modulation
-keyboard
 arpeggio
-
-off
-on
-
-tri
-sqr
-s&h
-\x03
 
 none
 blit
@@ -105,6 +59,146 @@ sweep
 1>2
 1*2
 1^2
+
+cut
+vca
+pw1
+pw2
+\x051
+\x052
+\x05
+mix
+noi
+sub
+res
+
+cutoff
+ vca
+pwm1
+pwm2
+osc1
+osc2
+osc1+2
+ mix
+ noise
+subosc
+reso
+
+mutable
+instruments \x06\x07-1
+"""
+
+
+shruti4_strings = """
+16' mix
+8' mix
+4' mix
+2' mix
+sh1
+shape1
+sh2
+shape2
+bal
+balance
+
+sin
+ sqr
+saw
+rd1
+rd2
+vox
+
+sine
+square
+ saw
+reed1
+reed2
+voice
+
+drawbr
+  saw
+ square
+
+drawbars 1
+drawbars 2
+mode
+
+voices
+1
+2
+4
+1 uni
+2 uni
+4 uni
+
+legato
+retrigger
+
+cut
+vca
+\x05
+pwm
+res
+
+cutoff
+ vca
+ pwm
+reso
+
+mutable
+instruments \x06\x07-4
+"""
+
+
+common_strings = """
+atk
+wv1
+rt1
+wv2
+rt2
+src
+dst
+amt
+chn
+bpm
+swg
+
+shape
+env1~vcf
+lfo2~vcf
+resonance
+envelope 1
+envelope 2
+sequencer
+attack
+decay
+sustain
+release
+lfo1 wave
+lfo1 rate
+lfo2 wave
+lfo2 rate
+mod.
+source
+dest.
+amount
+octave
+raga
+midi chan
+tempo
+
+mixer
+filter
+lfos
+modulation
+keyboard
+off
+on
+
+tri
+sqr
+s&h
+\x03
 
 lf1
 lf2
@@ -139,32 +233,6 @@ velo
 note
 gate
 
-cut
-vca
-pw1
-pw2
-\x051
-\x052
-\x05
-mix
-noi
-sub
-res
-
-cutoff
- vca
-pwm1
-pwm2
-osc1
-osc2
-osc1+2
- mix
- noise
-subosc
-reso
-
-mutable
-instruments \x06\x07-1
 P.ORLEANS: 21 MN
 P.BERCY:     +1H
 load/save patch

@@ -24,7 +24,6 @@
 #include "hardware/shruti/shruti.h"
 
 #include "hardware/shruti/patch.h"
-#include "hardware/shruti/resources.h"
 #include "hardware/utils/op.h"
 
 using namespace hardware_utils_op;

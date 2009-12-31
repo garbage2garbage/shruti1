@@ -21,7 +21,13 @@
 #define HARDWARE_SHRUTI_EDITOR_H_
 
 #include "hardware/base/base.h"
-#include "hardware/shruti/resources.h"
+
+#ifdef SHRUTI1
+  #include "hardware/shruti/shruti1/resources.h"
+#else
+  #include "hardware/shruti/shruti4/resources.h"
+#endif  // SHRUTI1
+
 #include "hardware/shruti/shruti.h"
 
 namespace hardware_shruti {

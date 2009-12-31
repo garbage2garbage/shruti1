@@ -48,7 +48,9 @@ def Canonicalize(x):
     elif chr(i) == '+':
       out_chr[i] = ord('S')
     elif chr(i) == '^':
-        out_chr[i] = ord('x')
+      out_chr[i] = ord('x')
+    elif chr(i) == '"':
+      out_chr[i] = ord('p')
     else:
       out_chr[i] = ord('_')
   table = string.maketrans(in_chr, ''.join(map(chr, out_chr)))
@@ -73,9 +75,10 @@ def GenerateHeader(base_name, res):
     max_num_resources = max(max_num_resources, len(resource[0]))
 
   f = file(os.path.join(res.target, base_name + '.h'), 'w')
+  header_guard = res.target.replace(os.path.sep, '_').upper()
   f.write(res.header + '\n\n')
-  f.write('#ifndef %s_%s_H_\n' % (res.namespace.upper(), base_name.upper()))
-  f.write('#define %s_%s_H_\n\n' % (res.namespace.upper(), base_name.upper()))
+  f.write('#ifndef %s_%s_H_\n' % (header_guard, base_name.upper()))
+  f.write('#define %s_%s_H_\n\n' % (header_guard, base_name.upper()))
   f.write(res.includes + '\n\n')
   if res.create_specialized_manager:
     f.write('#include "hardware/resources/resources_manager.h"\n')
@@ -118,8 +121,7 @@ def GenerateHeader(base_name, res):
   
   if res.namespace:
     f.write('\n}  // namespace %s\n' % res.namespace)
-  f.write('\n#endif  // %s_%s_H_\n' % (res.namespace.upper(),
-          base_name.upper()))
+  f.write('\n#endif  // %s_%s_H_\n' % (header_guard, base_name.upper()))
 
 
 def GenerateCc(base_name, res):
@@ -193,7 +195,7 @@ def Compile(path):
         return
       res.resources[i] = tuple(resource_tuple)
   
-  base_name = os.path.split(base_name)[-1]
+  base_name = 'resources'  #os.path.split(base_name)[-1]
   GenerateHeader(base_name, res)
   GenerateCc(base_name, res)
 

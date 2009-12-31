@@ -17,12 +17,12 @@
 //
 // Main synthesis engine.
 
-#include "hardware/shruti/synthesis_engine.h"
+#include "hardware/shruti/shruti1/synthesis_engine.h"
 
 #include <string.h>
 
 #include "hardware/resources/resources_manager.h"
-#include "hardware/shruti/oscillator.h"
+#include "hardware/shruti/shruti1/oscillator.h"
 #include "hardware/utils/random.h"
 #include "hardware/utils/op.h"
 

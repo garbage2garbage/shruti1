@@ -1,28 +1,44 @@
-Name: Shruti-1
-Type: Compact table-top synth
+Name: Shruti-1 / Shruti-4
+Type: Compact table-top synths
 Audio I/O: 6.35 Jack (Mono audio out), 6.35 Jack (External signal in)
 CV: 2 CV in (0-5 V, aka "geek ins") for easy experimentation with controllers, accessible through an extension port inside the synth.
+Serial: TX/RX/RST, for interfacing with an FTDI chip or a castrated Arduino (firmware development).
 MIDI: in, out (thru + patch dumps)
 Controllers: 12 facade LEDs, 2x16 LCD display, 4 pots for patch editing. 2
 assignable pots. Volume and mixer pot. 5 navigation switches, one inc/dec switches pair.
 
 Hybrid digital / analog synthesis.
 
+Shruti-1:
+
+* Mono
 * 2 sync'able, x-modable DCOs:
 - pulse, square (with pulse-width modulation), triangle with waveshapping, sawtooth. All band-limited (sort of).
 - sawtooth with sweepable resonance (casio cz-like).
 - simplistic FM (1>2 configuration, adjustable modulation index and frequency ratio).
 - lo-fi vowel synthesis (think "speak and spell").
 - cheap 8bit waveforms with plenty of aliasing.
+- cheap square/PWM with even more aliasing.
+- colored noise (sweep from low-pass filtered white noise -> white noise -> high-pass filtered white noise).
 - 32 waveforms sweepable wavetable.
 - "sweep" oscillator which scans through all the waveforms (think wave table
   scan, when controlled by a LFO or envelope, or wave sequence).
 * Noise & sub-oscillator (triangle or square).
+* Arpeggiator with 15 patterns + direction and octave setting.
+
+Shruti-4:
+
+* Pseudo-polyphonic (4 notes)
+* 1 DCO:
+- Combination of 2 pairs of 4 octave-spaced drawbars for band limited sawtooth, square, sine, rectangle and voice-like waveforms.
+- Dirty, aliased sawtooth and square.
+
+Common:
+
 * 2 LFO (square, sawtooth, triangle, sample & hold), syncable to tempo.
 * 2 ADSR envelopes.
 * 14 patchcords modulation matrix (16 modulation sources, 11 destinations).
 * Analog VCF/VCA (with external input).
-* Arpeggiator with 6 different patterns + direction and octave setting.
 * 16-steps step sequencer.
 * 16-patches patch memory.
 * MIDI implementation with patch load/save by SysEx, patch editing by NRP.
@@ -82,8 +98,3 @@ A: Not enough CPU cycles for a good VCF (crappy is possible, but I was not inter
 Q: Why this fancy analog stuff if you can't even afford a proper DAC?
 
 A: I originally intended to use a proper DAC (MCP4922, if you call that a proper DAC) for the DCO and the VCA ouputs. I breadboarded this and my observation was that the slight gain in quality/precision was not worth the additional CPU burden (waiting between SPI writes; or managing a ring buffer and using interrupt driven SPI), which prevented some combinations of oscillators to render at 31.25kHz. And 31.25kHz rocksolid with PWM sounded much better than 20kHz with a DAC.
-
-
-Q: What's next?
-
-A: Something more ambitious based on an ARM core and several CEM chips.

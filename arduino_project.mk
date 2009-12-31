@@ -128,7 +128,7 @@ ARDUINO_CORE_PATH = $(ARDUINO_DIR)/hardware/cores/arduino
 endif
 
 # Everything gets built in here
-OBJDIR  	  = build
+OBJDIR  	  = build/$(TARGET)
 
 ########################################################################
 # Local sources
@@ -190,7 +190,7 @@ SYS_LIBS      = $(patsubst %,$(ARDUINO_LIB_PATH)/%,$(ARDUINO_LIBS))
 SYS_INCLUDES  = $(patsubst %,-I%,$(SYS_LIBS))
 SYS_OBJS      = $(wildcard $(patsubst %,%/*.o,$(SYS_LIBS)))
 
-CPPFLAGS      = -mmcu=$(MCU) -DF_CPU=$(F_CPU) \
+CPPFLAGS      = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(PP_DEFINES) \
 			-I. -I$(ARDUINO_CORE_PATH) \
 			$(SYS_INCLUDES) -g -Os -w -Wall \
 			-ffunction-sections -fdata-sections
@@ -358,9 +358,8 @@ clean:
 depends:	$(DEPS)
 		cat $(DEPS) > $(DEP_FILE)
 
-size:	$(TARGET_ELF)
-		$(SIZE) $(TARGET_ELF) > firmware_size
-			cat firmware_size
+$(TARGET).firmware_size:	$(TARGET_ELF)
+		$(SIZE) $(TARGET_ELF) > $(TARGET).firmware_size
 
 build/$(TARGET).top_symbols:	$(TARGET_ELF)
 		$(NM) $(TARGET_ELF) --size-sort -C -f bsd -r > $@

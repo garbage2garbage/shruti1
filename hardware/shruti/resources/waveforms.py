@@ -156,7 +156,7 @@ waveforms.extend(bl_saw_tables)
 waveforms.extend(bl_tri_tables)
 waveforms.append((
     'wavetable',
-    numpy.loadtxt('hardware/shruti/data/wavetable/wavetable_2048.txt').ravel()
+    numpy.loadtxt('hardware/shruti/shruti1/data/wavetable.txt').ravel()
 ))
 
 

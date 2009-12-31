@@ -27,8 +27,8 @@
 // singleton". This does not yield a code size gain, but this is coherent with
 // what was done with NoteStack.
 
-#ifndef HARDWARE_SHRUTI_VOICE_CONTROLLER_
-#define HARDWARE_SHRUTI_VOICE_CONTROLLER_
+#ifndef HARDWARE_SHRUTI_SHRUTI1_VOICE_CONTROLLER_
+#define HARDWARE_SHRUTI_SHRUTI1_VOICE_CONTROLLER_
 
 #include "hardware/shruti/shruti.h"
 
@@ -137,4 +137,4 @@ class VoiceController {
 
 }  // namespace hardware_shruti
 
-#endif  // HARDWARE_SHRUTI_VOICE_CONTROLLER_
+#endif  // HARDWARE_SHRUTI_SHRUTI1_VOICE_CONTROLLER_

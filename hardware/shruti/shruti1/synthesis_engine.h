@@ -34,8 +34,8 @@
 // this transformation should not be applied to the Voice class. Since, for now
 // only the monophonic mode is supported, Voice is also "static'ified".
 
-#ifndef HARDWARE_SHRUTI_SYNTHESIS_ENGINE_H_
-#define HARDWARE_SHRUTI_SYNTHESIS_ENGINE_H_
+#ifndef HARDWARE_SHRUTI_SHRUTI1_SYNTHESIS_ENGINE_H_
+#define HARDWARE_SHRUTI_SHRUTI1_SYNTHESIS_ENGINE_H_
 
 #include "hardware/shruti/shruti.h"
 
@@ -43,7 +43,8 @@
 #include "hardware/shruti/envelope.h"
 #include "hardware/shruti/lfo.h"
 #include "hardware/shruti/patch.h"
-#include "hardware/shruti/voice_controller.h"
+
+#include "hardware/shruti/shruti1/voice_controller.h"
 
 namespace hardware_shruti {
 
@@ -227,4 +228,4 @@ extern SynthesisEngine engine;
 
 }  // namespace hardware_shruti
 
-#endif  // HARDWARE_SHRUTI_SYNTHESIS_ENGINE_H_
+#endif  // HARDWARE_SHRUTI_SHRUTI1_SYNTHESIS_ENGINE_H_

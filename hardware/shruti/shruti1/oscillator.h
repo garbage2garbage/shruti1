@@ -45,7 +45,7 @@
 #include "hardware/shruti/shruti.h"
 
 #include "hardware/shruti/patch.h"
-#include "hardware/shruti/resources.h"
+#include "hardware/shruti/shruti1/resources.h"
 #include "hardware/utils/random.h"
 #include "hardware/utils/op.h"
 
