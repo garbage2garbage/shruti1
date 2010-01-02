@@ -25,7 +25,7 @@ include arduino_project.mk
 
 RES_PATH     = hardware/shruti/resources
 
-resources:	$(wildcard $(RES_PATH)/*.py)
+resources:	$(wildcard $(RES_PATH)/*.py) hardware/resources/resources_compiler.py
 			python hardware/resources/resources_compiler.py hardware/shruti/resources/resources_shruti1.py
 		
 size:	$(TARGET).firmware_size

@@ -135,7 +135,7 @@ def GenerateCc(base_name, res):
     if python_type == str:
       for string in resource:
         args = (c_type, '%s_%s' % (prefix.lower(), Canonicalize(string)),
-                res.modifier, string)
+                res.modifier, string.strip())
         f.write('static const %s %s[] %s = "%s";\n' % args)
       if ram:
         args = (c_type, table_name)
