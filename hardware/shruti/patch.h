@@ -59,6 +59,7 @@ class Patch {
  public:
   uint8_t keep_me_at_the_top;
 
+#ifdef SHRUTI1
   // Offset: 0-8
   uint8_t osc_shape[2];
   uint8_t osc_parameter[2];
@@ -70,6 +71,13 @@ class Patch {
   uint8_t mix_sub_osc;
   uint8_t mix_noise;
   uint8_t mix_sub_osc_shape;
+#else
+  // Offset: 0-8
+  uint8_t drw_mix[8];
+  uint8_t drw_shape[2];
+  uint8_t drw_balance;
+  uint8_t osc_shape;
+#endif  // SHRUTI1
 
   // Offset: 12-16
   uint8_t filter_cutoff;
@@ -91,10 +99,18 @@ class Patch {
   ModulationMatrix modulation_matrix;
   
   // Offset: 70-74, not saved
+  
+#ifdef SHRUTI1
   uint8_t arp_tempo;
   uint8_t arp_octave;
   uint8_t arp_pattern;
   uint8_t arp_swing;
+#else
+  uint8_t key_tempo;
+  uint8_t key_num_voices;
+  uint8_t key_legato;
+  uint8_t kbd_retrigger;
+#endif  // SHRUTI1
   
   // Offset: 74-82
   uint8_t sequence[8];
@@ -102,7 +118,13 @@ class Patch {
   // Offset: 82-86, not saved
   int8_t kbd_octave;
   uint8_t kbd_raga;
+  
+#ifdef SHRUTI1
   uint8_t kbd_portamento;
+#else
+  uint8_t key_slop;
+#endif  // SHRUTI1
+
   uint8_t kbd_midi_channel;
 
   // Offset: 86-94
@@ -182,6 +204,7 @@ enum ModulationSource {
 enum ModulationDestination {
   MOD_DST_FILTER_CUTOFF = 0,
   MOD_DST_VCA,
+#ifdef SHRUTI1
   MOD_DST_PWM_1,
   MOD_DST_PWM_2,
   MOD_DST_VCO_1,
@@ -190,12 +213,24 @@ enum ModulationDestination {
   MOD_DST_MIX_BALANCE,
   MOD_DST_MIX_NOISE,
   MOD_DST_MIX_SUB_OSC,
+#else
+  MOD_DST_SLOP,
+  MOD_DST_VCO,
+  MOD_DST_VCO_FINE,
+  MOD_DST_PWM,
+#endif // SHRUTI1
   MOD_DST_FILTER_RESONANCE
 };
 
-static const uint8_t kNumModulationDestinations = 11;
+#ifdef SHRUTI1
+  static const uint8_t kNumModulationDestinations = 11;
+#else
+  static const uint8_t kNumModulationDestinations = 7;
+#endif  // SHRUTI1
 
 enum Parameter {
+  
+#ifdef SHRUTI1
   PRM_OSC_SHAPE_1,
   PRM_OSC_SHAPE_2,
   PRM_OSC_PARAMETER_1,
@@ -209,6 +244,22 @@ enum Parameter {
   PRM_MIX_SUB_OSC,
   PRM_MIX_NOISE,
   PRM_MIX_SUB_OSC_SHAPE,
+#else
+  PRM_DRW_16_1,
+  PRM_DRW_8_1,
+  PRM_DRW_4_1,
+  PRM_DRW_2_1,
+  
+  PRM_DRW_16_2,
+  PRM_DRW_8_2,
+  PRM_DRW_4_2,
+  PRM_DRW_2_2,
+  
+  PRM_DRW_SHAPE_1,
+  PRM_DRW_SHAPE_2,
+  PRM_DRW_BALANCE,
+  PRM_OSC_SHAPE,
+#endif  // SHRUTI1
 
   PRM_FILTER_CUTOFF,
   PRM_FILTER_RESONANCE,
@@ -234,16 +285,27 @@ enum Parameter {
   PRM_MOD_AMOUNT = 30,
   PRM_MOD_ROW = 31,
 
+#ifdef SHRUTI1
   PRM_ARP_TEMPO = 3 * kModulationMatrixSize + 28,
   PRM_ARP_OCTAVE,
   PRM_ARP_PATTERN,
   PRM_ARP_SWING,
+#else
+  PRM_VOI_TEMPO = 3 * kModulationMatrixSize + 28,
+  PRM_VOI_NUM_VOICES,
+  PRM_VOI_LEGATO,
+  PRM_VOI_RETRIGGER,
+#endif  // SHRUTI1
   
   PRM_SEQUENCE = 3 * kModulationMatrixSize + 28 + 4,
 
   PRM_KBD_OCTAVE = 3 * kModulationMatrixSize + 28 + 12,
   PRM_KBD_RAGA,
+#ifdef SHRUTI1
   PRM_KBD_PORTAMENTO,
+#else
+  PRM_KBD_SLOP,
+#endif  // SHRUTI1
   PRM_KBD_MIDI_CHANNEL,
   
   PRM_NAME = 3 * kModulationMatrixSize + 28 + 16,
@@ -251,21 +313,58 @@ enum Parameter {
   PRM_ARP_PATTERN_SIZE = 94
 };
 
-enum OscillatorAlgorithm {
-  WAVEFORM_NONE,
-  WAVEFORM_IMPULSE_TRAIN,
-  WAVEFORM_SAW,
-  WAVEFORM_SQUARE,
-  WAVEFORM_TRIANGLE,
-  WAVEFORM_CZ,
-  WAVEFORM_FM,
-  WAVEFORM_8BITLAND,
-  WAVEFORM_DIRTY_PWM,
-  WAVEFORM_FILTERED_NOISE,
-  WAVEFORM_VOWEL,
-  WAVEFORM_WAVETABLE,
-  WAVEFORM_ANALOG_WAVETABLE,
-};
+#ifdef SHRUTI1
+  enum OscillatorAlgorithm {
+    WAVEFORM_NONE,
+    WAVEFORM_IMPULSE_TRAIN,
+    WAVEFORM_SAW,
+    WAVEFORM_SQUARE,
+    WAVEFORM_TRIANGLE,
+    WAVEFORM_CZ,
+    WAVEFORM_FM,
+    WAVEFORM_8BITLAND,
+    WAVEFORM_DIRTY_PWM,
+    WAVEFORM_FILTERED_NOISE,
+    WAVEFORM_VOWEL,
+    WAVEFORM_WAVETABLE,
+    WAVEFORM_ANALOG_WAVETABLE,
+  };
+#else
+  enum OscillatorAlgorithm {
+    WAVEFORM_NONE,
+    WAVEFORM_DRAWBARS,
+    WAVEFORM_SINE,
+    WAVEFORM_SQUARE,
+    WAVEFORM_SAW,
+    WAVEFORM_REED_1,
+    WAVEFORM_REED_2,
+    WAVEFORM_VOICE_OOH,
+    WAVEFORM_VOICE_AAH,
+    WAVEFORM_DIGITAL_SAW,
+    WAVEFORM_DIGITAL_SQUARE,
+  };
+  
+  enum DrawbarShape {
+    DRAWBAR_SINE,
+    DRAWBAR_SQUARE,
+    DRAWBAR_SAW,
+    DRAWBAR_REED_1,
+    DRAWBAR_REED_2,
+    DRAWBAR_VOICE_OOH,
+    DRAWBAR_VOICE_AAH,
+  };
+
+  enum PolyphonyModes {
+    POLYPHONY_1,
+    POLYPHONY_2,
+    POLYPHONY_4,
+    POLYPHONY_1_UNISON,
+    POLYPHONY_2_UNISON,
+    POLYPHONY_4_UNISON
+  };
+  
+  #define PRM_ARP_TEMPO PRM_VOI_TEMPO
+#endif  // SHRUTI1
 
 enum LfoWave {
   // For oscillators.

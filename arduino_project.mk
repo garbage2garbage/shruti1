@@ -361,7 +361,7 @@ depends:	$(DEPS)
 $(TARGET).firmware_size:	$(TARGET_ELF)
 		$(SIZE) $(TARGET_ELF) > $(TARGET).firmware_size
 
-build/$(TARGET).top_symbols:	$(TARGET_ELF)
+build/$(TARGET)/$(TARGET).top_symbols:	$(TARGET_ELF)
 		$(NM) $(TARGET_ELF) --size-sort -C -f bsd -r > $@
 
 eeprom_backup:

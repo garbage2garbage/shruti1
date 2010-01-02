@@ -44,8 +44,8 @@ for i, x in enumerate(sine):
   sine_samples.extend(values)
 
 waveforms.extend([
-    ('formant_sine', sine_samples),
-    ('formant_square', square_samples)
+    ('formant_sine', sine_samples, 1),
+    ('formant_square', square_samples, 1)
 ])
 
 
@@ -89,6 +89,22 @@ def MinimumPhaseReconstruction(signal, fft_size=16384):
   return min_phi
 
 
+def ApplyFormants(signal, f0, formants, amplitude_decay=0.5,
+                  f0_center=261.5, f0_bias=0.5):
+  n = len(signal)
+  signal = numpy.tile(signal, 16)
+  result = 0
+  amplitude = 1.0
+  for formant in formants:
+    formant = formant * (f0 / f0_center) ** f0_bias
+    period = float(f0) / formant * n
+    response = numpy.sin(numpy.arange(0, n * 4) * 2 * numpy.pi / period)
+    response *= numpy.exp(-numpy.arange(0, n * 4) / period / 4.0)
+    result += numpy.convolve(signal, response, mode='same') * amplitude
+    amplitude *= amplitude_decay
+  return result[8 * n : 8 * n + n]
+
+
 # Sine wave.
 numpy.random.seed(21)
 sine = -numpy.sin(numpy.arange(WAVETABLE_SIZE + 1) / float(WAVETABLE_SIZE) * 2 * numpy.pi) * 127.5 + 127.5
@@ -100,15 +116,21 @@ bl_pulse_tables = []
 bl_square_tables = []
 bl_saw_tables = []
 bl_tri_tables = []
+bl_reed_1_tables = []
+bl_reed_2_tables = []
+bl_voice_1_tables = []
+bl_voice_2_tables = []
 
 wrap = numpy.fmod(numpy.arange(WAVETABLE_SIZE + 1) + WAVETABLE_SIZE / 2, WAVETABLE_SIZE)
 quadrature = numpy.fmod(numpy.arange(WAVETABLE_SIZE + 1) + WAVETABLE_SIZE / 4, WAVETABLE_SIZE)
+octature = numpy.fmod(numpy.arange(WAVETABLE_SIZE + 1) + WAVETABLE_SIZE / 8, WAVETABLE_SIZE)
 fill = numpy.fmod(numpy.arange(WAVETABLE_SIZE + 1), WAVETABLE_SIZE)
 
 if CAUSAL:
   window = numpy.hanning(WAVETABLE_SIZE)
 else:
   window = 1
+
 
 for zone in range(num_zones):
   f0 = 440.0 * 2.0 ** ((24 + 16 * zone - 69) / 12.0)
@@ -123,7 +145,7 @@ for zone in range(num_zones):
   else:
     pulse = pulse[fill]
   bl_pulse_tables.append(('bandlimited_pulse_%d' % zone,
-                          Scale(pulse, center=False)))
+                          Scale(pulse, center=False), 1))
 
   square = numpy.cumsum(pulse - pulse[wrap])
   triangle = -numpy.cumsum(square[::-1] - square.mean()) / WAVETABLE_SIZE
@@ -132,20 +154,37 @@ for zone in range(num_zones):
   if zone == num_zones - 1:
     square = sine
   bl_square_tables.append(('bandlimited_square_%d' % zone,
-                          Scale(square[quadrature])))
+                          Scale(square[quadrature]), None))
   
   triangle = triangle[quadrature]
   if zone == num_zones - 1:
     triangle = sine
   bl_tri_tables.append(('bandlimited_triangle_%d' % zone,
-                        Scale(triangle[quadrature])))
+                        Scale(triangle[quadrature]), 1))
 
   saw = -numpy.cumsum(pulse[wrap] - pulse.mean())
   saw -= JUNINESS * numpy.cumsum(saw - saw.mean()) / WAVETABLE_SIZE
   if zone == num_zones - 1:
     saw = sine
   bl_saw_tables.append(('bandlimited_saw_%d' % zone,
-                       Scale(saw[quadrature])))
+                       Scale(saw[quadrature]), None))
+                       
+  reed_1 = numpy.cumsum(pulse - pulse[quadrature])
+  reed_2 = numpy.cumsum(pulse - pulse[octature])
+  voice = reed_1
+  if zone == num_zones - 1:
+    reed_1 = sine
+    reed_2 = sine
+  voice_1 = ApplyFormants(pulse, f0, [400.0, 800.0, 3200.0])
+  voice_2 = ApplyFormants(pulse, f0, [700.0, 1300.0, 3200.0])
+  bl_reed_1_tables.append(('bandlimited_reed_1_%d' % zone,
+                           Scale(reed_1[quadrature]), 4))
+  bl_reed_2_tables.append(('bandlimited_reed_2_%d' % zone,
+                           Scale(reed_2[octature]), 4))
+  bl_voice_1_tables.append(('bandlimited_voice_1_%d' % zone,
+                            Scale(voice_1), 4))
+  bl_voice_2_tables.append(('bandlimited_voice_2_%d' % zone,
+                            Scale(voice_2), 4))
 
 # Blit are never generated at SR, always at SR/2.
 del bl_pulse_tables[0]
@@ -154,9 +193,14 @@ waveforms.extend(bl_pulse_tables)
 waveforms.extend(bl_square_tables)
 waveforms.extend(bl_saw_tables)
 waveforms.extend(bl_tri_tables)
+waveforms.extend(bl_reed_1_tables)
+waveforms.extend(bl_reed_2_tables)
+waveforms.extend(bl_voice_1_tables)
+waveforms.extend(bl_voice_2_tables)
 waveforms.append((
     'wavetable',
-    numpy.loadtxt('hardware/shruti/shruti1/data/wavetable.txt').ravel()
+    numpy.loadtxt('hardware/shruti/shruti1/data/wavetable.txt').ravel(),
+    1
 ))
 
 
@@ -175,4 +219,4 @@ vowel_data = [
  9, 51,  95, 243, 3,
  6, 73,  99, 122, 233]
 
-waveforms.append(('vowel_data', vowel_data))
+waveforms.append(('vowel_data', vowel_data, 1))

@@ -33,7 +33,11 @@ namespace hardware_shruti {
 
 void Patch::Pack(uint8_t* patch_buffer) const {
   for (uint8_t i = 0; i < 28; ++i) {
+#ifdef SHRUTI1
     patch_buffer[i] = osc_shape[i];
+#else
+    patch_buffer[i] = drw_mix[i];
+#endif
   }
   for (uint8_t i = 0; i < kSavedModulationMatrixSize; ++i) {
     patch_buffer[2 * i + 28] = modulation_matrix.modulation[i].source |
@@ -65,7 +69,11 @@ uint8_t Patch::CheckBuffer() {
 
 void Patch::Unpack(const uint8_t* patch_buffer) {
   for (uint8_t i = 0; i < 28; ++i) {
+#ifdef SHRUTI1
     osc_shape[i] = patch_buffer[i];
+#else
+    drw_mix[i] = patch_buffer[i];
+#endif
   }
   for (uint8_t i = 0; i < kSavedModulationMatrixSize; ++i) {
     modulation_matrix.modulation[i].source = patch_buffer[2 * i + 28] & 0xf;

@@ -28,7 +28,7 @@ RES_PATH     = hardware/shruti/resources
 resources:	$(wildcard $(RES_PATH)/*.py)
 			python hardware/resources/resources_compiler.py hardware/shruti/resources/resources_shruti4.py
 
-fsize:	size
+size:	$(TARGET).firmware_size
 		cat $(TARGET).firmware_size | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
 
 size_report:	build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols

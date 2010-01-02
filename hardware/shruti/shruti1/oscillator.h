@@ -38,8 +38,8 @@
 // Table    sr/2      n/a              n/a
 // Sweep    ?         n/a              n/a
 
-#ifndef HARDWARE_SHRUTI_OSCILLATOR_H_
-#define HARDWARE_SHRUTI_OSCILLATOR_H_
+#ifndef HARDWARE_SHRUTI_SHRUTI1_OSCILLATOR_H_
+#define HARDWARE_SHRUTI_SHRUTI1_OSCILLATOR_H_
 
 #include "hardware/base/base.h"
 #include "hardware/shruti/shruti.h"
@@ -549,7 +549,7 @@ class Oscillator {
   
   // ------- Low-passed, then high-passed white noise --------------------------
   static void RenderFilteredNoise() {
-    uint8_t innovation = Random::state_msb();
+    uint8_t innovation = Random::GetByte();
     // This trick is used to avoid having a DC component (no innovation) when
     // the parameter is set to its minimal or maximal value.
     uint8_t offset = parameter_ == 127 ? 0 : 2;
@@ -608,4 +608,4 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
 
 }  // namespace hardware_shruti
 
-#endif  // HARDWARE_SHRUTI_OSCILLATOR_H_
+#endif  // HARDWARE_SHRUTI_SHRUTI1_OSCILLATOR_H_

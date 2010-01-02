@@ -27,8 +27,8 @@
 // singleton". This does not yield a code size gain, but this is coherent with
 // what was done with NoteStack.
 
-#ifndef HARDWARE_SHRUTI_SHRUTI1_VOICE_CONTROLLER_
-#define HARDWARE_SHRUTI_SHRUTI1_VOICE_CONTROLLER_
+#ifndef HARDWARE_SHRUTI_SHRUTI4_VOICE_CONTROLLER_
+#define HARDWARE_SHRUTI_SHRUTI4_VOICE_CONTROLLER_
 
 #include "hardware/shruti/shruti.h"
 
@@ -53,8 +53,6 @@ class VoiceController {
   static void Init(Voice* voices, uint8_t num_voices_);
   static void SetTempo(uint8_t tempo);
   static void SetSwing(uint8_t swing);
-  static void SetPattern(uint8_t pattern);
-  static void SetOctaves(uint8_t octaves) { octaves_ = octaves; }
   static void AllNotesOff();
   static void AllSoundOff();
   static void Reset();
@@ -65,9 +63,6 @@ class VoiceController {
   static inline void ExternalSync() { --midi_clock_counter_; }
   static inline uint8_t step() { return pattern_step_; }
   static inline uint8_t active() { return active_; }
-  static inline uint16_t has_arpeggiator_note() {
-    return pattern_mask_ & pattern_;
-  }
   // Returns 1 when the clock has advanced.
   static uint8_t Control();
   static void set_pattern_size(uint8_t pattern_size) {
@@ -94,25 +89,12 @@ class VoiceController {
 
   static int16_t internal_clock_counter_;
   static uint8_t midi_clock_counter_;
-  static int16_t step_duration_[2];
+  static int16_t step_duration_;
 
-  // 16 steps x-o-x pattern storing the steps at which a new note is triggered.
-  static uint16_t pattern_;
-  // Shift by 1 every 1/16th note, with swing.
-  static uint16_t pattern_mask_;
   // Increment by 1 every 1/16th note, with swing.
   static uint8_t pattern_step_;
   static uint8_t pattern_size_;
   
-  // Incremented/decremented by 1 for up/down pattern.
-  static int8_t arpeggio_step_;
-  // Direction increment.
-  static int8_t direction_;
-  static int8_t octave_step_;
-  // Number of octaves
-  static int8_t octaves_;
-  static uint8_t mode_;
-
   static NoteStack notes_;
   static Voice* voices_;
   static uint8_t num_voices_;
@@ -136,4 +118,4 @@ class VoiceController {
 
 }  // namespace hardware_shruti
 
-#endif  // HARDWARE_SHRUTI_SHRUTI1_VOICE_CONTROLLER_
+#endif  // HARDWARE_SHRUTI_SHRUTI4_VOICE_CONTROLLER_

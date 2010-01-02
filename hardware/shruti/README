@@ -11,7 +11,7 @@ Hybrid digital / analog synthesis.
 
 Shruti-1:
 
-* Mono
+* Monophonic
 * 2 sync'able, x-modable DCOs:
 - pulse, square (with pulse-width modulation), triangle with waveshapping, sawtooth. All band-limited (sort of).
 - sawtooth with sweepable resonance (casio cz-like).

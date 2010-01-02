@@ -31,7 +31,6 @@ namespace hardware_shruti {
 int16_t VoiceController::internal_clock_counter_;
 uint8_t VoiceController::midi_clock_counter_;
 int16_t VoiceController::step_duration_[2];
-uint8_t VoiceController::random_byte_;
 
 uint16_t VoiceController::pattern_;
 uint16_t VoiceController::pattern_mask_;
@@ -155,8 +154,6 @@ void VoiceController::SetPattern(uint8_t pattern) {
 
 /* static */
 void VoiceController::NoteOn(uint8_t note, uint8_t velocity) {
-  random_byte_ += note;
-  random_byte_ += velocity;
   if (velocity == 0) {
     NoteOff(note);
   } else {
@@ -305,9 +302,9 @@ void VoiceController::ArpeggioDown() {
 void VoiceController::Step() {
   uint8_t num_notes = notes_.size();
   if (mode_ == ARPEGGIO_DIRECTION_RANDOM) {
-    random_byte_ = Random::state_msb();
-    octave_step_ = random_byte_ & 0xf;
-    arpeggio_step_ = (random_byte_ & 0xf0) >> 4;
+    uint8_t random_byte = Random::state_msb();
+    octave_step_ = random_byte & 0xf;
+    arpeggio_step_ = (random_byte & 0xf0) >> 4;
     while (octave_step_ >= octaves_) {
       octave_step_ -= octaves_;
     }

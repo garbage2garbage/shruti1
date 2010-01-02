@@ -67,6 +67,7 @@ class NoteStack {
   static const NoteEntry& sorted_note(uint8_t index) {
     return pool_[sorted_ptr_[index]];
   }
+  static const NoteEntry& note(uint8_t index) { return pool_[index]; }
   static const NoteEntry& dummy() { return pool_[0]; }
   
  private:

@@ -91,37 +91,38 @@ instruments \x06\x07-1
 
 shruti4_strings = """
 16' mix
-8' mix
-4' mix
-2' mix
+ 8' mix
+ 4' mix
+ 2' mix
 sh1
-shape1
+shape 1
 sh2
-shape2
-bal
+shape 2
 balance
-
-sin
- sqr
-saw
-rd1
-rd2
-vox
 
 sine
 square
- saw
-reed1
-reed2
-voice
+saw
+1 reed
+2 reed
+ooh
+aah
 
+none
 drawbr
-  saw
- square
+sine 
+square 
+saw 
+1 reed 
+2 reed 
+ooh 
+aah 
+dsaw
+dsqr
 
 drawbars 1
 drawbars 2
-mode
+oscillator
 
 voices
 1
@@ -137,11 +138,16 @@ retrigger
 cut
 vca
 \x05
+vib
+slp
 pwm
 res
 
 cutoff
  vca
+slop
+pitch
+vibrto
  pwm
 reso
 

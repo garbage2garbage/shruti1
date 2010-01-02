@@ -25,8 +25,11 @@
 
 #ifdef SHRUTI1
   #include "hardware/shruti/shruti1/synthesis_engine.h"
+  #define STR_RES_1 0
+  #define STR_RES_SINE 0
 #else
   #include "hardware/shruti/shruti4/synthesis_engine.h"
+  #define STR_RES_1S2 0
 #endif  // SHRUTI1
 
 #include "hardware/utils/string.h"
@@ -41,7 +44,7 @@ namespace hardware_shruti {
 /* extern */
 Editor editor;
 
-static const prog_char units_definitions[UNIT_TEMPO_WITH_EXTERNAL_CLOCK + 1]
+static const prog_char units_definitions[UNIT_DRAWBAR_WAVEFORM + 1]
     PROGMEM = {
   0,
   0,
@@ -57,6 +60,8 @@ static const prog_char units_definitions[UNIT_TEMPO_WITH_EXTERNAL_CLOCK + 1]
   0,
   STR_RES_EQUAL,
   0,
+  STR_RES_1,
+  STR_RES_SINE,
 };
 
 static const prog_char arp_pattern_prefix[4] PROGMEM = {
@@ -65,6 +70,7 @@ static const prog_char arp_pattern_prefix[4] PROGMEM = {
 
 static const prog_char raw_parameter_definition[
     kNumEditableParameters * sizeof(ParameterDefinition)] PROGMEM = {
+#ifdef SHRUTI1
   // Osc 1.
   PRM_OSC_SHAPE_1,
   WAVEFORM_NONE, WAVEFORM_ANALOG_WAVETABLE,
@@ -127,6 +133,70 @@ static const prog_char raw_parameter_definition[
   WAVEFORM_SQUARE, WAVEFORM_TRIANGLE,
   UNIT_WAVEFORM, 
   STR_RES_SHAPE, STR_RES_SHAPE,
+#else
+  // Drawbar 1.
+  PRM_DRW_16_1,
+  0, 31,
+  UNIT_UINT8,
+  STR_RES_16_MIX, STR_RES_16_MIX,
+  
+  PRM_DRW_8_1,
+  0, 31,
+  UNIT_UINT8,
+  STR_RES__8_MIX, STR_RES__8_MIX,
+  
+  PRM_DRW_4_1,
+  0, 31,
+  UNIT_UINT8,
+  STR_RES__4_MIX, STR_RES__4_MIX,
+  
+  PRM_DRW_2_1,
+  0, 31,
+  UNIT_UINT8,
+  STR_RES__2_MIX, STR_RES__2_MIX,
+
+  // Drawbar 2.
+  PRM_DRW_16_2,
+  0, 31,
+  UNIT_UINT8,
+  STR_RES_16_MIX, STR_RES_16_MIX,
+  
+  PRM_DRW_8_2,
+  0, 31,
+  UNIT_UINT8,
+  STR_RES__8_MIX, STR_RES__8_MIX,
+  
+  PRM_DRW_4_2,
+  0, 31,
+  UNIT_UINT8,
+  STR_RES__4_MIX, STR_RES__4_MIX,
+  
+  PRM_DRW_2_2,
+  0, 31,
+  UNIT_UINT8,
+  STR_RES__2_MIX, STR_RES__2_MIX,
+
+  // Oscillator.
+  PRM_DRW_SHAPE_1,
+  DRAWBAR_SINE, DRAWBAR_VOICE_AAH,
+  UNIT_DRAWBAR_WAVEFORM,
+  STR_RES_SH1, STR_RES_SHAPE_1,
+  
+  PRM_DRW_SHAPE_2,
+  DRAWBAR_SINE, DRAWBAR_VOICE_AAH,
+  UNIT_DRAWBAR_WAVEFORM,
+  STR_RES_SH2, STR_RES_SHAPE_2,
+  
+  PRM_DRW_BALANCE,
+  0, 63,
+  UNIT_RAW_UINT8,
+  STR_RES_BALANCE, STR_RES_BALANCE,
+  
+  PRM_OSC_SHAPE,
+  WAVEFORM_NONE, WAVEFORM_DIGITAL_SQUARE,
+  UNIT_WAVEFORM,
+  STR_RES_SHAPE, STR_RES_SHAPE,
+#endif  // SHRUTI1
   
   // Filter.
   PRM_FILTER_CUTOFF,
@@ -233,6 +303,7 @@ static const prog_char raw_parameter_definition[
   UNIT_INT8,
   STR_RES_AMT, STR_RES_AMOUNT,
 
+#ifdef SHRUTI1
   // Arpeggiator.
   PRM_ARP_TEMPO,
   24, 240,
@@ -253,7 +324,29 @@ static const prog_char raw_parameter_definition[
   0, 127, 
   UNIT_RAW_UINT8,
   STR_RES_SWG, STR_RES_SWING,
+#else
+  // Keyboard settings.
+  PRM_VOI_TEMPO,
+  24, 240,
+  UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
+  STR_RES_BPM, STR_RES_TEMPO,
   
+  PRM_VOI_NUM_VOICES,
+  POLYPHONY_1, POLYPHONY_4_UNISON,
+  UNIT_VOICES_SETTING,
+  STR_RES_VOICES, STR_RES_VOICES,
+  
+  PRM_VOI_LEGATO,
+  OFF, ON,
+  UNIT_BOOLEAN,
+  STR_RES_LEGATO, STR_RES_LEGATO,
+  
+  PRM_VOI_RETRIGGER,
+  OFF, ON,
+  UNIT_BOOLEAN,
+  STR_RES_RETRIGGER, STR_RES_RETRIGGER,
+#endif  // SHRUTI1
+
   // Keyboard settings.
   PRM_KBD_OCTAVE,
   -2, +2,
@@ -265,10 +358,17 @@ static const prog_char raw_parameter_definition[
   UNIT_RAGA,
   STR_RES_RAGA, STR_RES_RAGA,
   
+#ifdef SHRUTI1
   PRM_KBD_PORTAMENTO,
   0, 127,
   UNIT_RAW_UINT8,
   STR_RES_PRT, STR_RES_PORTA,
+#else
+  PRM_KBD_SLOP,
+  0, 127,
+  UNIT_UINT8,
+  STR_RES_SLP, STR_RES_SLOP,
+#endif
   
   PRM_KBD_MIDI_CHANNEL,
   0, 16, 
@@ -288,15 +388,25 @@ const UiHandler Editor::ui_handler_[] = {
 
 /* static */
 const PageDefinition Editor::page_definition_[] = {
+#ifdef SHRUTI1
   { PAGE_OSC_OSC_1, GROUP_OSC, STR_RES_OSCILLATOR_1, PARAMETER_EDITOR, 0 },
   { PAGE_OSC_OSC_2, GROUP_OSC, STR_RES_OSCILLATOR_2, PARAMETER_EDITOR, 4 },
   { PAGE_OSC_OSC_MIX, GROUP_OSC, STR_RES_MIXER, PARAMETER_EDITOR, 8 },
+#else
+  { PAGE_OSC_OSC_1, GROUP_OSC, STR_RES_DRAWBARS_1, PARAMETER_EDITOR, 0 },
+  { PAGE_OSC_OSC_2, GROUP_OSC, STR_RES_DRAWBARS_2, PARAMETER_EDITOR, 4 },
+  { PAGE_OSC_OSC_MIX, GROUP_OSC, STR_RES_OSCILLATOR, PARAMETER_EDITOR, 8 },
+#endif  // SHRUTI1
   { PAGE_FILTER_FILTER, GROUP_FILTER, STR_RES_FILTER, PARAMETER_EDITOR, 12 },
   { PAGE_MOD_ENV_1, GROUP_MOD, STR_RES_ENVELOPE_1, PARAMETER_EDITOR, 16 },
   { PAGE_MOD_ENV_2, GROUP_MOD, STR_RES_ENVELOPE_2, PARAMETER_EDITOR, 20 },
   { PAGE_MOD_LFO, GROUP_MOD, STR_RES_LFOS, PARAMETER_EDITOR, 24 },
   { PAGE_MOD_MATRIX, GROUP_MOD, STR_RES_MODULATION, PARAMETER_EDITOR, 28 },
+#ifdef SHRUTI1
   { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_ARPEGGIO, PARAMETER_EDITOR, 32 },
+#else
+  { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_VOICES, PARAMETER_EDITOR, 32 },
+#endif  // SHRUTI1
   { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER, STEP_SEQUENCER, 0 },
   { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD, PARAMETER_EDITOR, 36 },
   { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_LOAD_SAVE_PATCH, LOAD_SAVE, 0 }

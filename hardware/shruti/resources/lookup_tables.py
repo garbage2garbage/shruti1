@@ -41,7 +41,7 @@ rates = numpy.linspace(numpy.log(min_increment),
                        numpy.log(max_increment), num_values)
 
 lookup_tables.append(
-    ('lfo_increments', numpy.exp(rates).astype(int))
+    ('lfo_increments', numpy.exp(rates).astype(int), None)
 )
 
 
@@ -57,7 +57,7 @@ rates = numpy.linspace(numpy.power(max_increment, -gamma),
                        numpy.power(min_increment, -gamma), num_values)
 
 lookup_tables.append(
-    ('env_portamento_increments', numpy.power(rates, -1/gamma).astype(int))
+    ('env_portamento_increments', numpy.power(rates, -1/gamma).astype(int), None)
 )
 
 # Create table for pitch.
@@ -69,7 +69,7 @@ pitches = a4_pitch * 2 ** ((notes - a4_midi * 128) / (128 * 12))
 increments = excursion / sample_rate * pitches
 
 lookup_tables.append(
-    ('oscillator_increments', increments.astype(int))
+    ('oscillator_increments', increments.astype(int), None)
 )
 
 
@@ -110,7 +110,7 @@ fm_frequency_ratios = numpy.array([
 ])
 
 lookup_tables.append(
-    ('fm_frequency_ratios', (fm_frequency_ratios * 256).astype(int))
+    ('fm_frequency_ratios', (fm_frequency_ratios * 256).astype(int), 1)
 )
 
 
@@ -299,7 +299,7 @@ scales = [
 strings = ''
 for scale, values in scales:
   strings += '\n' + scale[:6]
-  lookup_tables.append(('scale_%s' % scale, values))
+  lookup_tables.append(('scale_%s' % scale, values, None))
 
 
 """----------------------------------------------------------------------------
@@ -342,4 +342,4 @@ lookup_tables.append(
       'o--o o--- o-o- o-oo',
       'o--- --oo oooo -oo-',
       'o--- ---- o--- o-oo',
-      ])))
+      ]), 1))
