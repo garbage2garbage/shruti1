@@ -38,14 +38,14 @@
 // Table    sr/2      n/a              n/a
 // Sweep    ?         n/a              n/a
 
-#ifndef HARDWARE_SHRUTI_SHRUTI1_OSCILLATOR_H_
-#define HARDWARE_SHRUTI_SHRUTI1_OSCILLATOR_H_
+#ifndef HARDWARE_SHRUTI_OSCILLATOR_H_
+#define HARDWARE_SHRUTI_OSCILLATOR_H_
 
 #include "hardware/base/base.h"
 #include "hardware/shruti/shruti.h"
 
 #include "hardware/shruti/patch.h"
-#include "hardware/shruti/shruti1/resources.h"
+#include "hardware/shruti/resources.h"
 #include "hardware/utils/random.h"
 #include "hardware/utils/op.h"
 
@@ -608,4 +608,4 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
 
 }  // namespace hardware_shruti
 
-#endif  // HARDWARE_SHRUTI_SHRUTI1_OSCILLATOR_H_
+#endif  // HARDWARE_SHRUTI_OSCILLATOR_H_

@@ -26,13 +26,7 @@
 #include "hardware/midi/midi.h"
 #include "hardware/shruti/display.h"
 #include "hardware/shruti/editor.h"
-
-#ifdef SHRUTI1
-  #include "hardware/shruti/shruti1/synthesis_engine.h"
-#else 
-  #include "hardware/shruti/shruti4/synthesis_engine.h"
-#endif
-
+#include "hardware/shruti/synthesis_engine.h"
 #include "hardware/utils/task.h"
 
 using namespace hardware_base;

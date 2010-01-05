@@ -15,11 +15,7 @@
 
 #include "hardware/shruti/envelope.h"
 
-#ifdef SHRUTI1
-  #include "hardware/shruti/shruti1/resources.h"
-#else
-  #include "hardware/shruti/shruti4/resources.h"
-#endif  // SHRUTI1
+#include "hardware/shruti/resources.h"
 
 namespace hardware_shruti {
 

@@ -21,13 +21,7 @@
 #define HARDWARE_SHRUTI_EDITOR_H_
 
 #include "hardware/base/base.h"
-
-#ifdef SHRUTI1
-  #include "hardware/shruti/shruti1/resources.h"
-#else
-  #include "hardware/shruti/shruti4/resources.h"
-#endif  // SHRUTI1
-
+#include "hardware/shruti/resources.h"
 #include "hardware/shruti/shruti.h"
 
 namespace hardware_shruti {
@@ -75,9 +69,7 @@ enum Unit {
   UNIT_MODULATION_DESTINATION,
   UNIT_PATTERN,
   UNIT_RAGA,
-  UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
-  UNIT_VOICES_SETTING,
-  UNIT_DRAWBAR_WAVEFORM,
+  UNIT_TEMPO_WITH_EXTERNAL_CLOCK
 };
 
 enum Action {

@@ -34,8 +34,8 @@
 // this transformation should not be applied to the Voice class. Since, for now
 // only the monophonic mode is supported, Voice is also "static'ified".
 
-#ifndef HARDWARE_SHRUTI_SHRUTI4_SYNTHESIS_ENGINE_H_
-#define HARDWARE_SHRUTI_SHRUTI4_SYNTHESIS_ENGINE_H_
+#ifndef HARDWARE_SHRUTI_SYNTHESIS_ENGINE_H_
+#define HARDWARE_SHRUTI_SYNTHESIS_ENGINE_H_
 
 #include "hardware/shruti/shruti.h"
 
@@ -44,7 +44,7 @@
 #include "hardware/shruti/lfo.h"
 #include "hardware/shruti/patch.h"
 
-#include "hardware/shruti/shruti4/voice_controller.h"
+#include "hardware/shruti/voice_controller.h"
 
 namespace hardware_shruti {
 
@@ -63,8 +63,8 @@ class Voice {
   Voice() { }
   static void Init();
 
-  // Called whenever the number of notes being played is changed.
-  static void Trigger(const NoteStack& notes, bool note_on);
+  // Called whenever a new note is played, manually or through the arpeggiator.
+  static void Trigger(uint8_t note, uint8_t velocity, uint8_t legato);
 
   // Move this voice to the release stage.
   static void Release() { TriggerEnvelope(RELEASE); }
@@ -98,10 +98,12 @@ class Voice {
   static Envelope envelope_[kNumEnvelopes];
   static uint8_t dead_;
 
-  static int16_t pitch_[kPolyphony];
-  static uint8_t fast_slop_[kPolyphony];
-  static uint8_t slow_slop_[kPolyphony];
-  static uint8_t slop_prescaler_;
+  // Counters/phases for the pitch envelope generator (portamento).
+  // Pitches are stored on 14 bits, the 7 highest bits are the MIDI note value,
+  // the 7 lowest bits are used for fine-tuning.
+  static int16_t pitch_increment_;
+  static int16_t pitch_target_;
+  static int16_t pitch_value_;
 
   // The voice-specific modulation sources are from MOD_SRC_ENV_1 to
   // MOD_SRC_GATE.
@@ -114,6 +116,8 @@ class Voice {
   
   static uint8_t signal_;
   
+  static uint8_t osc1_phase_msb_;
+
   DISALLOW_COPY_AND_ASSIGN(Voice);
 };
 
@@ -224,4 +228,4 @@ extern SynthesisEngine engine;
 
 }  // namespace hardware_shruti
 
-#endif  // HARDWARE_SHRUTI_SHRUTI4_SYNTHESIS_ENGINE_H_
+#endif  // HARDWARE_SHRUTI_SYNTHESIS_ENGINE_H_

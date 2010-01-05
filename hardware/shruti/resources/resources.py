@@ -43,7 +43,7 @@ header = """// Copyright 2009 Olivier Gillet.
 """
 
 namespace = 'hardware_shruti'
-target = 'hardware/shruti/shruti1'
+target = 'hardware/shruti'
 modifier = 'PROGMEM'
 types = ['uint8_t', 'uint16_t']
 includes = """
@@ -60,16 +60,12 @@ import strings
 import waveforms
 
 
-def FilterResources(l):
-  return [(k, v) for (k, v, f) in l if f is None or f == 1]
-
-
 resources = [
-  (strings.common_strings + lookup_tables.strings + strings.shruti1_strings,
+  (strings.strings + lookup_tables.strings,
    'string', 'STR_RES', 'prog_char', str, False),
-  (FilterResources(lookup_tables.lookup_tables),
+  (lookup_tables.lookup_tables,
    'lookup_table', 'LUT_RES', 'prog_uint16_t', int, False),
-  (FilterResources(waveforms.waveforms),
+  (waveforms.waveforms,
    'waveform', 'WAV_RES', 'prog_uint8_t', int, True),
   (characters.characters, 'character', 'CHR_RES', 'prog_uint8_t', int, True),
 ]

@@ -17,11 +17,9 @@
 #
 # -----------------------------------------------------------------------------
 #
-# Resource strings for shruti-1/shruti-4.
+# Resource strings for shruti-1.
 
-
-# All these strings are specific to shruti-1.
-shruti1_strings = """
+strings = """
 prm
 rng
 op
@@ -86,77 +84,7 @@ reso
 
 mutable
 instruments \x06\x07-1
-"""
 
-
-shruti4_strings = """
-16' mix
- 8' mix
- 4' mix
- 2' mix
-sh1
-shape 1
-sh2
-shape 2
-balance
-
-sine
-square
-saw
-1 reed
-2 reed
-ooh
-aah
-
-none
-drawbr
-sine 
-square 
-saw 
-1 reed 
-2 reed 
-ooh 
-aah 
-dsaw
-dsqr
-
-drawbars 1
-drawbars 2
-oscillator
-
-voices
-1
-2
-4
-1 uni
-2 uni
-4 uni
-
-legato
-retrigger
-
-cut
-vca
-\x05
-vib
-slp
-pwm
-res
-
-cutoff
- vca
-slop
-pitch
-vibrto
- pwm
-reso
-
-mutable
-instruments \x06\x07-4
-"""
-
-
-common_strings = """
 atk
 wv1
 rt1

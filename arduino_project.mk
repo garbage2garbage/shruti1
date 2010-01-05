@@ -358,10 +358,10 @@ clean:
 depends:	$(DEPS)
 		cat $(DEPS) > $(DEP_FILE)
 
-$(TARGET).firmware_size:	$(TARGET_ELF)
-		$(SIZE) $(TARGET_ELF) > $(TARGET).firmware_size
+firmware_size:	$(TARGET_ELF)
+		$(SIZE) $(TARGET_ELF) > firmware_size
 
-build/$(TARGET)/$(TARGET).top_symbols:	$(TARGET_ELF)
+$(OBJDIR)/$(TARGET).top_symbols:	$(TARGET_ELF)
 		$(NM) $(TARGET_ELF) --size-sort -C -f bsd -r > $@
 
 eeprom_backup:

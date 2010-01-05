@@ -32,11 +32,7 @@ namespace hardware_shruti {
 // Set this flag to 6 to get a nice polysynth (humour).
 static const uint8_t kNumVoices = 1;
 
-#ifdef SHRUTI1
-  static const uint8_t kPolyphony = 1;
-#else
-  static const uint8_t kPolyphony = 4;
-#endif
+static const uint8_t kPolyphony = 1;
 
 static const uint8_t kNumEditingPots = 4;
 static const uint8_t kNumAssignablePots = 2;

@@ -17,9 +17,9 @@
 //
 // Voice manager / arpeggiator.
 
-#include "hardware/shruti/shruti1/voice_controller.h"
-#include "hardware/shruti/shruti1/resources.h"
-#include "hardware/shruti/shruti1/synthesis_engine.h"
+#include "hardware/shruti/voice_controller.h"
+#include "hardware/shruti/resources.h"
+#include "hardware/shruti/synthesis_engine.h"
 
 #include "hardware/utils/random.h"
 
