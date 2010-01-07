@@ -38,6 +38,7 @@ swing
 oscillator 1
 oscillator 2
 arpeggio
+assignable
 
 none
 blit

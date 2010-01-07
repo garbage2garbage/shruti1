@@ -294,6 +294,7 @@ const PageDefinition Editor::page_definition_[] = {
   { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER, STEP_SEQUENCER, 0 },
   { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD, PARAMETER_EDITOR, 36 },
   { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_LOAD_SAVE_PATCH, LOAD_SAVE, 0 }
+  { PAGE_CUSTOM, GROUP_CUSTOM, STR_RES_ASSIGNABLE, PARAMETER_EDITOR, 0 }
 };
 
 /* <static> */
@@ -308,6 +309,7 @@ ParameterPage Editor::last_visited_page_[kNumGroups] = {
     PAGE_MOD_ENV_1,
     PAGE_PLAY_ARP,
     PAGE_LOAD_SAVE
+    PAGE_CUSTOM,
 };
 uint8_t Editor::current_controller_;
 uint8_t Editor::last_visited_subpage_ = 0;
@@ -631,10 +633,20 @@ void Editor::DisplayEditDetailsPage() {
 }
 
 /* static */
+uint8_t Editor::GetParameterNumber(uint8_t controller_index) {
+  if (current_page_ == PAGE_CUSTOM) {
+    subpage_ = assigned_parameters_subpage_[controller_index];
+    return assigned_parameters_[controller_index]
+  } else {
+    return page_definition_[current_page_].first_parameter_index + \
+        controller_index;
+  }
+}
+
+/* static */
 void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
   uint8_t new_value;
-  uint8_t index = page_definition_[current_page_].first_parameter_index + \
-      controller_index;
+  uint8_t index = GetParameterNumber(controller_index);
   const ParameterDefinition& parameter = parameter_definition(index);
 
   // Handle the simple case when the parameter can only take one value.
@@ -649,6 +661,27 @@ void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
   }
   SetParameterWithHacks(parameter.id, new_value);
   current_controller_ = controller_index;
+}
+
+/* static */
+void Editor::HandleEditIncrement(int8_t direction) {
+  uint8_t index = GetParameterNumber(current_controller_);
+  const ParameterDefinition& parameter = parameter_definition(index);
+  
+  int16_t value = GetParameterWithHacks(parameter.id);
+  if (parameter.unit == UNIT_INT8) {
+    value = static_cast<int16_t>(static_cast<int8_t>(value));
+    value += direction;
+    if (value >= static_cast<int8_t>(parameter.min_value) &&
+        value <= static_cast<int8_t>(parameter.max_value)) {
+      SetParameterWithHacks(parameter.id, value);
+    }
+  } else {
+    value += direction;
+    if (value >= parameter.min_value && value <= parameter.max_value) {
+      SetParameterWithHacks(parameter.id, value);
+    }
+  }
 }
 
 /* static */
@@ -687,28 +720,6 @@ uint8_t Editor::GetParameterWithHacks(uint8_t id) {
       value = 39;
     }
     return value;
-  }
-}
-
-/* static */
-void Editor::HandleEditIncrement(int8_t direction) {
-  uint8_t index = page_definition_[current_page_].first_parameter_index + \
-      current_controller_;
-  const ParameterDefinition& parameter = parameter_definition(index);
-  
-  int16_t value = GetParameterWithHacks(parameter.id);
-  if (parameter.unit == UNIT_INT8) {
-    value = static_cast<int16_t>(static_cast<int8_t>(value));
-    value += direction;
-    if (value >= static_cast<int8_t>(parameter.min_value) &&
-        value <= static_cast<int8_t>(parameter.max_value)) {
-      SetParameterWithHacks(parameter.id, value);
-    }
-  } else {
-    value += direction;
-    if (value >= parameter.min_value && value <= parameter.max_value) {
-      SetParameterWithHacks(parameter.id, value);
-    }
   }
 }
 

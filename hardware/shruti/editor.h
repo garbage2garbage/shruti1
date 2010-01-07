@@ -38,6 +38,7 @@ enum Group {
   GROUP_MOD,
   GROUP_PLAY,
   GROUP_LOAD_SAVE,
+  GROUP_CUSTOM,
 };
 
 enum Page {
@@ -53,6 +54,7 @@ enum Page {
   PAGE_PLAY_STEP_SEQUENCER,
   PAGE_PLAY_KBD,
   PAGE_LOAD_SAVE,
+  PAGE_CUSTOM,
 };
 
 enum Unit {
