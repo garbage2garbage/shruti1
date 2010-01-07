@@ -4,8 +4,7 @@ Audio I/O: 6.35 Jack (Mono audio out), 6.35 Jack (External signal in)
 CV: 2 CV in (0-5 V, aka "geek ins") for easy experimentation with controllers, accessible through an extension port inside the synth.
 Serial: TX/RX/RST, for interfacing with an FTDI chip or a castrated Arduino (firmware development).
 MIDI: in, out (thru + patch dumps)
-Controllers: 12 facade LEDs, 2x16 LCD display, 4 pots for patch editing. 2
-assignable pots. Volume and mixer pot. 5 navigation switches, one inc/dec switches pair.
+Controllers: 12 facade LEDs, 2x16 LCD display, 4 pots for patch editing. Volume and mixer pot. 5 navigation switches, one inc/dec switches pair.
 
 Hybrid digital / analog synthesis.
 

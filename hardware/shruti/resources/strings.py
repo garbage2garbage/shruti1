@@ -140,10 +140,10 @@ seq
 arp
 whl
 bnd
-as1
-as2
+cst
 cv1
 cv2
+cv3
 rnd
 en1
 en2
@@ -156,10 +156,10 @@ stpseq
  arp
 mwheel
 bender
-assgn1
-assgn2
+offset
  cv1
  cv2
+ cv3
 random
 env1
 env2

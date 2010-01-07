@@ -88,10 +88,10 @@ static const prog_char empty_patch[] PROGMEM = {
     MOD_SRC_VELOCITY, MOD_DST_VCA, 16,
     MOD_SRC_PITCH_BEND, MOD_DST_VCO_1_2_FINE, 32,
     MOD_SRC_LFO_1, MOD_DST_VCO_1_2_FINE, 16,
-    MOD_SRC_ASSIGNABLE_1, MOD_DST_PWM_1, 0,
-    MOD_SRC_ASSIGNABLE_2, MOD_DST_FILTER_CUTOFF, 0,
-    MOD_SRC_CV_1, MOD_DST_FILTER_CUTOFF, 0,
-    MOD_SRC_CV_2, MOD_DST_FILTER_CUTOFF, 0,
+    MOD_SRC_CV_1, MOD_DST_PWM_1, 0,
+    MOD_SRC_CV_2, MOD_DST_PWM_2, 0,
+    MOD_SRC_CV_3, MOD_DST_FILTER_CUTOFF, 0,
+    MOD_SRC_RANDOM, MOD_DST_FILTER_CUTOFF, 0,
     120, 0, 0, 0,
     0x00, 0x00, 0xff, 0xff, 0xcc, 0xcc, 0x44, 0x44,
     0, 0, 0, 1,
@@ -322,6 +322,7 @@ void SynthesisEngine::Control() {
     modulation_sources_[MOD_SRC_LFO_1 + i] = lfo_[i].Render();
   }
   modulation_sources_[MOD_SRC_RANDOM] = Random::state_msb();
+  modulation_sources_[MOD_SRC_OFFSET] = 255;
 
   // Update the arpeggiator / step sequencer.
   if (controller_.Control()) {

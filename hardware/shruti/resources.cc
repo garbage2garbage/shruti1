@@ -134,10 +134,10 @@ static const prog_char str_res_seq[] PROGMEM = "seq";
 static const prog_char str_res_arp[] PROGMEM = "arp";
 static const prog_char str_res_whl[] PROGMEM = "whl";
 static const prog_char str_res_bnd[] PROGMEM = "bnd";
-static const prog_char str_res_as1[] PROGMEM = "as1";
-static const prog_char str_res_as2[] PROGMEM = "as2";
+static const prog_char str_res_cst[] PROGMEM = "cst";
 static const prog_char str_res_cv1[] PROGMEM = "cv1";
 static const prog_char str_res_cv2[] PROGMEM = "cv2";
+static const prog_char str_res_cv3[] PROGMEM = "cv3";
 static const prog_char str_res_rnd[] PROGMEM = "rnd";
 static const prog_char str_res_en1[] PROGMEM = "en1";
 static const prog_char str_res_en2[] PROGMEM = "en2";
@@ -150,10 +150,10 @@ static const prog_char str_res_stpseq[] PROGMEM = "stpseq";
 static const prog_char str_res__arp[] PROGMEM = "arp";
 static const prog_char str_res_mwheel[] PROGMEM = "mwheel";
 static const prog_char str_res_bender[] PROGMEM = "bender";
-static const prog_char str_res_assgn1[] PROGMEM = "assgn1";
-static const prog_char str_res_assgn2[] PROGMEM = "assgn2";
+static const prog_char str_res_offset[] PROGMEM = "offset";
 static const prog_char str_res__cv1[] PROGMEM = "cv1";
 static const prog_char str_res__cv2[] PROGMEM = "cv2";
+static const prog_char str_res__cv3[] PROGMEM = "cv3";
 static const prog_char str_res_random[] PROGMEM = "random";
 static const prog_char str_res_env1[] PROGMEM = "env1";
 static const prog_char str_res_env2[] PROGMEM = "env2";
@@ -358,10 +358,10 @@ PROGMEM const prog_char* string_table[] = {
   str_res_arp,
   str_res_whl,
   str_res_bnd,
-  str_res_as1,
-  str_res_as2,
+  str_res_cst,
   str_res_cv1,
   str_res_cv2,
+  str_res_cv3,
   str_res_rnd,
   str_res_en1,
   str_res_en2,
@@ -374,10 +374,10 @@ PROGMEM const prog_char* string_table[] = {
   str_res__arp,
   str_res_mwheel,
   str_res_bender,
-  str_res_assgn1,
-  str_res_assgn2,
+  str_res_offset,
   str_res__cv1,
   str_res__cv2,
+  str_res__cv3,
   str_res_random,
   str_res_env1,
   str_res_env2,

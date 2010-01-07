@@ -168,10 +168,10 @@ enum ModulationSource {
   MOD_SRC_STEP,
   MOD_SRC_WHEEL,
   MOD_SRC_PITCH_BEND,
-  MOD_SRC_ASSIGNABLE_1,
-  MOD_SRC_ASSIGNABLE_2,
+  MOD_SRC_OFFSET,
   MOD_SRC_CV_1,
   MOD_SRC_CV_2,
+  MOD_SRC_CV_3,
   MOD_SRC_RANDOM,
   
   /* Then those which are different for each note. */

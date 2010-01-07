@@ -164,9 +164,6 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static void set_sequence_step(uint8_t step, uint8_t value) {
     patch_.set_sequence_step(step, value);
   }
-  static void set_assignable_controller(uint8_t controller, uint8_t value) {
-    modulation_sources_[MOD_SRC_ASSIGNABLE_1 + controller] = value;
-  }
   static void set_cv(uint8_t cv, uint8_t value) {
     modulation_sources_[MOD_SRC_CV_1 + cv] = value;
   }

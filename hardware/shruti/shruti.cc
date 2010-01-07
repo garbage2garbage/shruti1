@@ -43,7 +43,7 @@ Serial<SerialPort0, 31250, BUFFERED, POLLED> midi_io;
 // Input event handlers.
 typedef InputArray<
     AnalogInput<kPinAnalogInput>,
-    kNumEditingPots + kNumAssignablePots,
+    kNumEditingPots,
     8> Pots;
 
 typedef InputArray<
@@ -157,13 +157,8 @@ TASK_BEGIN_NEAR
         target_page_type = PAGE_TYPE_SUMMARY;
       }
     } else {
-      if (pot_event.id < kNumEditingPots) {
-        editor.HandleInput(pot_event.id, pot_event.value);
-        target_page_type = PAGE_TYPE_DETAILS;
-      } else {
-        engine.set_assignable_controller(
-            pot_event.id - kNumEditingPots, pot_event.value >> 2);
-      }
+      editor.HandleInput(pot_event.id, pot_event.value);
+      target_page_type = PAGE_TYPE_DETAILS;
     }
     TASK_SWITCH;
     
@@ -185,7 +180,10 @@ TASK_END
 uint8_t current_cv;
 
 void CvTask() {
-  current_cv = (current_cv + 1) & 1;
+  current_cv = (current_cv + 1);
+  if (current_cv >= kNumCvInputs) {
+    current_cv = 0;
+  }
   engine.set_cv(current_cv, Adc::Read(kPinCvInput + current_cv) >> 2);
 }
 
