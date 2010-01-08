@@ -87,10 +87,8 @@ class VoiceController {
 
  private:
   static void RecomputeStepDurations();
-  static void ArpeggioDown();
-  static void ArpeggioUp();
-  static void ArpeggioLast();
-  static void ArpeggioFirst();
+  static void ArpeggioStep();
+  static void ArpeggioStart();
 
   static int16_t internal_clock_counter_;
   static uint8_t midi_clock_counter_;

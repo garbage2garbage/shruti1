@@ -130,14 +130,14 @@ TASK_BEGIN_NEAR
       if (switch_event.event == EVENT_RAISED && switch_event.time > 100) {
         uint8_t id = switch_event.id;
         if (id < kNumGroupSwitches) {
-          if (switch_event.time > 1000) {
+          if (switch_event.time > 750) {
             editor.DoShiftFunction(id);
           } else {
             editor.ToggleGroup(id);
           }
           target_page_type = PAGE_TYPE_SUMMARY;
         } else {
-          editor.HandleIncrement(2 * id - 2 * kNumGroupSwitches - 1);
+          editor.HandleIncrement(id == kNumGroupSwitches ? -1 : 1);
           target_page_type = PAGE_TYPE_DETAILS;
         }
       }

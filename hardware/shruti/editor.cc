@@ -680,15 +680,13 @@ void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
   if (assign_in_progress_) {
     assigned_parameters_[controller_index] = parameter_to_assign_;
     assign_in_progress_ = 0;
+    ToggleGroup(GROUP_PERFORMANCE);
   } else {
     uint8_t new_value;
     uint8_t index = KnobIndexToParameterId(controller_index);
     const ParameterDefinition& parameter = parameter_definition(index);
 
-    // Handle the simple case when the parameter can only take one value.
-    if (parameter.min_value == parameter.max_value) {
-      new_value = parameter.min_value;
-    } else if (parameter.unit == UNIT_RAW_UINT8) {
+    if (parameter.unit == UNIT_RAW_UINT8) {
       new_value = (value >> 3);
     } else {
       uint8_t range = parameter.max_value - parameter.min_value + 1;
@@ -731,33 +729,26 @@ void Editor::SetParameterWithHacks(uint8_t id, uint8_t value) {
   }
   
   // Dirty hack for the modulation page.
-  if (current_page_ == PAGE_MOD_MATRIX) {
-    if (id == PRM_MOD_ROW) {
-      subpage_ = value;
-      last_visited_subpage_ = value;
-    } else {
-      engine.SetParameter(id + subpage_ * 3, value);
-    }
+  if (current_page_ == PAGE_MOD_MATRIX && id == PRM_MOD_ROW) {
+    subpage_ = value;
+    last_visited_subpage_ = value;
   } else {
-    engine.SetParameter(id, value);
+    engine.SetParameter(id + subpage_ * 3, value);
   }
 }
 
 /* static */
 uint8_t Editor::GetParameterWithHacks(uint8_t id) {
-  if (current_page_ == PAGE_MOD_MATRIX) {
-    if (id == PRM_MOD_ROW) {
-      return subpage_;
-    } else {
-      return engine.GetParameter(id + subpage_ * 3);
-    }
+  uint8_t value;
+  if (current_page_ == PAGE_MOD_MATRIX && id == PRM_MOD_ROW) {
+    value = subpage_;
   } else {
-    uint8_t value = engine.GetParameter(id);
-    if (id == PRM_ARP_TEMPO && value == 0) {
-      value = 39;
-    }
-    return value;
+    value = engine.GetParameter(id + subpage_ * 3);
   }
+  if (id == PRM_ARP_TEMPO && value == 0) {
+    value = 39;
+  }
+  return value;
 }
 
 /* static */

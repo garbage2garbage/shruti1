@@ -94,15 +94,7 @@ void VoiceController::Reset() {
     step_duration_estimator_den_ = 0xff;
     pattern_step_ = pattern_size_ - 1;
     direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1; 
-    if (mode_ == ARPEGGIO_DIRECTION_DOWN) {
-      // Move to the first note, so that we'll start from the last note at the
-      // next clock tick.
-      ArpeggioFirst();
-    } else {
-      // Move to the last note, so that we'll start from the first note at the
-      // next clock tick.
-      ArpeggioLast();
-    }
+    ArpeggioStart();
   }
 }
 
@@ -237,62 +229,39 @@ uint8_t VoiceController::Control() {
 }
 
 /* static */
-void VoiceController::ArpeggioFirst() {
-  octave_step_ = 0;
-  arpeggio_step_ = 0;
-}
-
-/* static */
-void VoiceController::ArpeggioLast() {
-  octave_step_ = octaves_ - 1;
-  arpeggio_step_ = notes_.size() - 1;
-}
-
-/* static */
-void VoiceController::ArpeggioUp() {
-  uint8_t num_notes = notes_.size();
-  
-  // Move to the next note.
-  ++arpeggio_step_;
-  
-  // If we have just played the last note.
-  if (arpeggio_step_ >= num_notes) {
-    arpeggio_step_ = 0;
-    ++octave_step_;
-    if (octave_step_ >= octaves_) {
-      if (mode_ == ARPEGGIO_DIRECTION_UP_DOWN) {
-        direction_ = -1;
-        ArpeggioLast();
-        if (num_notes > 1 || octaves_ > 1) {
-          ArpeggioDown();
-        }
-      } else {
-        ArpeggioFirst();
-      }
-    }
+void VoiceController::ArpeggioStart() {
+  if (direction_ == 1) {
+    octave_step_ = 0;
+    arpeggio_step_ = 0; 
+  } else {
+    octave_step_ = octaves_ - 1;
+    arpeggio_step_ = notes_.size() - 1;
   }
 }
 
 /* static */
-void VoiceController::ArpeggioDown() {
+void VoiceController::ArpeggioStep() {
   uint8_t num_notes = notes_.size();
-  
-  // Move to the next note.
-  --arpeggio_step_;
-  
-  // If we have just played the last note.
-  if (arpeggio_step_ < 0) {
+  arpeggio_step_ += direction_;
+  uint8_t next_octave = 0;
+  if (arpeggio_step_ >= num_notes) {
+    arpeggio_step_ = 0;
+    next_octave = 1;
+  } else if (arpeggio_step_ < 0) {
     arpeggio_step_ = num_notes - 1;
-    --octave_step_;
-    if (octave_step_ < 0) {
+    next_octave = 1;
+  }
+  if (next_octave) {
+    octave_step_ += direction_;
+    if (octave_step_ >= octaves_ || octave_step_ < 0) {
       if (mode_ == ARPEGGIO_DIRECTION_UP_DOWN) {
-        direction_ = +1;
-        ArpeggioFirst();
+        direction_ = -direction_;
+        ArpeggioStart();
         if (num_notes > 1 || octaves_ > 1) {
-          ArpeggioUp();
+          ArpeggioStep();
         }
       } else {
-        ArpeggioLast();
+        ArpeggioStart();
       }
     }
   }
@@ -312,11 +281,7 @@ void VoiceController::Step() {
       arpeggio_step_ -= num_notes;
     }
   } else {
-    if (direction_ == 1) {
-      ArpeggioUp();
-    } else if (direction_ == -1) {
-      ArpeggioDown();
-    }
+    ArpeggioStep();
   }
   uint8_t note = notes_.sorted_note(arpeggio_step_).note;
   note += 12 * octave_step_;
