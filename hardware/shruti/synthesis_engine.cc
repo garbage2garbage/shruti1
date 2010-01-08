@@ -481,7 +481,7 @@ void Voice::Control() {
       continue;
     }
 
-    // The last modulation amount is adjusted by the wheel.
+    // The rate of the last modulation is adjusted by the wheel.
     if (i == kSavedModulationMatrixSize - 1) {
       amount = SignedMulScale8(
           amount,
@@ -555,7 +555,7 @@ void Voice::Control() {
   for (uint8_t i = 0; i < kNumOscillators; ++i) {
     int16_t pitch = pitch_value_;
     // -24 / +24 semitones by the range controller.
-    if (i == 0 && engine.patch_.osc_shape[0] == WAVEFORM_FM) {
+    if (engine.patch_.osc_shape[i] == WAVEFORM_FM) {
       Osc1::UpdateSecondaryParameter(engine.patch_.osc_range[i] + 12);
     } else {
       pitch += static_cast<int16_t>(engine.patch_.osc_range[i]) << 7;
@@ -592,12 +592,21 @@ void Voice::Control() {
     increment >>= num_shifts;
     
     // Now the oscillators can recompute all their internal variables!
-    pitch >>= 7;
+    uint8_t midi_note = pitch >>= 7;
     if (i == 0) {
-      Osc1::Update(modulation_destinations_[MOD_DST_PWM_1], pitch, increment);
-      SubOsc::Update(0, pitch - 12, increment >> 1);
+      Osc1::Update(
+          modulation_destinations_[MOD_DST_PWM_1],
+          midi_note,
+          increment);
+      SubOsc::Update(
+          0,
+          midi_note - 12,
+          increment >> 1);
     } else {
-      Osc2::Update(modulation_destinations_[MOD_DST_PWM_2], pitch, increment);
+      Osc2::Update(
+          modulation_destinations_[MOD_DST_PWM_2],
+          midi_note,
+          increment);
     }
   }
 }
@@ -610,12 +619,11 @@ void Voice::Audio() {
   }
 
   uint8_t osc_2 = Osc2::Render();
-
   uint8_t mix = Osc1::Render();
-  
-  if (engine.patch_.osc_option[0] == RING_MOD) {
+  uint8_t op = engine.patch_.osc_option[0];
+  if (op == RING_MOD) {
     mix = SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
-  } else if (engine.patch_.osc_option[0] == XOR) {
+  } else if (op == XOR) {
     mix ^= osc_2;
     mix += modulation_destinations_[MOD_DST_MIX_BALANCE];
   } else {
@@ -625,8 +633,8 @@ void Voice::Audio() {
         modulation_destinations_[MOD_DST_MIX_BALANCE]);
     // If the phase of oscillator 1 has wrapped and if sync is enabled, reset
     // the phase of the second oscillator.
-    if (engine.patch_.osc_option[0] == SYNC) {
-      uint8_t phase_msb = static_cast<uint8_t>(Osc1::phase() >> 8);
+    if (op == SYNC) {
+      uint8_t phase_msb = Osc1::phase() >> 8;
       if (phase_msb < osc1_phase_msb_) {
         Osc2::ResetPhase();
       }

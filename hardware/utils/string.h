@@ -79,6 +79,39 @@ void Itoa(T i, uint8_t width, char* destination) {
   }
 }
 
+// A version of Itoa that does not allocate anything on the stack, and use
+// a fixed chunk of memory for reversing the digit. Caveat: if two Itoa
+// operations are taking place simultaneously, the results will be mixed.
+template<typename T>
+void UnsafeItoa(T i, uint8_t width, char* destination) {
+  static unsigned char digits[TypeInfo<T>::max_size + 1];
+  if (width == 0) {
+    return;
+  }
+  if (i == 0) {
+    *destination++ = '0';
+    width--;
+  } else {
+    if (TypeInfo<T>::has_sign && i < 0) {
+      *destination++ = '-';
+      width--;
+      i = -i;
+    }
+    uint8_t digit = 0;
+    while (i > 0) {
+      digits[digit++] = i % 10;
+      i /= 10;
+    }
+    while (digit) {
+      *destination++ = 48 + digits[--digit];
+      width--;
+    }
+  }
+  if (width) {
+    *destination++ = '\0';
+  }
+}
+
 }  // namespace hardware_utils
 
 #endif  // HARDWARE_UTILS_STRING_H_

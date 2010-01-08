@@ -298,10 +298,13 @@ class Oscillator {
   
   // ------- Band-limited waveforms with variable pulse width ------------------
   static void UpdatePulseSquare() {
-    uint8_t note = Swap4(note_ - 12);
-    uint8_t wave_index = note & 0xf;
-    data_.sq.balance = note & 0xf0;
-    data_.sq.leak = 255 - ((note_ - 12) >> 3);
+    uint8_t note = note_ - 12;
+    data_.sq.leak = 255 - (note >> 3);
+    
+    uint8_t balance_index = Swap4(note);
+    data_.sq.balance = balance_index & 0xf0;
+    
+    uint8_t wave_index = balance_index & 0xf;
     data_.sq.shift = static_cast<uint16_t>(parameter_ + 127) << 8;
     data_.sq.wave[0] = waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
     wave_index = AddClip(wave_index, 1, kNumZonesHalfSampleRate);
@@ -309,14 +312,15 @@ class Oscillator {
   }
   static void RenderPulseSquare() {
     HALF_SAMPLE_RATE;
+    phase_ += phase_increment_2_;
     
     int16_t blit = InterpolateTwoTables(
         data_.sq.wave[0],
         data_.sq.wave[1],
         phase_,
-        data_.sq.balance);
-    blit -= InterpolateSample(data_.sq.wave[0], phase_ + data_.sq.shift);
-    phase_ += phase_increment_2_;
+        data_.sq.balance) - InterpolateSample(
+            data_.sq.wave[0],
+            phase_ + data_.sq.shift);
     if (shape_ == WAVEFORM_IMPULSE_TRAIN) {
       held_sample_ = Clip8(blit + 128);
     } else {
@@ -329,8 +333,10 @@ class Oscillator {
   
   // ------- Minimal version of the square and triangle oscillators ------------
   static void UpdateSub() {
-    uint8_t note = Swap4(note_);
-    uint8_t wave_index = note & 0xf;
+    uint8_t balance_index = Swap4(note_);
+    data_.st.balance = balance_index & 0xf0;
+    
+    uint8_t wave_index = balance_index & 0x0f;
     uint8_t base_resource_id = shape_ == WAVEFORM_SQUARE ?
         WAV_RES_BANDLIMITED_SQUARE_1 :
         WAV_RES_BANDLIMITED_TRIANGLE_1;
@@ -339,7 +345,6 @@ class Oscillator {
     data_.st.wave[0] = waveform_table[base_resource_id + wave_index];
     wave_index = AddClip(wave_index, 1, kNumZonesHalfSampleRate);
     data_.st.wave[1] = waveform_table[base_resource_id + wave_index];
-    data_.st.balance = note & 0xf0;
   }
   static void RenderSub() {
     FOURTH_SAMPLE_RATE;
@@ -351,8 +356,10 @@ class Oscillator {
 
   // ------- Interpolation between two waveforms from two wavetables -----------
   static void UpdateSimpleWavetable() {
-    uint8_t note = Swap4(note_ - 12);
-    uint8_t wave_index = note & 0xf;
+    uint8_t balance_index = Swap4(note_ - 12);
+    data_.st.balance = balance_index & 0xf0;
+
+    uint8_t wave_index = balance_index & 0xf;
     uint8_t base_resource_id = shape_ == WAVEFORM_SAW ?
         WAV_RES_BANDLIMITED_SAW_0 :
         (shape_ == WAVEFORM_SQUARE ? WAV_RES_BANDLIMITED_SQUARE_0  : 
@@ -361,7 +368,6 @@ class Oscillator {
     data_.st.wave[0] = waveform_table[base_resource_id + wave_index];
     wave_index = AddClip(wave_index, 1, kNumZonesFullSampleRate);
     data_.st.wave[1] = waveform_table[base_resource_id + wave_index];
-    data_.st.balance = note & 0xf0;
   }
   static void RenderSimpleWavetable() {
     phase_ += phase_increment_;
@@ -432,9 +438,10 @@ class Oscillator {
         (phase_increment_ * uint32_t(parameter_)) >> 3);
   }
   static void RenderCz() {
-    uint16_t last_phase = phase_;
+    uint8_t old_phase_msb = phase_ >> 8;
     phase_ += phase_increment_;
-    if (phase_ < last_phase) {
+    uint8_t phase_msb = phase_ >> 8;
+    if (phase_msb < old_phase_msb) {
       data_.cz.formant_phase = 0;
     }
     // TODO(pichenettes): limit increment to avoid aliasing (this will be
@@ -443,7 +450,7 @@ class Oscillator {
     uint8_t result = InterpolateSample(
         waveform_table[WAV_RES_SINE],
         data_.cz.formant_phase);
-    held_sample_ = MulScale8(result, 255 - (phase_ >> 8));
+    held_sample_ = MulScale8(result, ~phase_msb);
   }
   
   // ------- FM ----------------------------------------------------------------
@@ -528,7 +535,7 @@ class Oscillator {
           ((data_.vw.formant_phase[i] >> 8) & 0xf0) |
             data_.vw.formant_amplitude[i]);
     }
-    result = SignedMulScale8(result, 255 - (phase_ >> 8));
+    result = SignedMulScale8(result, ~(phase_ >> 8));
 
     phase_ += phase_increment_;
     int16_t phase_noise = int8_t(Random::state_msb()) *
@@ -549,7 +556,7 @@ class Oscillator {
   
   // ------- Low-passed, then high-passed white noise --------------------------
   static void RenderFilteredNoise() {
-    /*uint8_t innovation = Random::GetByte();
+    uint8_t innovation = Random::GetByte();
     // This trick is used to avoid having a DC component (no innovation) when
     // the parameter is set to its minimal or maximal value.
     uint8_t offset = parameter_ == 127 ? 0 : 2;
@@ -561,7 +568,7 @@ class Oscillator {
       held_sample_ = innovation - data_.no.lp_noise_sample;
     } else {
       held_sample_ = data_.no.lp_noise_sample;
-    }*/
+    }
   }
   
   DISALLOW_COPY_AND_ASSIGN(Oscillator);

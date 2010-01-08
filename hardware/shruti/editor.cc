@@ -509,7 +509,7 @@ void Editor::DisplayLoadSavePage() {
   AlignLeft(line_buffer_, kLcdWidth);
   display.Print(0, line_buffer_);
   
-  Itoa<int16_t>(current_patch_number_ + 1, 2, line_buffer_);
+  UnsafeItoa<int16_t>(current_patch_number_ + 1, 2, line_buffer_);
   AlignRight(line_buffer_, 2);
   line_buffer_[2] = ' ';
   memcpy(line_buffer_ + 3, engine.patch().name, kPatchNameSize);
@@ -818,7 +818,7 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
   if (text) {
     ResourcesManager::LoadStringResource(text + value, buffer, width);
   } else {
-    Itoa<int16_t>(value, width, buffer);
+    UnsafeItoa<int16_t>(value, width, buffer);
   }
 }
 

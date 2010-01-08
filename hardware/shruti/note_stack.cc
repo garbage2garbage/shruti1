@@ -53,7 +53,7 @@ void NoteStack::NoteOn(uint8_t note, uint8_t velocity) {
   // Now we are ready to insert the new note. Find a free slot to insert it.
   uint8_t free_slot;
   for (uint8_t i = 1; i <= kNoteStackSize; ++i) {
-    if (pool_[i].next_ptr == 0 && pool_[i].note == 0) {
+    if (pool_[i].note == 0) {
       free_slot = i;
     }
   }
