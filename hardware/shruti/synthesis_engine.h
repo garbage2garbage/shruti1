@@ -90,6 +90,9 @@ class Voice {
   static inline uint8_t modulation_source(uint8_t i) {
     return modulation_sources_[i - kNumGlobalModulationSources];
   }
+  static uint8_t modulation_destination(uint8_t i) {
+    return modulation_destinations_[i];
+  }
   static Envelope* mutable_envelope(uint8_t i) { return &envelope_[i]; }
   static void TriggerEnvelope(uint8_t stage);
   

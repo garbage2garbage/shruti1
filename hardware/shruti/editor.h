@@ -38,7 +38,7 @@ enum Group {
   GROUP_MOD,
   GROUP_PLAY,
   GROUP_LOAD_SAVE,
-  GROUP_CUSTOM,
+  GROUP_PERFORMANCE,
 };
 
 enum Page {
@@ -54,7 +54,7 @@ enum Page {
   PAGE_PLAY_STEP_SEQUENCER,
   PAGE_PLAY_KBD,
   PAGE_LOAD_SAVE,
-  PAGE_CUSTOM,
+  PAGE_PERFORMANCE,
 };
 
 enum Unit {
@@ -118,6 +118,11 @@ struct PageDefinition {
   uint8_t first_parameter_index;
 };
 
+struct ParameterAssignment {
+  uint8_t id;
+  uint8_t subpage;
+};
+
 // For each type of page (basic parameter editor, step sequencer, load/save
 // dialog, 4 functions must be defined:
 // - a function displaying the "overview" page.
@@ -140,6 +145,10 @@ class Editor {
   // most recently visited page in this group, or cycle through the pages in
   // the current group.
   static void ToggleGroup(ParameterGroup group);
+  
+  // Handles a long press on one of the "parameter groups" buttons. This
+  // triggers a lot of useful hacky functions.
+  static void DoShiftFunction(ParameterGroup group);
 
   // Handles the modification of one of the editing pots.
   static void HandleInput(uint8_t controller_index, uint16_t value);
@@ -170,6 +179,10 @@ class Editor {
   // A bunch of hacks for special values/pages.
   static void SetParameterWithHacks(uint8_t id, uint8_t value);
   static uint8_t GetParameterWithHacks(uint8_t id);
+  
+  // Returns the parameter id of the parameter that should be edited when
+  // touching knob #controller_index.
+  static uint8_t KnobIndexToParameterId(uint8_t controller_index);
   
   static void DisplayLoadSavePage();
   static void HandleLoadSaveInput(uint8_t controller_index, uint16_t value);
@@ -206,6 +219,11 @@ class Editor {
   static uint8_t action_;
   static uint8_t current_patch_number_;
   static uint8_t previous_patch_number_;
+
+  static uint8_t assign_in_progress_; 
+  static uint8_t test_note_playing_;
+  static ParameterAssignment assigned_parameters_[kNumEditingPots];
+  static ParameterAssignment parameter_to_assign_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };

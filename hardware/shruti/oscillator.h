@@ -549,7 +549,7 @@ class Oscillator {
   
   // ------- Low-passed, then high-passed white noise --------------------------
   static void RenderFilteredNoise() {
-    uint8_t innovation = Random::GetByte();
+    /*uint8_t innovation = Random::GetByte();
     // This trick is used to avoid having a DC component (no innovation) when
     // the parameter is set to its minimal or maximal value.
     uint8_t offset = parameter_ == 127 ? 0 : 2;
@@ -561,7 +561,7 @@ class Oscillator {
       held_sample_ = innovation - data_.no.lp_noise_sample;
     } else {
       held_sample_ = data_.no.lp_noise_sample;
-    }
+    }*/
   }
   
   DISALLOW_COPY_AND_ASSIGN(Oscillator);

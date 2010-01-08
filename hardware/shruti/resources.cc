@@ -42,6 +42,7 @@ static const prog_char str_res_swing[] PROGMEM = "swing";
 static const prog_char str_res_oscillator_1[] PROGMEM = "oscillator 1";
 static const prog_char str_res_oscillator_2[] PROGMEM = "oscillator 2";
 static const prog_char str_res_arpeggio[] PROGMEM = "arpeggio";
+static const prog_char str_res_performance[] PROGMEM = "performance";
 static const prog_char str_res_none[] PROGMEM = "none";
 static const prog_char str_res_blit[] PROGMEM = "blit";
 static const prog_char str_res_saw[] PROGMEM = "saw";
@@ -134,7 +135,7 @@ static const prog_char str_res_seq[] PROGMEM = "seq";
 static const prog_char str_res_arp[] PROGMEM = "arp";
 static const prog_char str_res_whl[] PROGMEM = "whl";
 static const prog_char str_res_bnd[] PROGMEM = "bnd";
-static const prog_char str_res_cst[] PROGMEM = "cst";
+static const prog_char str_res_ofs[] PROGMEM = "ofs";
 static const prog_char str_res_cv1[] PROGMEM = "cv1";
 static const prog_char str_res_cv2[] PROGMEM = "cv2";
 static const prog_char str_res_cv3[] PROGMEM = "cv3";
@@ -160,9 +161,11 @@ static const prog_char str_res_env2[] PROGMEM = "env2";
 static const prog_char str_res_velo[] PROGMEM = "velo";
 static const prog_char str_res_note[] PROGMEM = "note";
 static const prog_char str_res_gate[] PROGMEM = "gate";
+static const prog_char str_res_touch_a_knob_to[] PROGMEM = "touch a knob to";
+static const prog_char str_res_assign_parameter[] PROGMEM = "assign parameter";
 static const prog_char str_res_p_orleans_21_mn[] PROGMEM = "P.ORLEANS: 21 MN";
 static const prog_char str_res_p_bercy_____S1h[] PROGMEM = "P.BERCY:     +1H";
-static const prog_char str_res_load_save_patch[] PROGMEM = "load/save patch";
+static const prog_char str_res_patch_bank[] PROGMEM = "patch bank";
 static const prog_char str_res_step_sequencer[] PROGMEM = "step sequencer";
 static const prog_char str_res_load[] PROGMEM = "load";
 static const prog_char str_res_exit[] PROGMEM = "exit";
@@ -266,6 +269,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_oscillator_1,
   str_res_oscillator_2,
   str_res_arpeggio,
+  str_res_performance,
   str_res_none,
   str_res_blit,
   str_res_saw,
@@ -358,7 +362,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_arp,
   str_res_whl,
   str_res_bnd,
-  str_res_cst,
+  str_res_ofs,
   str_res_cv1,
   str_res_cv2,
   str_res_cv3,
@@ -384,9 +388,11 @@ PROGMEM const prog_char* string_table[] = {
   str_res_velo,
   str_res_note,
   str_res_gate,
+  str_res_touch_a_knob_to,
+  str_res_assign_parameter,
   str_res_p_orleans_21_mn,
   str_res_p_bercy_____S1h,
-  str_res_load_save_patch,
+  str_res_patch_bank,
   str_res_step_sequencer,
   str_res_load,
   str_res_exit,

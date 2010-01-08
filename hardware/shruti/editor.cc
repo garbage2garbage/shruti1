@@ -293,8 +293,8 @@ const PageDefinition Editor::page_definition_[] = {
   { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_ARPEGGIO, PARAMETER_EDITOR, 32 },
   { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER, STEP_SEQUENCER, 0 },
   { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD, PARAMETER_EDITOR, 36 },
-  { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_LOAD_SAVE_PATCH, LOAD_SAVE, 0 }
-  { PAGE_CUSTOM, GROUP_CUSTOM, STR_RES_ASSIGNABLE, PARAMETER_EDITOR, 0 }
+  { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_PATCH_BANK, LOAD_SAVE, 0 },
+  { PAGE_PERFORMANCE, GROUP_PERFORMANCE, STR_RES_PERFORMANCE, PARAMETER_EDITOR, 0 }
 };
 
 /* <static> */
@@ -308,8 +308,8 @@ ParameterPage Editor::last_visited_page_[kNumGroups] = {
     PAGE_FILTER_FILTER,
     PAGE_MOD_ENV_1,
     PAGE_PLAY_ARP,
-    PAGE_LOAD_SAVE
-    PAGE_CUSTOM,
+    PAGE_LOAD_SAVE,
+    PAGE_PERFORMANCE
 };
 uint8_t Editor::current_controller_;
 uint8_t Editor::last_visited_subpage_ = 0;
@@ -321,6 +321,15 @@ uint8_t Editor::subpage_;
 uint8_t Editor::action_;
 uint8_t Editor::current_patch_number_ = 0;
 uint8_t Editor::previous_patch_number_ = 0;
+uint8_t Editor::test_note_playing_ = 0;
+uint8_t Editor::assign_in_progress_ = 0;
+ParameterAssignment Editor::assigned_parameters_[kNumEditingPots] = {
+  { 1, 0 },
+  { PRM_FILTER_CUTOFF, 0 },
+  { PRM_FILTER_ENV, 0 },
+  { 25, 0 },
+};
+ParameterAssignment Editor::parameter_to_assign_;
 /* </static> */
 
 /* static */
@@ -331,6 +340,30 @@ void Editor::Init() {
     CHECK_EQ(page_definition_[i].id, i);
   }
   line_buffer_[kLcdWidth] = '\0';
+}
+
+/* static */
+void Editor::DoShiftFunction(ParameterGroup group) {
+  switch (group) {
+    case GROUP_PLAY:
+      engine.NoteOn(0, 48, test_note_playing_ ? 0 : 100);
+      test_note_playing_ = !test_note_playing_;
+      break;
+
+    case GROUP_OSC:
+      ToggleGroup(GROUP_PERFORMANCE);
+      break;
+    
+    case GROUP_FILTER:
+      if (current_page_ <= PAGE_PLAY_KBD) {
+        parameter_to_assign_.id = page_definition_[
+            current_page_].first_parameter_index + current_controller_;
+        parameter_to_assign_.subpage = subpage_;
+        DisplaySplashScreen(STR_RES_TOUCH_A_KNOB_TO);
+        assign_in_progress_ = 1;
+      }
+      break;
+  }
 }
 
 /* static */
@@ -470,7 +503,7 @@ void Editor::DisplayLoadSavePage() {
   // load/save patch
   // 32 barbpapa save 
   ResourcesManager::LoadStringResource(
-      STR_RES_LOAD_SAVE_PATCH,
+      STR_RES_PATCH_BANK,
       line_buffer_,
       kLcdWidth);
   AlignLeft(line_buffer_, kLcdWidth);
@@ -554,7 +587,7 @@ void Editor::DisplayEditSummaryPage() {
   // foo bar baz bad
   //  63 127   0   0
   for (uint8_t i = 0; i < kNumEditingPots; ++i) {
-    uint8_t index = page_definition_[current_page_].first_parameter_index + i;
+    uint8_t index = KnobIndexToParameterId(i);
     const ParameterDefinition& parameter = parameter_definition(index);
     ResourcesManager::LoadStringResource(
         parameter.short_name,
@@ -604,8 +637,7 @@ void Editor::DisplayEditDetailsPage() {
     AlignLeft(line_buffer_ + kColumnWidth + 4, kLcdWidth - kColumnWidth - 4);
     display.Print(0, line_buffer_);
   }
-  uint8_t index = page_definition_[current_page_].first_parameter_index + \ 
-      current_controller_;
+  uint8_t index = KnobIndexToParameterId(current_controller_);
   const ParameterDefinition& parameter = parameter_definition(index);
   const PageDefinition& page = page_definition_[current_page_];
 
@@ -633,10 +665,10 @@ void Editor::DisplayEditDetailsPage() {
 }
 
 /* static */
-uint8_t Editor::GetParameterNumber(uint8_t controller_index) {
-  if (current_page_ == PAGE_CUSTOM) {
-    subpage_ = assigned_parameters_subpage_[controller_index];
-    return assigned_parameters_[controller_index]
+uint8_t Editor::KnobIndexToParameterId(uint8_t controller_index) {
+  if (current_page_ == PAGE_PERFORMANCE) {
+    subpage_ = assigned_parameters_[controller_index].subpage;
+    return assigned_parameters_[controller_index].id;
   } else {
     return page_definition_[current_page_].first_parameter_index + \
         controller_index;
@@ -645,27 +677,32 @@ uint8_t Editor::GetParameterNumber(uint8_t controller_index) {
 
 /* static */
 void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
-  uint8_t new_value;
-  uint8_t index = GetParameterNumber(controller_index);
-  const ParameterDefinition& parameter = parameter_definition(index);
-
-  // Handle the simple case when the parameter can only take one value.
-  if (parameter.min_value == parameter.max_value) {
-    new_value = parameter.min_value;
-  } else if (parameter.unit == UNIT_RAW_UINT8) {
-    new_value = (value >> 3);
+  if (assign_in_progress_) {
+    assigned_parameters_[controller_index] = parameter_to_assign_;
+    assign_in_progress_ = 0;
   } else {
-    uint8_t range = parameter.max_value - parameter.min_value + 1;
-    new_value = ((value >> 3) * range) >> 7;
-    new_value += parameter.min_value;
+    uint8_t new_value;
+    uint8_t index = KnobIndexToParameterId(controller_index);
+    const ParameterDefinition& parameter = parameter_definition(index);
+
+    // Handle the simple case when the parameter can only take one value.
+    if (parameter.min_value == parameter.max_value) {
+      new_value = parameter.min_value;
+    } else if (parameter.unit == UNIT_RAW_UINT8) {
+      new_value = (value >> 3);
+    } else {
+      uint8_t range = parameter.max_value - parameter.min_value + 1;
+      new_value = ((value >> 3) * range) >> 7;
+      new_value += parameter.min_value;
+    }
+    SetParameterWithHacks(parameter.id, new_value);
+    current_controller_ = controller_index;
   }
-  SetParameterWithHacks(parameter.id, new_value);
-  current_controller_ = controller_index;
 }
 
 /* static */
 void Editor::HandleEditIncrement(int8_t direction) {
-  uint8_t index = GetParameterNumber(current_controller_);
+  uint8_t index = KnobIndexToParameterId(current_controller_);
   const ParameterDefinition& parameter = parameter_definition(index);
   
   int16_t value = GetParameterWithHacks(parameter.id);

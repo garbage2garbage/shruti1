@@ -81,12 +81,17 @@ MidiStreamParser<SynthesisEngine> midi_parser;
 // others, by the Scheduler.
 void UpdateLedsTask() {
   leds.Clear();
-  leds.set_value(editor.current_page(), 15);
   if (editor.current_page() == PAGE_MOD_MATRIX) {
     uint8_t current_modulation_source_value = engine.modulation_source(0,
         engine.patch().modulation_matrix.modulation[
             editor.subpage()].source);
     leds.set_value(PAGE_MOD_MATRIX, current_modulation_source_value >> 4);
+  } else if (editor.current_page() == PAGE_PERFORMANCE) {
+    for (uint8_t i = 0; i < kNumModulationDestinations; ++i) {
+      leds.set_value(i, engine.voice(0).modulation_destination(i) >> 4);
+    }
+  } else {
+    leds.set_value(editor.current_page(), 15);
   }
   // The led of the arpeggiator page flashes strongly on the 0-th step and
   // weakly on the other steps which are a multiple of 4.
@@ -107,7 +112,6 @@ void InputTask() {
   Pots::Event pot_event;
   static uint8_t idle;
   static uint8_t target_page_type;
-  static uint8_t test_note_playing = 0;
 TASK_BEGIN_NEAR
   while (1) {
     idle = 0;
@@ -126,18 +130,12 @@ TASK_BEGIN_NEAR
       if (switch_event.event == EVENT_RAISED && switch_event.time > 100) {
         uint8_t id = switch_event.id;
         if (id < kNumGroupSwitches) {
-          // Pressing the arpeggiator/sequencer page button for more than
-          // 1.5s will play a C3 note. Super useful for debugging...
-          if (id == GROUP_PLAY && test_note_playing) {
-            engine.NoteOff(0, 48, 0);
-            test_note_playing = 0;
-          } else if (id == GROUP_PLAY && switch_event.time > 1000) {
-            engine.NoteOn(0, 48, 100);
-            test_note_playing = 1;
+          if (switch_event.time > 1000) {
+            editor.DoShiftFunction(id);
           } else {
             editor.ToggleGroup(id);
-            target_page_type = PAGE_TYPE_SUMMARY;
           }
+          target_page_type = PAGE_TYPE_SUMMARY;
         } else {
           editor.HandleIncrement(2 * id - 2 * kNumGroupSwitches - 1);
           target_page_type = PAGE_TYPE_DETAILS;

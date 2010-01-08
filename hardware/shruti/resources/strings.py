@@ -38,7 +38,7 @@ swing
 oscillator 1
 oscillator 2
 arpeggio
-assignable
+performance
 
 none
 blit
@@ -141,7 +141,7 @@ seq
 arp
 whl
 bnd
-cst
+ofs
 cv1
 cv2
 cv3
@@ -168,9 +168,11 @@ velo
 note
 gate
 
+touch a knob to
+assign parameter
 P.ORLEANS: 21 MN
 P.BERCY:     +1H
-load/save patch
+patch bank
 step sequencer
 load
 exit
