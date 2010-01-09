@@ -22,7 +22,7 @@ AVR_ETC_PATH   = /Applications/arduino-0016/hardware/tools/avr/etc
 TARGET         = shruti1
 PACKAGES       = hardware/base hardware/hal hardware/hal/devices hardware/midi hardware/utils hardware/shruti
 RESOURCES      = hardware/shruti/resources
-BUILD_DIR  	   = build/$(TARGET)
+BUILD_DIR      = build/$(TARGET)
 EEPROM_DATA    = hardware/shruti/data/patch_library.hex
 
 MCU            = atmega328p
