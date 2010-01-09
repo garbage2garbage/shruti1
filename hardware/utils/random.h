@@ -29,7 +29,7 @@ class Random {
   static void Update() {
     // Galois LFSR with feedback polynomial = x^16 + x^14 + x^13 + x^11.
     // Period: 65535.
-    rng_state_ = (rng_state_ >> 1) ^ (-(rng_state_ & 1) & 0xB400);    
+    rng_state_ = (rng_state_ >> 1) ^ (-(rng_state_ & 1) & 0xb400);    
   }
 
   static inline uint16_t state() { return rng_state_; }

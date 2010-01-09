@@ -93,7 +93,7 @@ class NaiveScheduler {
           if (slots_[slot] == 0) {
             break;
           }
-          slot++;
+          ++slot;
         }
         slots_[slot] = i + 1;
         slot += sizeof(slots_) / tasks_[i].priority;
@@ -103,12 +103,12 @@ class NaiveScheduler {
 
   void Run() {
     while (1) {
-      if (slots_[current_slot_]) {
-        tasks_[slots_[current_slot_] - 1].code();
-      }
-      current_slot_++;
+      ++current_slot_;
       if (current_slot_ >= sizeof(slots_)) {
         current_slot_ = 0;
+      }
+      if (slots_[current_slot_]) {
+        tasks_[slots_[current_slot_] - 1].code();
       }
     }
   }
@@ -123,7 +123,7 @@ template<uint8_t num_slots>
 uint8_t NaiveScheduler<num_slots>::slots_[num_slots];
 
 template<uint8_t num_slots>
-uint8_t NaiveScheduler<num_slots>::current_slot_ = 0;
+uint8_t NaiveScheduler<num_slots>::current_slot_;
 
 }  // namespace hardware_utils
 
