@@ -282,19 +282,32 @@ const UiHandler Editor::ui_handler_[] = {
 
 /* static */
 const PageDefinition Editor::page_definition_[] = {
-  { PAGE_OSC_OSC_1, GROUP_OSC, STR_RES_OSCILLATOR_1, PARAMETER_EDITOR, 0 },
-  { PAGE_OSC_OSC_2, GROUP_OSC, STR_RES_OSCILLATOR_2, PARAMETER_EDITOR, 4 },
-  { PAGE_OSC_OSC_MIX, GROUP_OSC, STR_RES_MIXER, PARAMETER_EDITOR, 8 },
-  { PAGE_FILTER_FILTER, GROUP_FILTER, STR_RES_FILTER, PARAMETER_EDITOR, 12 },
-  { PAGE_MOD_ENV_1, GROUP_MOD, STR_RES_ENVELOPE_1, PARAMETER_EDITOR, 16 },
-  { PAGE_MOD_ENV_2, GROUP_MOD, STR_RES_ENVELOPE_2, PARAMETER_EDITOR, 20 },
-  { PAGE_MOD_LFO, GROUP_MOD, STR_RES_LFOS, PARAMETER_EDITOR, 24 },
-  { PAGE_MOD_MATRIX, GROUP_MOD, STR_RES_MODULATION, PARAMETER_EDITOR, 28 },
-  { PAGE_PLAY_ARP, GROUP_PLAY, STR_RES_ARPEGGIO, PARAMETER_EDITOR, 32 },
-  { PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY, STR_RES_SEQUENCER, STEP_SEQUENCER, 0 },
-  { PAGE_PLAY_KBD, GROUP_PLAY, STR_RES_KEYBOARD, PARAMETER_EDITOR, 36 },
-  { PAGE_LOAD_SAVE, GROUP_LOAD_SAVE, STR_RES_PATCH_BANK, LOAD_SAVE, 0 },
-  { PAGE_PERFORMANCE, GROUP_PERFORMANCE, STR_RES_PERFORMANCE, PARAMETER_EDITOR, 0 }
+  { PAGE_OSC_OSC_1, PAGE_OSC_OSC_2, GROUP_OSC,
+    STR_RES_OSCILLATOR_1, PARAMETER_EDITOR, 0 },
+  { PAGE_OSC_OSC_2, PAGE_OSC_OSC_MIX, GROUP_OSC,
+    STR_RES_OSCILLATOR_2, PARAMETER_EDITOR, 4 },
+  { PAGE_OSC_OSC_MIX, PAGE_OSC_OSC_1, GROUP_OSC,
+    STR_RES_MIXER, PARAMETER_EDITOR, 8 },
+  { PAGE_FILTER_FILTER, PAGE_FILTER_FILTER, GROUP_FILTER,
+    STR_RES_FILTER, PARAMETER_EDITOR, 12 },
+  { PAGE_MOD_ENV_1, PAGE_MOD_ENV_2, GROUP_MOD,
+    STR_RES_ENVELOPE_1, PARAMETER_EDITOR, 16 },
+  { PAGE_MOD_ENV_2, PAGE_MOD_LFO, GROUP_MOD,
+    STR_RES_ENVELOPE_2, PARAMETER_EDITOR, 20 },
+  { PAGE_MOD_LFO, PAGE_MOD_MATRIX, GROUP_MOD,
+    STR_RES_LFOS, PARAMETER_EDITOR, 24 },
+  { PAGE_MOD_MATRIX, PAGE_MOD_ENV_1, GROUP_MOD,
+    STR_RES_MODULATION, PARAMETER_EDITOR, 28 },
+  { PAGE_PLAY_ARP, PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY,
+    STR_RES_ARPEGGIO, PARAMETER_EDITOR, 32 },
+  { PAGE_PLAY_STEP_SEQUENCER, PAGE_PLAY_KBD, GROUP_PLAY,
+    STR_RES_SEQUENCER, STEP_SEQUENCER, 0 },
+  { PAGE_PLAY_KBD, PAGE_PLAY_ARP, GROUP_PLAY,
+    STR_RES_KEYBOARD, PARAMETER_EDITOR, 36 },
+  { PAGE_LOAD_SAVE, PAGE_LOAD_SAVE, GROUP_LOAD_SAVE,
+    STR_RES_PATCH_BANK, LOAD_SAVE, 0 },
+  { PAGE_PERFORMANCE, PAGE_PERFORMANCE, GROUP_PERFORMANCE,
+    STR_RES_PERFORMANCE, PARAMETER_EDITOR, 0 }
 };
 
 /* <static> */
@@ -353,7 +366,7 @@ void Editor::DoShiftFunction(ParameterGroup group) {
     case GROUP_OSC:
       ToggleGroup(GROUP_PERFORMANCE);
       break;
-    
+      
     case GROUP_FILTER:
       if (current_page_ <= PAGE_PLAY_KBD) {
         parameter_to_assign_.id = page_definition_[
@@ -370,6 +383,7 @@ void Editor::DoShiftFunction(ParameterGroup group) {
 void Editor::ToggleGroup(ParameterGroup group) {
   cursor_ = 0;
   subpage_ = 0;
+  assign_in_progress_ = 0;
   display.set_cursor_position(kLcdNoCursor);
   current_display_type_ = PAGE_TYPE_DETAILS;
   // Special case for the load/save page.
@@ -381,17 +395,7 @@ void Editor::ToggleGroup(ParameterGroup group) {
     if (group != page_definition_[current_page_].group) {
       current_page_ = last_visited_page_[group];
     } else {
-      // Otherwise, switch to the next page. If the next page if outside the
-      // group, go back to the first page in the group.
-      current_page_ = current_page_ + 1;
-      if (page_definition_[current_page_].group != group) {
-        for (uint8_t i = 0; i < kNumPages; ++i) {
-          if (page_definition_[i].group == group) {
-            current_page_ = i;
-            break;
-          }
-        }
-      }
+      current_page_ = page_definition_[current_page_].next;
     }
     // When switching to the modulation matrix page, go back to the previously
     // edited modulation.

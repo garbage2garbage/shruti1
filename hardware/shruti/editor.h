@@ -112,6 +112,7 @@ typedef uint8_t UiType;
 
 struct PageDefinition {
   ParameterPage id;
+  ParameterPage next;
   ParameterGroup group;
   ResourceId name;
   UiType ui_type;
