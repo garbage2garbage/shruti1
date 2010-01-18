@@ -235,7 +235,7 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_PATCH_BANK 140  // patch bank
 #define STR_RES_STEP_SEQUENCER 141  // step sequencer
 #define STR_RES_LOAD 142  // load
-#define STR_RES_EXIT 143  // exit
+#define STR_RES_ 143  // ----
 #define STR_RES_SAVE 144  // save
 #define STR_RES_EXTERN 145  // extern
 #define STR_RES_EQUAL 146  // equal

@@ -168,7 +168,7 @@ static const prog_char str_res_p_bercy_____S1h[] PROGMEM = "P.BERCY:     +1H";
 static const prog_char str_res_patch_bank[] PROGMEM = "patch bank";
 static const prog_char str_res_step_sequencer[] PROGMEM = "step sequencer";
 static const prog_char str_res_load[] PROGMEM = "load";
-static const prog_char str_res_exit[] PROGMEM = "exit";
+static const prog_char str_res_[] PROGMEM = "----";
 static const prog_char str_res_save[] PROGMEM = "save";
 static const prog_char str_res_extern[] PROGMEM = "extern";
 static const prog_char str_res_equal[] PROGMEM = "equal";
@@ -395,7 +395,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_patch_bank,
   str_res_step_sequencer,
   str_res_load,
-  str_res_exit,
+  str_res_,
   str_res_save,
   str_res_extern,
   str_res_equal,

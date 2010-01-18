@@ -175,7 +175,7 @@ P.BERCY:     +1H
 patch bank
 step sequencer
 load
-exit
+----
 save
 extern
 equal

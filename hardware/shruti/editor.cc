@@ -24,6 +24,7 @@
 #include "hardware/shruti/display.h"
 #include "hardware/shruti/synthesis_engine.h"
 #include "hardware/utils/string.h"
+#include "hardware/base/time.h"
 
 using namespace hardware_hal;
 using namespace hardware_utils;
@@ -391,6 +392,9 @@ void Editor::ToggleGroup(ParameterGroup group) {
     current_page_ = PAGE_LOAD_SAVE;
     EnterLoadSaveMode();
   } else {
+    // Make sure that we won't confirm a save when moving back to the
+    // Load/save page.
+    action_ = ACTION_EXIT;
     // If we move to another group, go to the last visited page in this group.
     if (group != page_definition_[current_page_].group) {
       current_page_ = last_visited_page_[group];
@@ -460,7 +464,9 @@ void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
           engine.mutable_patch()->EepromLoad(new_patch);
           engine.TouchPatch();
         }
-        current_patch_number_ = new_patch;
+        if (action_ != ACTION_EXIT) {
+          current_patch_number_ = new_patch;
+        }
       }
       break;
     case 1:
