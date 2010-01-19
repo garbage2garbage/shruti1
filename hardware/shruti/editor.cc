@@ -325,7 +325,7 @@ ParameterPage Editor::last_visited_page_[kNumGroups] = {
     PAGE_LOAD_SAVE,
     PAGE_PERFORMANCE
 };
-uint8_t Editor::current_controller_;
+uint8_t Editor::current_knob_;
 uint8_t Editor::last_visited_subpage_ = 0;
 
 char Editor::line_buffer_[kLcdWidth * kLcdHeight + 1];
@@ -371,7 +371,7 @@ void Editor::DoShiftFunction(ParameterGroup group) {
     case GROUP_FILTER:
       if (current_page_ <= PAGE_PLAY_KBD) {
         parameter_to_assign_.id = page_definition_[
-            current_page_].first_parameter_index + current_controller_;
+            current_page_].first_parameter_index + current_knob_;
         parameter_to_assign_.subpage = subpage_;
         DisplaySplashScreen(STR_RES_TOUCH_A_KNOB_TO);
         assign_in_progress_ = 1;
@@ -411,9 +411,9 @@ void Editor::ToggleGroup(ParameterGroup group) {
 }
 
 /* static */
-void Editor::HandleInput(uint8_t controller_index, uint16_t value) {
+void Editor::HandleInput(uint8_t knob_index, uint16_t value) {
   (*ui_handler_[page_definition_[current_page_].ui_type].input_handler)(
-      controller_index, value);
+      knob_index, value);
 }
 
 /* static */
@@ -454,8 +454,8 @@ void Editor::EnterLoadSaveMode() {
 }
 
 /* static */
-void Editor::HandleLoadSaveInput(uint8_t controller_index, uint16_t value) {
-  switch (controller_index) {
+void Editor::HandleLoadSaveInput(uint8_t knob_index, uint16_t value) {
+  switch (knob_index) {
     case 0:
       {
         const uint8_t num_patches = kEepromSize / kSerializedPatchSize;
@@ -558,9 +558,9 @@ void Editor::DisplayStepSequencerPage() {
 
 /* static */
 void Editor::HandleStepSequencerInput(
-    uint8_t controller_index,
+    uint8_t knob_index,
     uint16_t value) {
-  switch (controller_index) {
+  switch (knob_index) {
     case 1:
       {
         cursor_ = value >> 6;
@@ -647,7 +647,7 @@ void Editor::DisplayEditDetailsPage() {
     AlignLeft(line_buffer_ + kColumnWidth + 4, kLcdWidth - kColumnWidth - 4);
     display.Print(0, line_buffer_);
   }
-  uint8_t index = KnobIndexToParameterId(current_controller_);
+  uint8_t index = KnobIndexToParameterId(current_knob_);
   const ParameterDefinition& parameter = parameter_definition(index);
   const PageDefinition& page = page_definition_[current_page_];
 
@@ -675,25 +675,25 @@ void Editor::DisplayEditDetailsPage() {
 }
 
 /* static */
-uint8_t Editor::KnobIndexToParameterId(uint8_t controller_index) {
+uint8_t Editor::KnobIndexToParameterId(uint8_t knob_index) {
   if (current_page_ == PAGE_PERFORMANCE) {
-    subpage_ = assigned_parameters_[controller_index].subpage;
-    return assigned_parameters_[controller_index].id;
+    subpage_ = assigned_parameters_[knob_index].subpage;
+    return assigned_parameters_[knob_index].id;
   } else {
     return page_definition_[current_page_].first_parameter_index + \
-        controller_index;
+        knob_index;
   }
 }
 
 /* static */
-void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
+void Editor::HandleEditInput(uint8_t knob_index, uint16_t value) {
   if (assign_in_progress_) {
-    assigned_parameters_[controller_index] = parameter_to_assign_;
+    assigned_parameters_[knob_index] = parameter_to_assign_;
     assign_in_progress_ = 0;
     ToggleGroup(GROUP_PERFORMANCE);
   } else {
     uint8_t new_value;
-    uint8_t index = KnobIndexToParameterId(controller_index);
+    uint8_t index = KnobIndexToParameterId(knob_index);
     const ParameterDefinition& parameter = parameter_definition(index);
 
     if (parameter.unit == UNIT_RAW_UINT8) {
@@ -703,34 +703,34 @@ void Editor::HandleEditInput(uint8_t controller_index, uint16_t value) {
       new_value = ((value >> 3) * range) >> 7;
       new_value += parameter.min_value;
     }
-    SetParameterWithHacks(parameter.id, new_value);
-    current_controller_ = controller_index;
+    SetParameterValue(parameter.id, new_value);
+    current_knob_ = knob_index;
   }
 }
 
 /* static */
 void Editor::HandleEditIncrement(int8_t direction) {
-  uint8_t index = KnobIndexToParameterId(current_controller_);
+  uint8_t index = KnobIndexToParameterId(current_knob_);
   const ParameterDefinition& parameter = parameter_definition(index);
   
-  int16_t value = GetParameterWithHacks(parameter.id);
+  int16_t value = GetParameterValue(parameter.id);
   if (parameter.unit == UNIT_INT8) {
     value = static_cast<int16_t>(static_cast<int8_t>(value));
     value += direction;
     if (value >= static_cast<int8_t>(parameter.min_value) &&
         value <= static_cast<int8_t>(parameter.max_value)) {
-      SetParameterWithHacks(parameter.id, value);
+      SetParameterValue(parameter.id, value);
     }
   } else {
     value += direction;
     if (value >= parameter.min_value && value <= parameter.max_value) {
-      SetParameterWithHacks(parameter.id, value);
+      SetParameterValue(parameter.id, value);
     }
   }
 }
 
 /* static */
-void Editor::SetParameterWithHacks(uint8_t id, uint8_t value) {
+void Editor::SetParameterValue(uint8_t id, uint8_t value) {
   // Set the tempo to 0 for external clock.
   if (id == PRM_ARP_TEMPO) {
     if (value < 40) {
@@ -748,7 +748,7 @@ void Editor::SetParameterWithHacks(uint8_t id, uint8_t value) {
 }
 
 /* static */
-uint8_t Editor::GetParameterWithHacks(uint8_t id) {
+uint8_t Editor::GetParameterValue(uint8_t id) {
   uint8_t value;
   if (current_page_ == PAGE_MOD_MATRIX && id == PRM_MOD_ROW) {
     value = subpage_;
@@ -779,7 +779,7 @@ void Editor::DisplaySplashScreen(ResourceId first_line) {
 /* static */
 void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
                                        char* buffer, uint8_t width) {
-  int16_t value = GetParameterWithHacks(parameter.id);
+  int16_t value = GetParameterValue(parameter.id);
   ResourceId text = ResourcesManager::Lookup<uint8_t, uint8_t>(
       units_definitions,
       parameter.unit);

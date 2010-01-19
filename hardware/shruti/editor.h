@@ -133,7 +133,7 @@ struct ParameterAssignment {
 struct UiHandler {
   void (*summary_page)();
   void (*details_page)();
-  void (*input_handler)(uint8_t controller_index, uint16_t value);
+  void (*input_handler)(uint8_t knob_index, uint16_t value);
   void (*increment_handler)(int8_t direction);  
 };
 
@@ -152,7 +152,7 @@ class Editor {
   static void DoShiftFunction(ParameterGroup group);
 
   // Handles the modification of one of the editing pots.
-  static void HandleInput(uint8_t controller_index, uint16_t value);
+  static void HandleInput(uint8_t knob_index, uint16_t value);
   
   // Handles a press on the inc/dec buttons.
   static void HandleIncrement(int8_t direction);
@@ -175,24 +175,24 @@ class Editor {
   // Output and Input handling for all the different category of pages.
   static void DisplayEditSummaryPage();
   static void DisplayEditDetailsPage();
-  static void HandleEditInput(uint8_t controller_index, uint16_t value);
+  static void HandleEditInput(uint8_t knob_index, uint16_t value);
   static void HandleEditIncrement(int8_t direction);
   // A bunch of hacks for special values/pages.
-  static void SetParameterWithHacks(uint8_t id, uint8_t value);
-  static uint8_t GetParameterWithHacks(uint8_t id);
+  static void SetParameterValue(uint8_t id, uint8_t value);
+  static uint8_t GetParameterValue(uint8_t id);
   
   // Returns the parameter id of the parameter that should be edited when
-  // touching knob #controller_index.
-  static uint8_t KnobIndexToParameterId(uint8_t controller_index);
+  // touching knob #knob_index.
+  static uint8_t KnobIndexToParameterId(uint8_t knob_index);
   
   static void DisplayLoadSavePage();
-  static void HandleLoadSaveInput(uint8_t controller_index, uint16_t value);
+  static void HandleLoadSaveInput(uint8_t knob_index, uint16_t value);
   static void EnterLoadSaveMode();
   static void HandleLoadSaveIncrement(int8_t direction);
   static void DumpCurrentPatch();
   
   static void DisplayStepSequencerPage();
-  static void HandleStepSequencerInput(uint8_t controller_index, uint16_t value);
+  static void HandleStepSequencerInput(uint8_t knob_index, uint16_t value);
   static void HandleStepSequencerIncrement(int8_t direction);
 
   static const ParameterDefinition& parameter_definition(uint8_t index);
@@ -210,7 +210,7 @@ class Editor {
   static ParameterPage last_visited_page_[kNumGroups];
   // Used for the modulation matrix page only.
   static uint8_t last_visited_subpage_;
-  static uint8_t current_controller_;
+  static uint8_t current_knob_;
 
   static char line_buffer_[kLcdWidth * kLcdHeight + 1];
 
