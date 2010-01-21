@@ -15,7 +15,7 @@
 //
 // -----------------------------------------------------------------------------
 //
-// Basic Arduino initialization.
+// Basic ATMega328p initialization.
 
 #ifndef HARDWARE_BASE_INIT_ATMEGA_H_
 #define HARDWARE_BASE_INIT_ATMEGA_H_
