@@ -20,22 +20,16 @@
 #ifndef HARDWARE_HAL_WATCHDOG_TIMER_
 #define HARDWARE_HAL_WATCHDOG_TIMER_
 
+#include <avr/wdt.h>
+
 #include "hardware/base/base.h"
 
 namespace hardware_hal {
-
-// TODO(pichenettes): implement more.
-
-IORegister(WDTCSR);
-BitInRegister<WDTCSRRegister, WDE> watchdog_system_reset;
-
+  
 // Note: this requires the bootloader to clear the Watchdog timer flags just
 // after start-up.
-inline void SystemReset() {
-  // Assume that the watchdog timer is in its default state, ie all prescaler
-  // bits to 0 (reset if not pat every 16ms), interrupts disabled.
-  watchdog_system_reset.set();
-  while(1);  // Will reset after 16ms
+inline void SystemReset(uint8_t interval) {
+  wdt_enable(interval);
 }
 
 }  // namespace hardware_hal

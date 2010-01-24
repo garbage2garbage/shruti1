@@ -381,7 +381,7 @@ void Editor::DoShiftFunction(ParameterGroup group, uint8_t hold_time) {
     case GROUP_LOAD_SAVE:
       if (hold_time > 8 /* 2.048 seconds */) {
         DisplaySplashScreen(STR_RES_READY);
-        SystemReset();
+        SystemReset(WDTO_500MS);
       }
       break;
   }
