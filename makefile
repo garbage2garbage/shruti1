@@ -161,7 +161,7 @@ size_report:	build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
 # Resources
 # ------------------------------------------------------------------------------
 
-RESOURCE_COMPILER = hardware/resources/resources_compiler.py
+RESOURCE_COMPILER = hardware/tools/resources_compiler/resources_compiler.py
 
 resources:	$(wildcard $(RESOURCES)/*.py) 
 		python $(RESOURCE_COMPILER) $(RESOURCES)/resources.py

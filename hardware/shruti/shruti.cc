@@ -15,7 +15,7 @@
 
 #include "hardware/hal/adc.h"
 #include "hardware/hal/audio_output.h"
-#include "hardware/hal/devices/74hc595.h"
+#include "hardware/hal/devices/shift_register.h"
 #include "hardware/hal/devices/output_array.h"
 #include "hardware/hal/init_atmega.h"
 #include "hardware/hal/input_array.h"
@@ -130,7 +130,7 @@ TASK_BEGIN_NEAR
         uint8_t id = switch_event.id;
         uint8_t hold_time = static_cast<uint16_t>(switch_event.time) >> 8;
         if (id < kNumGroupSwitches) {
-          if (hold_time >= 3  /* 0.768 seconds*/) {
+          if (hold_time >= 3) {  // 0.768 seconds
             editor.DoShiftFunction(id, hold_time);
           } else {
             editor.ToggleGroup(id);
@@ -246,7 +246,7 @@ void AudioRenderingTask() {
   }
 }
 
-uint16_t previous_num_glitches = 0;
+uint16_t previous_num_glitches;
 
 // This task displays a '!' in the status area of the LCD displays whenever
 // a discontinuity occurred in the audio rendering. Even if the code will be

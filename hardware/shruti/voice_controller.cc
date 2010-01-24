@@ -18,6 +18,7 @@
 // Voice manager / arpeggiator.
 
 #include "hardware/shruti/voice_controller.h"
+#include "hardware/shruti/patch.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/synthesis_engine.h"
 
@@ -47,7 +48,6 @@ Voice* VoiceController::voices_;
 uint8_t VoiceController::num_voices_;
   
 uint8_t VoiceController::tempo_;
-uint8_t VoiceController::swing_;
 uint8_t VoiceController::pattern_size_;
 uint8_t VoiceController::active_;
 uint8_t VoiceController::inactive_steps_;
@@ -63,7 +63,6 @@ void VoiceController::Init(Voice* voices, uint8_t num_voices) {
   num_voices_ = num_voices;
   notes_.Clear();
   tempo_ = 120;
-  swing_ = 0;
   step_duration_[0] = step_duration_[1] = (kSampleRate * 60L / 4) / 120;
   octaves_ = 0;
   pattern_size_ = 16;
@@ -115,33 +114,20 @@ void VoiceController::AllNotesOff() {
 }
 
 /* static */
-void VoiceController::SetTempo(uint8_t tempo) {
-  tempo_ = tempo;
-  RecomputeStepDurations();
-}
-
-/* static */
-void VoiceController::SetSwing(uint8_t swing) {
-  swing_ = swing;
-  RecomputeStepDurations();
-}
-
-/* static */
-void VoiceController::RecomputeStepDurations() {
+void VoiceController::UpdateArpeggiatorParameters(const Patch& patch) {
+  tempo_ = patch.arp_tempo;
+  pattern_ = ResourcesManager::Lookup<uint16_t, uint8_t>(
+      lut_res_arpeggiator_patterns, patch.arp_pattern >> 2);
+  mode_ = patch.arp_pattern & 0x03;
+  direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1;
+  octaves_ = patch.arp_octave;
+  pattern_size_ = patch.pattern_size;
   step_duration_[0] = (kSampleRate * 60L / 4) / static_cast<int32_t>(tempo_);
   step_duration_[1] = step_duration_[0];
   estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
-  int16_t swing = (step_duration_[0] * static_cast<int32_t>(swing_)) >> 9;
+  int16_t swing = (step_duration_[0] * static_cast<int32_t>(patch.arp_swing)) >> 9;
   step_duration_[0] += swing;
   step_duration_[1] -= swing;
-}
-
-/* static */
-void VoiceController::SetPattern(uint8_t pattern) {
-  pattern_ = ResourcesManager::Lookup<uint16_t, uint8_t>(
-      lut_res_arpeggiator_patterns, pattern >> 2);
-  mode_ = pattern & 0x03;
-  direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1;
 }
 
 /* static */

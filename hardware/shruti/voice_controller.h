@@ -45,22 +45,20 @@ enum ArpeggioDirection {
   ARPEGGIO_DIRECTION_RANDOM,
 };
 
+class Patch;
 class Voice;
 
 class VoiceController {
  public:
   VoiceController() { }
   static void Init(Voice* voices, uint8_t num_voices_);
-  static void SetTempo(uint8_t tempo);
-  static void SetSwing(uint8_t swing);
-  static void SetPattern(uint8_t pattern);
-  static void SetOctaves(uint8_t octaves) { octaves_ = octaves; }
   static void AllNotesOff();
   static void AllSoundOff();
   static void Reset();
   static void Step();
   static void NoteOn(uint8_t note, uint8_t velocity);
   static void NoteOff(uint8_t note);
+  static void UpdateArpeggiatorParameters(const Patch&);
   static inline void Audio() { --internal_clock_counter_; }
   static inline void ExternalSync() { --midi_clock_counter_; }
   static inline uint8_t step() { return pattern_step_; }
@@ -70,9 +68,6 @@ class VoiceController {
   }
   // Returns 1 when the clock has advanced.
   static uint8_t Control();
-  static void set_pattern_size(uint8_t pattern_size) {
-    pattern_size_ = pattern_size;
-  }
   static uint16_t estimated_beat_duration() {
     return estimated_beat_duration_;
   }
@@ -86,7 +81,6 @@ class VoiceController {
   }
 
  private:
-  static void RecomputeStepDurations();
   static void ArpeggioStep();
   static void ArpeggioStart();
 
@@ -116,7 +110,6 @@ class VoiceController {
   static uint8_t num_voices_;
   
   static uint8_t tempo_;
-  static uint8_t swing_;
   // After 4 beats without event, the sequencer is not active. The LED stops
   // blinking and the sequencer will restart from the first note in the pattern. 
   static uint8_t active_;

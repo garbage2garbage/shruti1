@@ -30,7 +30,7 @@
 #ifndef HARDWARE_HAL_DEVICES_OUTPUT_ARRAY_H_
 #define HARDWARE_HAL_DEVICES_OUTPUT_ARRAY_H_
 
-#include "hardware/hal/devices/74hc595.h"
+#include "hardware/hal/devices/shift_register.h"
 #include "hardware/hal/size_to_type.h"
 
 namespace hardware_hal {

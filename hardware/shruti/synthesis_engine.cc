@@ -262,23 +262,10 @@ void SynthesisEngine::SetParameter(
   }
   // A copy of those parameters is stored by the note dispatcher/arpeggiator,
   // so any parameter change must be forwarded to it.
-  switch (parameter_index) {
-    case PRM_ARP_TEMPO:
-      controller_.SetTempo(parameter_value);
-      UpdateModulationIncrements();
-      break;
-    case PRM_ARP_OCTAVE:
-      controller_.SetOctaves(parameter_value);
-      break;
-    case PRM_ARP_PATTERN:
-      controller_.SetPattern(parameter_value);
-      break;
-    case PRM_ARP_SWING:
-      controller_.SetSwing(parameter_value);
-      break;
-    case PRM_ARP_PATTERN_SIZE:
-      controller_.set_pattern_size(parameter_value);
-      break;
+  if ((parameter_index >= PRM_ARP_TEMPO &&
+       parameter_index <= PRM_ARP_SWING) ||
+      (parameter_index == PRM_ARP_PATTERN_SIZE)) {
+    controller_.UpdateArpeggiatorParameters(patch_);
   }
 }
 
