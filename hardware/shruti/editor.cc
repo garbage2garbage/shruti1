@@ -24,7 +24,7 @@
 #include "hardware/shruti/display.h"
 #include "hardware/shruti/synthesis_engine.h"
 #include "hardware/utils/string.h"
-#include "hardware/base/time.h"
+#include "hardware/hal/watchdog_timer.h"
 
 using namespace hardware_hal;
 using namespace hardware_utils;
@@ -357,11 +357,11 @@ void Editor::Init() {
 }
 
 /* static */
-void Editor::DoShiftFunction(ParameterGroup group) {
+void Editor::DoShiftFunction(ParameterGroup group, uint8_t hold_time) {
   switch (group) {
     case GROUP_PLAY:
       engine.NoteOn(0, 48, test_note_playing_ ? 0 : 100);
-      test_note_playing_ = !test_note_playing_;
+      test_note_playing_ ^= 1;
       break;
 
     case GROUP_OSC:
@@ -375,6 +375,13 @@ void Editor::DoShiftFunction(ParameterGroup group) {
         parameter_to_assign_.subpage = subpage_;
         DisplaySplashScreen(STR_RES_TOUCH_A_KNOB_TO);
         assign_in_progress_ = 1;
+      }
+      break;
+      
+    case GROUP_LOAD_SAVE:
+      if (hold_time > 8 /* 2.048 seconds */) {
+        DisplaySplashScreen(STR_RES_READY);
+        SystemReset();
       }
       break;
   }

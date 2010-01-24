@@ -13,15 +13,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "hardware/base/init_atmega.h"
-#include "hardware/base/time.h"
 #include "hardware/hal/adc.h"
 #include "hardware/hal/audio_output.h"
 #include "hardware/hal/devices/74hc595.h"
 #include "hardware/hal/devices/output_array.h"
+#include "hardware/hal/init_atmega.h"
 #include "hardware/hal/input_array.h"
 #include "hardware/hal/gpio.h"
 #include "hardware/hal/serial.h"
+#include "hardware/hal/time.h"
 #include "hardware/hal/timer.h"
 #include "hardware/midi/midi.h"
 #include "hardware/shruti/display.h"
@@ -29,7 +29,6 @@
 #include "hardware/shruti/synthesis_engine.h"
 #include "hardware/utils/task.h"
 
-using namespace hardware_base;
 using namespace hardware_hal;
 using namespace hardware_midi;
 using namespace hardware_shruti;
@@ -70,7 +69,7 @@ OutputArray<
     Gpio<kPinData>, kNumPages, 4, MSB_FIRST, false> leds;
 
 // Audio output on pin 3.
-AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio;
+AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio_out;
 
 MidiStreamParser<SynthesisEngine> midi_parser;
 
@@ -129,9 +128,10 @@ TASK_BEGIN_NEAR
     } else {
       if (switch_event.event == EVENT_RAISED && switch_event.time > 100) {
         uint8_t id = switch_event.id;
+        uint8_t hold_time = static_cast<uint16_t>(switch_event.time) >> 8;
         if (id < kNumGroupSwitches) {
-          if (switch_event.time > 750) {
-            editor.DoShiftFunction(id);
+          if (hold_time >= 3  /* 0.768 seconds*/) {
+            editor.DoShiftFunction(id, hold_time);
           } else {
             editor.ToggleGroup(id);
           }
@@ -234,11 +234,11 @@ void MidiTask() {
 }
 
 void AudioRenderingTask() {
-  if (audio.writable_block()) {
+  if (audio_out.writable_block()) {
     engine.Control();
     for (uint8_t i = kAudioBlockSize; i > 0 ; --i) {
       engine.Audio();
-      audio.Overwrite(engine.voice(0).signal());
+      audio_out.Overwrite(engine.voice(0).signal());
     }
     vcf_cutoff_out.Write(engine.voice(0).cutoff());
     vcf_resonance_out.Write(engine.voice(0).resonance());
@@ -248,13 +248,13 @@ void AudioRenderingTask() {
 
 uint16_t previous_num_glitches = 0;
 
-// This tasks displays a '!' in the status area of the LCD displays whenever
+// This task displays a '!' in the status area of the LCD displays whenever
 // a discontinuity occurred in the audio rendering. Even if the code will be
 // eventually optimized in such a way that it never occurs, I'd rather keep it
 // here in case new features are implemented and need performance monitoring.
 // This code uses 42 bytes.
 void AudioGlitchMonitoringTask() {
-  uint16_t num_glitches = audio.num_glitches();
+  uint16_t num_glitches = audio_out.num_glitches();
   if (num_glitches != previous_num_glitches) {
     previous_num_glitches = num_glitches;
     display.set_status('!');
@@ -279,7 +279,7 @@ Task Scheduler::tasks_[] = {
 
 TIMER_2_TICK {
   display.Tick();
-  audio.EmitSample();
+  audio_out.EmitSample();
 }
 
 void Init() {
@@ -287,7 +287,7 @@ void Init() {
   scheduler.Init();
   display.Init();
   editor.Init();
-  audio.Init();
+  audio_out.Init();
 
   // Initialize all the PWM outputs, in 31.25kHz, phase correct mode.
   Timer<1>::set_prescaler(1);

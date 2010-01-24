@@ -15,21 +15,29 @@
 //
 // -----------------------------------------------------------------------------
 //
-// Base header.
+// Real time clock.
 
-#ifndef HARDWARE_BASE_BASE_H_
-#define HARDWARE_BASE_BASE_H_
+#ifndef HARDWARE_HAL_WATCHDOG_TIMER_
+#define HARDWARE_HAL_WATCHDOG_TIMER_
 
-#include <inttypes.h>
+#include "hardware/base/base.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
+namespace hardware_hal {
 
-#define abs(x) ((x) > 0 ? (x) : -(x))
+// TODO(pichenettes): implement more.
 
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&);               \
-  void operator=(const TypeName&)
+IORegister(WDTCSR);
+BitInRegister<WDTCSRRegister, WDE> watchdog_system_reset;
 
-#endif  // HARDWARE_BASE_BASE_H_
+// Note: this requires the bootloader to clear the Watchdog timer flags just
+// after start-up.
+inline void SystemReset() {
+  // Assume that the watchdog timer is in its default state, ie all prescaler
+  // bits to 0 (reset if not pat every 16ms), interrupts disabled.
+  watchdog_system_reset.set();
+  while(1);  // Will reset after 16ms
+}
+
+}  // namespace hardware_hal
+
+#endif  // HARDWARE_HAL_WATCHDOG_TIMER_

@@ -17,12 +17,12 @@
 //
 // Real time clock.
 
-#ifndef HARDWARE_BASE_TIME_H_
-#define HARDWARE_BASE_TIME_H_
+#ifndef HARDWARE_HAL_TIME_H_
+#define HARDWARE_HAL_TIME_H_
 
 #include "hardware/base/base.h"
 
-namespace hardware_base {
+namespace hardware_hal {
 
 uint32_t milliseconds();
 
@@ -30,6 +30,6 @@ uint32_t Delay(uint32_t delay);
 
 void InitClock();
 
-}  // namespace hardware_base
+}  // namespace hardware_hal
 
-#endif  // HARDWARE_BASE_TIME_H_
+#endif  // HARDWARE_HAL_TIME_H_

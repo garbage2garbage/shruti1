@@ -35,8 +35,8 @@
 #ifndef HARDWARE_HAL_INPUT_ARRAY_H_
 #define HARDWARE_HAL_INPUT_ARRAY_H_
 
-#include "hardware/base/time.h"
 #include "hardware/hal/size_to_type.h"
+#include "hardware/hal/time.h"
 
 namespace hardware_hal {
 
@@ -77,7 +77,7 @@ class InputArray {
     } else {
       same = abs(values_[active_input_] - e.value) < threshold;
     }
-    uint32_t now = hardware_base::milliseconds();
+    uint32_t now = milliseconds();
     e.time = now - last_event_time_;
     if (same) {
       e.event = EVENT_NONE;

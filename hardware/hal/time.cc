@@ -18,13 +18,11 @@
 // Real time clock. Based on the code in the arduino core library
 // by David A. Mellis.
 
+#include "hardware/hal/time.h"
+
 #include "hardware/hal/timer.h"
-#include "hardware/base/time.h"
 
-using hardware_hal::MutableTimer0;
-using hardware_hal::TIMER_FAST_PWM;
-
-namespace hardware_base {
+namespace hardware_hal {
 
 const uint32_t microseconds_per_timer0_overflow =
     (64 * 256) / (F_CPU / 1000000L);
@@ -74,4 +72,4 @@ void InitClock() {
   MutableTimer0::Start();
 }
 
-}  //namespace hardware_base
+}  //namespace hardware_hal

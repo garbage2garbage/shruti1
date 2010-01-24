@@ -170,6 +170,8 @@ gate
 
 touch a knob to
 assign parameter
+ready
+for os update
 P.ORLEANS: 21 MN
 P.BERCY:     +1H
 patch bank

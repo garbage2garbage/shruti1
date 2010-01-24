@@ -149,7 +149,7 @@ class Editor {
   
   // Handles a long press on one of the "parameter groups" buttons. This
   // triggers a lot of useful hacky functions.
-  static void DoShiftFunction(ParameterGroup group);
+  static void DoShiftFunction(ParameterGroup group, uint8_t hold_time);
 
   // Handles the modification of one of the editing pots.
   static void HandleInput(uint8_t knob_index, uint16_t value);

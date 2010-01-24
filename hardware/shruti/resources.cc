@@ -163,6 +163,8 @@ static const prog_char str_res_note[] PROGMEM = "note";
 static const prog_char str_res_gate[] PROGMEM = "gate";
 static const prog_char str_res_touch_a_knob_to[] PROGMEM = "touch a knob to";
 static const prog_char str_res_assign_parameter[] PROGMEM = "assign parameter";
+static const prog_char str_res_ready[] PROGMEM = "ready";
+static const prog_char str_res_for_os_update[] PROGMEM = "for os update";
 static const prog_char str_res_p_orleans_21_mn[] PROGMEM = "P.ORLEANS: 21 MN";
 static const prog_char str_res_p_bercy_____S1h[] PROGMEM = "P.BERCY:     +1H";
 static const prog_char str_res_patch_bank[] PROGMEM = "patch bank";
@@ -390,6 +392,8 @@ PROGMEM const prog_char* string_table[] = {
   str_res_gate,
   str_res_touch_a_knob_to,
   str_res_assign_parameter,
+  str_res_ready,
+  str_res_for_os_update,
   str_res_p_orleans_21_mn,
   str_res_p_bercy_____S1h,
   str_res_patch_bank,

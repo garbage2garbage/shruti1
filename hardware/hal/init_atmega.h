@@ -17,26 +17,23 @@
 //
 // Basic ATMega328p initialization.
 
-#ifndef HARDWARE_BASE_INIT_ATMEGA_H_
-#define HARDWARE_BASE_INIT_ATMEGA_H_
+#ifndef HARDWARE_HAL_INIT_ATMEGA_H_
+#define HARDWARE_HAL_INIT_ATMEGA_H_
 
-#include "hardware/base/time.h"
 #include "hardware/hal/adc.h"
 #include "hardware/hal/hal.h"
+#include "hardware/hal/time.h"
 #include "hardware/hal/timer.h"
-
-using hardware_hal::Adc;
-using hardware_hal::Timer;
-using hardware_hal::MutableTimer0;
-using hardware_hal::TIMER_FAST_PWM;
-using hardware_hal::TIMER_PWM_PHASE_CORRECT;
 
 IORegister(UCSR0B);
 
-namespace hardware_base {
+namespace hardware_hal {
 
 inline void InitAtmega(bool init_timers) {
   sei();
+  
+  WDTCSR |= _BV(WDCE) | _BV(WDE);
+	WDTCSR = 0;
   
   if (init_timers) {
     Timer<1>::set_prescaler(3);
@@ -56,6 +53,6 @@ inline void InitAtmega(bool init_timers) {
   *UCSR0BRegister::ptr() = 0;
 }
 
-}  // namespace
+}  // hardware_hal
 
-#endif  // HARDWARE_BASE_INIT_ATMEGA_H_
+#endif  // HARDWARE_HAL_INIT_ATMEGA_H_

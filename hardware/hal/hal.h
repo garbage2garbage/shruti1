@@ -38,6 +38,8 @@ enum DigitalValue {
   HIGH = 1
 };
 
+static const uint16_t kEepromSize = 1024;
+
 // <avr/io.h> is full of useful defines, but they cannot be used as template
 // arguments because they are of the form: (*(volatile uint8_t *)(0x80))
 // The following define wraps this reference into a class to make it easier to

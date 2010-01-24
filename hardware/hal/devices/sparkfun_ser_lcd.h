@@ -39,13 +39,12 @@
 #define HARDWARE_HAL_DEVICES_SPARKFUN_SER_LCD_H_
 
 #include "hardware/base/base.h"
-#include "hardware/base/time.h"
 #include "hardware/hal/log2.h"
 #include "hardware/hal/software_serial.h"
+#include "hardware/hal/time.h"
 #include "hardware/resources/resources_manager.h"
 #include "hardware/utils/logging.h"
 
-using hardware_base::Delay;
 using hardware_resources::SimpleResourcesManager;
 
 namespace hardware_hal {
