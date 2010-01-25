@@ -210,6 +210,19 @@ struct Serial {
       SerialPort::RxInterrupt::set();
     }
   }
+  static inline void Init(uint16_t new_baud_rate) {
+    uint16_t prescaler = (F_CPU / 16 + new_baud_rate / 2) / new_baud_rate - 1;
+    SerialPort::set_prescaler(prescaler);
+    if (output != DISABLED) {
+      SerialPort::Tx::set();
+    }
+    if (input != DISABLED) {
+      SerialPort::Rx::set();
+    }
+    if (input == BUFFERED) {
+      SerialPort::RxInterrupt::set();
+    }
+  }
   static inline void Write(Value v) { Impl::IO::Write(v); }
   static inline uint8_t writable() { return Impl::IO::writable(); }
   static inline uint8_t NonBlockingWrite(Value v) {
