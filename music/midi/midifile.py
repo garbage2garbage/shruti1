@@ -289,7 +289,6 @@ class Track(object):
       delta = time - current_time
       data.append(PackVariableLengthInteger(delta))
       event_data, running_status = event.Serialize(running_status)
-      print ' '.join(hex(ord(x)) for x in event_data)
       data.append(event_data)
       current_time = time
     return ''.join(data)

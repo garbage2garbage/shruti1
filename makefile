@@ -99,7 +99,6 @@ $(BUILD_DIR)/%.lss: $(BUILD_DIR)/%.elf
 $(BUILD_DIR)/%.sym: $(BUILD_DIR)/%.elf
 	$(NM) -n $< > $@
 
-
 # ------------------------------------------------------------------------------
 # AVRDude
 # ------------------------------------------------------------------------------
@@ -167,3 +166,15 @@ resources:	$(wildcard $(RESOURCES)/*.py)
 		python $(RESOURCE_COMPILER) $(RESOURCES)/resources.py
 
 include $(DEP_FILE)
+
+
+# ------------------------------------------------------------------------------
+# Midi files for firmware update
+# ------------------------------------------------------------------------------
+
+HEX2SYSEX = hardware/tools/hex2sysex/hex2sysex.py
+
+$(BUILD_DIR)/%.mid: $(BUILD_DIR)/%.hex
+	$(HEX2SYSEX) -o $@ $<
+
+midi: $(BUILD_DIR)/$(TARGET).mid
