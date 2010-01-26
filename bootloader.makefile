@@ -56,6 +56,8 @@ AVRDUDE        = $(AVR_TOOLS_PATH)/avrdude
 REMOVE         = rm -f
 CAT            = cat
 
+#TODO(pichenettes): add command for writing bootloader
+#/Applications/arduino-0016/hardware/tools/avr/bin/avrdude -C /Applications/arduino-0016/hardware/tools/avr/etc/avrdude.conf -c avrispmkII -P usb -p atmega328p -V -U flash:w:Hardware/build/muboot/muboot.hex
 #atmega328_isp: HFUSE = DA
 #atmega328_isp: LFUSE = FF
 #atmega328_isp: EFUSE = 05
@@ -66,8 +68,6 @@ CAT            = cat
 #ISPFLASH    = avrdude -c $(ISPTOOL) -p $(MCU_TARGET) -P $(ISPPORT) $(ISPSPEED) \
 #-U flash:w:$(PROGRAM)_$(TARGET).hex -U lock:w:0x0f:m
 
-
-
 CPPFLAGS      = -mmcu=$(MCU) -DF_CPU=$(F_CPU) -I. \
 			-g -Os -w -Wall \
 			-ffunction-sections -fdata-sections \
@@ -75,7 +75,7 @@ CPPFLAGS      = -mmcu=$(MCU) -DF_CPU=$(F_CPU) -I. \
 			-fno-inline-small-functions -mcall-prologues
 CXXFLAGS      = -fno-exceptions
 ASFLAGS       = -mmcu=$(MCU) -I. -x assembler-with-cpp
-LDFLAGS       = -mmcu=$(MCU) -lm -Wl,--gc-sections,--section-start=.text=0x0,--relax -nostartfiles
+LDFLAGS       = -mmcu=$(MCU) -lm -Wl,--gc-sections,--section-start=.text=0x7800,--relax -nostartfiles
 
 # ------------------------------------------------------------------------------
 # Source compiling

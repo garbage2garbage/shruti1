@@ -26,6 +26,11 @@
 #define NULL 0
 #endif
 
+typedef union {
+  uint16_t value;
+  uint8_t bytes[2];
+} Word;
+
 #define abs(x) ((x) > 0 ? (x) : -(x))
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \

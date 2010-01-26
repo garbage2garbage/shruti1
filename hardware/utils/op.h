@@ -60,10 +60,7 @@ static inline int8_t SignedClip8(int16_t value) {
 }
 
 static inline uint8_t Mix(uint8_t a, uint8_t b, uint8_t balance) {
-  union {
-    uint16_t sum;
-    uint8_t bytes[0];
-  } sum;
+  Word sum;
   asm(
     "mul %3, %2"      "\n\t"  // b * balance
     "movw %A0, r0"    "\n\t"  // to sum

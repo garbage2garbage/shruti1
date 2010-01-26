@@ -202,7 +202,8 @@ class ChannelAftertouchEvent(ChannelEvent):
 
 class PitchBendEvent(ChannelEvent):
   def __init__(self, channel, pitch_bend_14_bits):
-    data = PackInteger(pitch_bend_14_bits, size=2)
+    data = PackInteger(pitch_bend_14_bits >> 7, size=1) + \
+        PackInteger(pitch_bend_14_bits & 0x7f, size=1)
     super(PitchBendEvent, self).__init__(0xe0, channel, data)
     self._pitch_bend = pitch_bend_14_bits
 

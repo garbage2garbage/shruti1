@@ -99,7 +99,9 @@ def CreateMidifile(
     m.AddTrack().AddEvent(0, midifile.TextEvent(comment))
   t = m.AddTrack()
   page_size *= 2  # Converts from words to bytes
-  time = 0
+  # The first SysEx block must not start at 0! Sequencers like Logic play the
+  # first SysEx block everytime stop/play is pressed.
+  time = 1
   for i in xrange(0, size, page_size):
     block = ''.join(map(chr, data[i:i+page_size]))
     padding = page_size - len(block)
