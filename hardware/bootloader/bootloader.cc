@@ -61,7 +61,10 @@ uint8_t num_failures = 0;
 Word address;
 Word length;
 
-#define FAIL if (++num_failures == kMaxErrorCount) { StartApp(); }
+#define FAIL if (++num_failures == kMaxErrorCount) { \
+  status_leds.ReportError(); \
+  StartApp(); \
+}
 
 int main (void) __attribute__ ((naked,section (".init9")));
 void (*main_entry_point)(void) = 0x0000;
@@ -92,12 +95,11 @@ void Write(uint8_t value) {
 }
 
 uint8_t ReadOrTimeout() {
-  uint32_t count = 0;
+  uint32_t count = F_CPU >> 5;
   while (!serial.readable()) {
-    if (count > (F_CPU >> 4)) {
+    if (--count == 0) {
       StartApp();
     }
-    count++;
   }
   return serial.ImmediateRead();
 }
@@ -133,20 +135,20 @@ void WriteBuffer(const uint8_t* buffer, uint8_t size) {
 void WriteBufferToFlash() {
   uint16_t i;
   const uint8_t* p = rx_buffer;
-	eeprom_busy_wait();
+  eeprom_busy_wait();
 
-	boot_page_erase(page);
-	boot_spm_busy_wait();
+  boot_page_erase(page);
+  boot_spm_busy_wait();
 
-	for (i = 0; i < SPM_PAGESIZE; i += 2) {
-		uint16_t w = *p++;
-		w |= (*p++) << 8;
-		boot_page_fill(page + i, w);
-	}
+  for (i = 0; i < SPM_PAGESIZE; i += 2) {
+    uint16_t w = *p++;
+    w |= (*p++) << 8;
+    boot_page_fill(page + i, w);
+  }
 
-	boot_page_write(page);
-	boot_spm_busy_wait();
-	boot_rww_enable();
+  boot_page_write(page);
+  boot_spm_busy_wait();
+  boot_rww_enable();
 }
 
 void ReadRegionSpecs() {
