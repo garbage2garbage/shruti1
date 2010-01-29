@@ -16,6 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+// -----------------------------------------------------------------------------
+//
 // Bootloader compatible with STK500 and MIDI SysEx, for ATMega328p.
 //
 // Caveat: assumes the firmware flashing is always done from first to last
@@ -55,24 +57,13 @@ const uint8_t kMaxErrorCount = 5;
 uint16_t page = 0;
 uint8_t eeprom;
 uint8_t rx_buffer[257];
-uint8_t i;
 uint8_t num_failures = 0;
 
 Word address;
 Word length;
 
-#define FAIL if (++num_failures == kMaxErrorCount) { \
-  status_leds.ReportError(); \
-  StartApp(); \
-}
-
 int main (void) __attribute__ ((naked,section (".init9")));
 void (*main_entry_point)(void) = 0x0000;
-
-void StartApp() {
-  status_leds.Clear();
-  main_entry_point();
-}
 
 void Init() {
   cli();
@@ -86,7 +77,6 @@ void Init() {
   input_mux.Write(4);
   switch_input.EnablePullUpResistor();
   switch_input.Init();
-
   status_leds.Init();
 }
 
@@ -98,7 +88,8 @@ uint8_t ReadOrTimeout() {
   uint32_t count = F_CPU >> 5;
   while (!serial.readable()) {
     if (--count == 0) {
-      StartApp();
+      ++num_failures;
+      return 0xff;
     }
   }
   return serial.ImmediateRead();
@@ -111,6 +102,9 @@ uint8_t Read() {
 void SkipInput(uint8_t count) {
   while (count--) {
     ReadOrTimeout();
+    if (num_failures > kMaxErrorCount) {
+      return;
+    }
   }
 }
 
@@ -122,7 +116,7 @@ void StkWriteByte(uint8_t value) {
     }
     Write(0x10);
   } else {
-    FAIL;
+    ++num_failures;
   }
 }
 
@@ -133,6 +127,8 @@ void WriteBuffer(const uint8_t* buffer, uint8_t size) {
 }
 
 void WriteBufferToFlash() {
+  status_leds.Flash();
+
   uint16_t i;
   const uint8_t* p = rx_buffer;
   eeprom_busy_wait();
@@ -155,7 +151,6 @@ void ReadRegionSpecs() {
   length.bytes[1] = ReadOrTimeout();
   length.bytes[0] = ReadOrTimeout();
   eeprom = ReadOrTimeout() == 'E' ? 1 : 0;
-  status_leds.Flash();
   if (eeprom) {
     status_leds.SetProgress(1 + (address.value >> 7));
   } else {
@@ -175,7 +170,7 @@ enum SysExReceptionState {
   READING_DATA = 2,
 };
 
-void MidiLoop() {
+inline void MidiLoop() {
   uint8_t byte;
   uint16_t bytes_read = 0;
   uint8_t rx_buffer_index;
@@ -187,7 +182,7 @@ void MidiLoop() {
   status_leds.set_reception_mode_mask(1);
   status_leds.WaitForData();
   page = 0;
-  for (;;) {
+  while (1) {
     byte = Read();
     // In case we see a realtime message in the stream, safely ignore it.
     if (byte > 0xf0 && byte != 0xf7) {
@@ -242,7 +237,7 @@ void MidiLoop() {
               sysex_commands[1] == 0x00 &&
               bytes_read == 0) {
             // Reset.
-            StartApp();
+            return;
           } else if (rx_buffer_index == SPM_PAGESIZE + 1 &&
                      sysex_commands[0] == 0x7e &&
                      sysex_commands[1] == 0x00 &&
@@ -251,7 +246,6 @@ void MidiLoop() {
             WriteBufferToFlash();
             page += SPM_PAGESIZE;
             status_leds.SetProgress(1 + (page >> 12));
-            status_leds.Flash();
             state = MATCHING_HEADER;
             bytes_read = 0;
           } else {
@@ -265,14 +259,14 @@ void MidiLoop() {
   }
 }
 
-void StkLoop() {
+inline void StkLoop() {
   uint8_t byte;
 
   serial.Init(57600);
   status_leds.set_reception_mode_mask(2);
   page = 0;
 
-  for (;;) {
+  while (num_failures < kMaxErrorCount) {
     byte = ReadOrTimeout();
     switch (byte) {
       case '0':
@@ -283,7 +277,7 @@ void StkLoop() {
         if (ReadOrTimeout() == ' ') {
           WriteBuffer(kProgrammerId, sizeof(kProgrammerId));
         } else {
-          FAIL;
+          ++num_failures;
         }
         break;
 
@@ -364,12 +358,11 @@ void StkLoop() {
           Write(0x14);
           Write(0x10);
         } else {
-          FAIL;
+          ++num_failures;
         }
         break;
 
       case 't':
-        status_leds.Flash();
         ReadRegionSpecs();
         if (ReadOrTimeout() == ' ') {
           Write(0x14);
@@ -382,6 +375,8 @@ void StkLoop() {
             ++address.value;
           }
           Write(0x10);
+        } else {
+          ++num_failures;
         }
         break;
 
@@ -389,7 +384,7 @@ void StkLoop() {
         if (ReadOrTimeout() == ' ') {
           WriteBuffer(kSignature, sizeof(kSignature));
         } else {
-          FAIL;
+          ++num_failures;
         }
         break;
 
@@ -397,20 +392,23 @@ void StkLoop() {
         StkWriteByte(0x00);
         break;
 
+      case 0xff:
+        goto fail;
+        break;
+
       default:
-        FAIL;
+        ++num_failures;
     }
     status_leds.WaitForData();
   }
+fail:
+  status_leds.ReportError();
 }
 
 int main(void) {
-  uint8_t watchdog_status;
-  uint8_t enter_sysex_mode;
-
   // Initialize watchdog timer and check whether we should enter the SysEx
   // loop because of a firmware-initiated reset.
-  watchdog_status = MCUSR;
+  uint8_t watchdog_status = MCUSR;
   MCUSR = 0;
   WDTCSR |= _BV(WDCE) | _BV(WDE);
   WDTCSR = 0;
@@ -421,4 +419,6 @@ int main(void) {
   } else {
     StkLoop();
   }
+  status_leds.Clear();
+  main_entry_point();
 }
