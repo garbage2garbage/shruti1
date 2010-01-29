@@ -65,7 +65,7 @@ Word length;
 int main (void) __attribute__ ((naked,section (".init9")));
 void (*main_entry_point)(void) = 0x0000;
 
-void Init() {
+inline void Init() {
   cli();
 
   // Enable pull-up resistor on RX pin.
@@ -95,10 +95,6 @@ uint8_t ReadOrTimeout() {
   return serial.ImmediateRead();
 }
 
-uint8_t Read() {
-  return serial.Read();
-}
-
 void SkipInput(uint8_t count) {
   while (count--) {
     ReadOrTimeout();
@@ -120,7 +116,7 @@ void StkWriteByte(uint8_t value) {
   }
 }
 
-void WriteBuffer(const uint8_t* buffer, uint8_t size) {
+inline void WriteBuffer(const uint8_t* buffer, uint8_t size) {
   while (size--) {
     Write(*buffer++);
   }
@@ -183,7 +179,7 @@ inline void MidiLoop() {
   status_leds.WaitForData();
   page = 0;
   while (1) {
-    byte = Read();
+    byte = serial.Read();
     // In case we see a realtime message in the stream, safely ignore it.
     if (byte > 0xf0 && byte != 0xf7) {
       continue;
