@@ -242,14 +242,12 @@ inline void MidiLoop() {
             WriteBufferToFlash();
             page += SPM_PAGESIZE;
             status_leds.SetProgress(1 + (page >> 12));
-            state = MATCHING_HEADER;
-            bytes_read = 0;
           } else {
             status_leds.ReportError();
-            state = MATCHING_HEADER;
-            bytes_read = 0;
           }
         }
+        state = MATCHING_HEADER;
+        bytes_read = 0;
         break;
     }
   }
