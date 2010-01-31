@@ -67,10 +67,10 @@ void SynthesisEngine::Init() {
 
 static const prog_char empty_patch[] PROGMEM = {
     99,
-    WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 32,
-    0, 0, 0, 8,
-    12, 0, 0, WAVEFORM_SQUARE,
-    110, 0, 10, 0,
+    WAVEFORM_SAW, WAVEFORM_SQUARE, 0, 24,
+    0, -12, 0, 12,
+    16, 0, 0, WAVEFORM_SQUARE,
+    90, 0, 20, 0,
     20, 0,
     60, 40,
     20, 80,
