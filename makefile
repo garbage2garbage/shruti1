@@ -28,8 +28,8 @@ EEPROM_DATA    = hardware/shruti/data/patch_library.hex
 MCU            = atmega328p
 DMCU           = m328p
 F_CPU          = 16000000
-# SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
-SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
+SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
+# SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
 
 # ------------------------------------------------------------------------------
 
