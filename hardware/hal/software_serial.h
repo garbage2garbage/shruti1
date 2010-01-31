@@ -79,7 +79,7 @@ class BufferedSoftwareSerialOutput {
   }
   static inline void Overwrite(Value v) { OutputBuffer::Overwrite(v); }
   static inline void Tick() {
-    prescaler_counter_--;
+    --prescaler_counter_;
     if (prescaler_counter_ > 0) {
       return;
     }

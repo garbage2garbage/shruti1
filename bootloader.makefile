@@ -26,8 +26,6 @@ BUILD_DIR      = build/$(TARGET)
 MCU            = atmega328p
 DMCU           = m328p
 F_CPU          = 16000000
-# SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
-SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
 
 
 # ------------------------------------------------------------------------------
@@ -56,26 +54,14 @@ AVRDUDE        = $(AVR_TOOLS_PATH)/avrdude
 REMOVE         = rm -f
 CAT            = cat
 
-#TODO(pichenettes): add command for writing bootloader
-#/Applications/arduino-0016/hardware/tools/avr/bin/avrdude -C /Applications/arduino-0016/hardware/tools/avr/etc/avrdude.conf -c avrispmkII -P usb -p atmega328p -V -U flash:w:Hardware/build/muboot/muboot.hex
-#atmega328_isp: HFUSE = DA
-#atmega328_isp: LFUSE = FF
-#atmega328_isp: EFUSE = 05
-#ISPPORT	   = usb
-#ISPSPEED   = -b 115200
-#ISPFUSES    = avrdude -c $(ISPTOOL) -p $(MCU_TARGET) -P $(ISPPORT) $(ISPSPEED) \
-#-e -u -U lock:w:0x3f:m -U efuse:w:0x$(EFUSE):m -U hfuse:w:0x$(HFUSE):m -U lfuse:w:0x$(LFUSE):m
-#ISPFLASH    = avrdude -c $(ISPTOOL) -p $(MCU_TARGET) -P $(ISPPORT) $(ISPSPEED) \
-#-U flash:w:$(PROGRAM)_$(TARGET).hex -U lock:w:0x0f:m
-
 CPPFLAGS      = -mmcu=$(MCU) -DF_CPU=$(F_CPU) -I. \
 			-g -Os -w -Wall \
 			-ffunction-sections -fdata-sections \
-			-funsigned-char -fno-split-wide-types \
+			-funsigned-char \
 			-fno-inline-small-functions -mcall-prologues
 CXXFLAGS      = -fno-exceptions
 ASFLAGS       = -mmcu=$(MCU) -I. -x assembler-with-cpp
-LDFLAGS       = -mmcu=$(MCU) -lm -Wl,--gc-sections,--section-start=.text=0x7800,--relax -nostartfiles
+LDFLAGS       = -mmcu=$(MCU) -lm -Wl,--gc-sections,--section-start=.text=0x7800,--relax
 
 # ------------------------------------------------------------------------------
 # Source compiling
@@ -113,9 +99,9 @@ $(BUILD_DIR)/%.sym: $(BUILD_DIR)/%.elf
 # ------------------------------------------------------------------------------
 
 AVRDUDE_CONF     = $(AVR_ETC_PATH)/avrdude.conf
-AVRDUDE_COM_OPTS = -q -V -p $(DMCU)
+AVRDUDE_COM_OPTS = -V -p $(DMCU)
 AVRDUDE_COM_OPTS += -C $(AVRDUDE_CONF)
-AVRDUDE_SER_OPTS = -c stk500v1 -b 57600 -P $(SERIAL_PORT)
+AVRDUDE_ISP_OPTS = -c avrispmkII -P usb -Ulock:w:0x0F:m
 
 
 # ------------------------------------------------------------------------------
@@ -134,7 +120,7 @@ $(DEP_FILE):	$(BUILD_DIR) $(DEPS)
 		cat $(DEPS) > $(DEP_FILE)
 
 upload:		$(TARGET_HEX)
-		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
+		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ISP_OPTS) \
 			-U flash:w:$(TARGET_HEX):i
 
 clean:

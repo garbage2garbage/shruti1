@@ -283,7 +283,6 @@ TIMER_2_TICK {
 }
 
 void Init() {
-  display.Init();
   scheduler.Init();
   display.Init();
   editor.Init();

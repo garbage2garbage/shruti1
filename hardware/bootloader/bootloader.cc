@@ -62,7 +62,6 @@ uint8_t num_failures = 0;
 Word address;
 Word length;
 
-int main (void) __attribute__ ((naked,section (".init9")));
 void (*main_entry_point)(void) = 0x0000;
 
 inline void Init() {
@@ -245,9 +244,9 @@ inline void MidiLoop() {
           } else {
             status_leds.ReportError();
           }
+          state = MATCHING_HEADER;
+          bytes_read = 0;
         }
-        state = MATCHING_HEADER;
-        bytes_read = 0;
         break;
     }
   }
@@ -259,7 +258,6 @@ inline void StkLoop() {
   serial.Init(57600);
   status_leds.set_reception_mode_mask(2);
   page = 0;
-
   while (num_failures < kMaxErrorCount) {
     byte = ReadOrTimeout();
     switch (byte) {
@@ -413,6 +411,10 @@ int main(void) {
   } else {
     StkLoop();
   }
-  status_leds.Clear();
   main_entry_point();
+  // Believe it or not, there is a weird situation in which the previous
+  // instruction is not executed. It seemed to be related to the disabling
+  // of the default startup code (--nostartfiles). Even if it uses more space
+  // I re-enabled this so as to not trigger the bug.
+  status_leds.DebugByte(0x55);
 }

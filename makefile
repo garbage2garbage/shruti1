@@ -31,7 +31,6 @@ F_CPU          = 16000000
 # SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
 SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
 
-
 # ------------------------------------------------------------------------------
 
 
@@ -104,10 +103,10 @@ $(BUILD_DIR)/%.sym: $(BUILD_DIR)/%.elf
 # ------------------------------------------------------------------------------
 
 AVRDUDE_CONF     = $(AVR_ETC_PATH)/avrdude.conf
-AVRDUDE_COM_OPTS = -q -V -p $(DMCU)
+AVRDUDE_COM_OPTS = -V -p $(DMCU)
 AVRDUDE_COM_OPTS += -C $(AVRDUDE_CONF)
 AVRDUDE_SER_OPTS = -c stk500v1 -b 57600 -P $(SERIAL_PORT)
-
+AVRDUDE_ISP_OPTS = -c avrispmkII -P usb
 
 # ------------------------------------------------------------------------------
 # Main targets
@@ -126,6 +125,10 @@ $(DEP_FILE):	$(BUILD_DIR) $(DEPS)
 
 upload:		$(TARGET_HEX)
 		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
+			-U flash:w:$(TARGET_HEX):i
+
+ispload:		$(TARGET_HEX)
+		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ISP_OPTS) \
 			-U flash:w:$(TARGET_HEX):i
 
 clean:

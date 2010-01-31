@@ -21,11 +21,11 @@
 // All updates to the content of the screen are done in an in-memory "local"
 // text page. A "remote" buffer mirrors the current state of the LCD display.
 // A task should periodically call the Update() method, which scans the local
-// and remote pages for differences, transmit serially the modified character
-// in the local page to the LCD, and update the remote buffer to reflect that
+// and remote pages for differences, transmits serially the modified character
+// in the local page to the LCD, and updates the remote buffer to reflect that
 // the character was transmitted. This guarantees that large, contiguous chunks
-// of CPU time are not spent in the display code - and make this class deal more
-// nicely with other tasks when cooperative multitasking is used.
+// of CPU time are not spent in the display code - and makes this class deal
+// more nicely with other tasks when cooperative multitasking is used.
 //
 // Note also that it minimizes the amount of data to transmit. In particular,
 // if only small sections of the display are updated (for example a digit in
@@ -52,6 +52,10 @@ namespace hardware_hal {
 static const uint8_t kLcdNoCursor = 0xff;
 static const uint8_t kLcdCursorBlinkRate = 0x7f;
 static const uint8_t kLcdCursor = 0xff;
+// Dear Serial LCD, why do I have to tell you all the time that I don't want
+// to use your stupid default 9600 bps baud rate? Are you listening to me?
+// Serial LCD? Serial LCD? Serial LCD?
+static const uint8_t kSerialLcdIsMyProblemChild = 5;
 
 template<typename TxPin,
          uint16_t main_timer_rate,
@@ -88,22 +92,23 @@ class Display {
     // At worst, if the baud rate is already set, this will display glitchy
     // characters for a short amount of time (if the display is configured at
     // 2400 bps, they look like the infinity symbol).
-    Delay(200);
-    DisplayPanicSerialOutput::Write(124);
-    if (baud_rate == 2400) {
-      DisplayPanicSerialOutput::Write(11);
-    } else if (baud_rate == 4800) {
-      DisplayPanicSerialOutput::Write(12);
-    } else if (baud_rate == 9600) {
-      DisplayPanicSerialOutput::Write(13);
-    } else if (baud_rate == 14400) {
-      DisplayPanicSerialOutput::Write(14);
-    } else if (baud_rate == 19200) {
-      DisplayPanicSerialOutput::Write(15);
-    } else if (baud_rate == 19200) {
-      DisplayPanicSerialOutput::Write(16);
+    for (uint8_t i = 0; i < kSerialLcdIsMyProblemChild; ++i) {
+      DisplayPanicSerialOutput::Write(124);
+      if (baud_rate == 2400) {
+        DisplayPanicSerialOutput::Write(11);
+      } else if (baud_rate == 4800) {
+        DisplayPanicSerialOutput::Write(12);
+      } else if (baud_rate == 9600) {
+        DisplayPanicSerialOutput::Write(13);
+      } else if (baud_rate == 14400) {
+        DisplayPanicSerialOutput::Write(14);
+      } else if (baud_rate == 19200) {
+        DisplayPanicSerialOutput::Write(15);
+      } else if (baud_rate == 19200) {
+        DisplayPanicSerialOutput::Write(16);
+      }
+      Delay(200);
     }
-    Delay(200);
     DisplaySerialOutput::Init();
   }
   
