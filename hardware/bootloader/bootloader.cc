@@ -45,7 +45,6 @@ Shruti1StatusIndicator status_leds;
 
 Serial<SerialPort0, 9600, POLLED, POLLED> serial;
 
-
 const uint8_t kProgrammerId[] = { 0x14, 'A', 'V', 'R', ' ', 'I', 'S', 'P', 0x10 };
 const uint8_t kSignature[] = { 0x14, 0x1e, 0x095, 0x0f, 0x10 };
 const uint8_t kVersion[] = { 0x02, 0x01, 0x10 };
@@ -173,7 +172,7 @@ inline void MidiLoop() {
   uint8_t checksum;
   uint8_t sysex_commands[2];
 
-  serial.Init(31250);
+  serial.Init<31250>();
   status_leds.set_reception_mode_mask(1);
   status_leds.WaitForData();
   page = 0;
@@ -255,7 +254,7 @@ inline void MidiLoop() {
 inline void StkLoop() {
   uint8_t byte;
 
-  serial.Init(57600);
+  serial.Init<57600>();
   status_leds.set_reception_mode_mask(2);
   page = 0;
   while (num_failures < kMaxErrorCount) {

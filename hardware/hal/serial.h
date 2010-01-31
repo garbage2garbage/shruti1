@@ -210,7 +210,8 @@ struct Serial {
       SerialPort::RxInterrupt::set();
     }
   }
-  static inline void Init(uint16_t new_baud_rate) {
+  template<uint16_t new_baud_rate>
+  static inline void Init() {
     uint16_t prescaler = (F_CPU / 16 + new_baud_rate / 2) / new_baud_rate - 1;
     SerialPort::set_prescaler(prescaler);
     if (output != DISABLED) {
