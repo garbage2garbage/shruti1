@@ -33,9 +33,9 @@ namespace hardware_shruti {
 /* extern */
 SynthesisEngine engine;
 
-typedef Oscillator<1, FULL> Osc1;
-typedef Oscillator<2, LOW_COMPLEXITY> Osc2;
-typedef Oscillator<3, SUB_OSCILLATOR> SubOsc;
+Oscillator<1, FULL> osc_1;
+Oscillator<2, LOW_COMPLEXITY> osc_2;
+Oscillator<3, SUB_OSCILLATOR> sub_osc;
 
 /* <static> */
 uint8_t SynthesisEngine::modulation_sources_[kNumGlobalModulationSources];
@@ -271,9 +271,9 @@ void SynthesisEngine::SetParameter(
 
 /* static */
 void SynthesisEngine::UpdateOscillatorAlgorithms() {
-  Osc1::SetupAlgorithm(patch_.osc_shape[0]);
-  Osc2::SetupAlgorithm(patch_.osc_shape[1]);
-  SubOsc::SetupAlgorithm(patch_.mix_sub_osc_shape);
+  osc_1.SetupAlgorithm(patch_.osc_shape[0]);
+  osc_2.SetupAlgorithm(patch_.osc_shape[1]);
+  sub_osc.SetupAlgorithm(patch_.mix_sub_osc_shape);
 }
 
 /* static */
@@ -395,9 +395,9 @@ void Voice::TriggerEnvelope(uint8_t stage) {
 void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
   if (!legato) {
     TriggerEnvelope(ATTACK);
-    Osc1::Reset();
-    Osc2::Reset();
-    SubOsc::Reset();
+    osc_1.Reset();
+    osc_2.Reset();
+    sub_osc.Reset();
     modulation_sources_[MOD_SRC_VELOCITY - kNumGlobalModulationSources] =
         velocity << 1;
   }
@@ -549,7 +549,7 @@ void Voice::Control() {
     int16_t pitch = pitch_value_;
     // -24 / +24 semitones by the range controller.
     if (engine.patch_.osc_shape[i] == WAVEFORM_FM) {
-      Osc1::UpdateSecondaryParameter(engine.patch_.osc_range[i] + 12);
+      osc_1.UpdateSecondaryParameter(engine.patch_.osc_range[i] + 12);
     } else {
       pitch += static_cast<int16_t>(engine.patch_.osc_range[i]) << 7;
     }
@@ -587,16 +587,16 @@ void Voice::Control() {
     // Now the oscillators can recompute all their internal variables!
     uint8_t midi_note = pitch >>= 7;
     if (i == 0) {
-      Osc1::Update(
+      osc_1.Update(
           modulation_destinations_[MOD_DST_PWM_1],
           midi_note,
           increment);
-      SubOsc::Update(
+      sub_osc.Update(
           0,
           midi_note - 12,
           increment >> 1);
     } else {
-      Osc2::Update(
+      osc_2.Update(
           modulation_destinations_[MOD_DST_PWM_2],
           midi_note,
           increment);
@@ -611,25 +611,25 @@ void Voice::Audio() {
     return;
   }
 
-  uint8_t osc_2 = Osc2::Render();
-  uint8_t mix = Osc1::Render();
+  uint8_t osc_2_signal = osc_2.Render();
+  uint8_t mix = osc_1.Render();
   uint8_t op = engine.patch_.osc_option[0];
   if (op == RING_MOD) {
-    mix = SignedSignedMulScale8(mix + 128, osc_2 + 128) + 128;
+    mix = SignedSignedMulScale8(mix + 128, osc_2_signal + 128) + 128;
   } else if (op == XOR) {
-    mix ^= osc_2;
+    mix ^= osc_2_signal;
     mix += modulation_destinations_[MOD_DST_MIX_BALANCE];
   } else {
     mix = Mix(
         mix,
-        osc_2,
+        osc_2_signal,
         modulation_destinations_[MOD_DST_MIX_BALANCE]);
     // If the phase of oscillator 1 has wrapped and if sync is enabled, reset
     // the phase of the second oscillator.
     if (op == SYNC) {
-      uint8_t phase_msb = Osc1::phase() >> 8;
+      uint8_t phase_msb = osc_1.phase() >> 8;
       if (phase_msb < osc1_phase_msb_) {
-        Osc2::ResetPhase();
+        osc_2.ResetPhase();
       }
       // Store the phase of the oscillator to check later whether the phase has
       // been wrapped. Because the phase increment is likely to be below
@@ -644,7 +644,7 @@ void Voice::Audio() {
   if (engine.patch_.osc_shape[0] != WAVEFORM_VOWEL) {
     mix = Mix(
         mix,
-        SubOsc::Render(),
+        sub_osc.Render(),
         modulation_destinations_[MOD_DST_MIX_SUB_OSC]);
     mix = Mix(
         mix,

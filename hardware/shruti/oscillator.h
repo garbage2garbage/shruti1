@@ -127,6 +127,8 @@ struct AlgorithmFn {
 template<int id, OscillatorMode mode>
 class Oscillator {
  public:
+   Oscillator() { }
+
    // Called whenever the parameters of the oscillator change. Can be used
    // to pre-compute parameters, set tables, etc.
    static inline void SetupAlgorithm(uint8_t shape) {
