@@ -32,9 +32,6 @@ namespace hardware_hal {
 inline void InitAtmega(bool init_timers) {
   sei();
   
-  WDTCSR |= _BV(WDCE) | _BV(WDE);
-	WDTCSR = 0;
-  
   if (init_timers) {
     Timer<1>::set_prescaler(3);
     Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
