@@ -80,7 +80,7 @@ void Itoa(T i, uint8_t width, char* destination) {
 }
 
 // A version of Itoa that does not allocate anything on the stack, and use
-// a fixed chunk of memory for reversing the digit. Caveat: if two Itoa
+// a fixed chunk of memory for reversing the digits. Caveat: if two Itoa
 // operations are taking place simultaneously, the results will be mixed.
 template<typename T>
 void UnsafeItoa(T i, uint8_t width, char* destination) {

@@ -178,7 +178,7 @@ TASK_END
 uint8_t current_cv;
 
 void CvTask() {
-  current_cv = (current_cv + 1);
+  ++current_cv;
   if (current_cv >= kNumCvInputs) {
     current_cv = 0;
   }
@@ -189,7 +189,9 @@ void MidiTask() {
   if (midi_io.readable()) {
     uint8_t value = midi_io.ImmediateRead();
     
-    // Copy the byte to the MIDI output (thru).
+    // Copy the byte to the MIDI output (thru). We could use Overwrite here
+    // since the output rate is the same as the input rate, which ensures that
+    // 0.32us have elapsed between the writes.
     midi_io.Write(value);
     
     // Also, parse the message.
@@ -249,9 +251,9 @@ void AudioRenderingTask() {
 uint16_t previous_num_glitches;
 
 // This task displays a '!' in the status area of the LCD displays whenever
-// a discontinuity occurred in the audio rendering. Even if the code will be
-// eventually optimized in such a way that it never occurs, I'd rather keep it
-// here in case new features are implemented and need performance monitoring.
+// a discontinuity occurred in the audio rendering. Even if the code is
+// optimized in such a way that it never occurs, I'd rather keep it here in
+// case new features are implemented and need performance monitoring.
 // This code uses 42 bytes.
 void AudioGlitchMonitoringTask() {
   uint16_t num_glitches = audio_out.num_glitches();

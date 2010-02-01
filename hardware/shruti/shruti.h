@@ -60,7 +60,7 @@ static const uint8_t kPinMidiInRx = 0;
 static const uint8_t kPinMidiThruTx = 1;
 static const uint8_t kPinLcdTx = 2;
 
-// Shift register / muxes.
+// Shift registers / muxes.
 static const uint8_t kPinData = 4;
 static const uint8_t kPinDigitalInput = 8;
 static const uint8_t kPinOutputLatch = 6;
