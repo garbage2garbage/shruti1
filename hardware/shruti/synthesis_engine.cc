@@ -393,7 +393,7 @@ void Voice::TriggerEnvelope(uint8_t stage) {
 
 /* static */
 void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
-  if (!legato) {
+  if (!legato || engine.patch_.kbd_portamento >= 0) {
     TriggerEnvelope(ATTACK);
     osc_1.Reset();
     osc_2.Reset();
@@ -407,13 +407,16 @@ void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
         ResourceId(LUT_RES_SCALE_JUST + engine.patch_.kbd_raga - 1),
         note % 12);
   }
-  if (pitch_value_ == 0) {
+  // At boot up, or when the note is note played legato and the portamento
+  // is in auto mode, do not ramp up the pitch but jump straight to the target
+  // pitch.
+  if (pitch_value_ == 0 || (!legato && engine.patch_.kbd_portamento < 0)) {
     pitch_value_ = pitch_target_;
   }
   int16_t delta = pitch_target_ - pitch_value_;
   int32_t increment = ResourcesManager::Lookup<uint16_t, uint8_t>(
       lut_res_env_portamento_increments,
-      engine.patch_.kbd_portamento);
+      abs(engine.patch_.kbd_portamento));
   pitch_increment_ = (delta * increment) >> 15;
   if (pitch_increment_ == 0) {
     if (delta < 0) {

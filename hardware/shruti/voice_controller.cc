@@ -141,7 +141,7 @@ void VoiceController::NoteOn(uint8_t note, uint8_t velocity) {
     Start();
     // Trigger the note.
     if (octaves_ == 0) {
-      voices_[0].Trigger(note, velocity, false);
+      voices_[0].Trigger(note, velocity, notes_.size() > 1);
     }
   }
 }
@@ -155,9 +155,13 @@ void VoiceController::NoteOff(uint8_t note) {
     voices_[0].Release();
   } else {
     // Otherwise retrigger the previously played note, or let the arpeggiator
-    // do it.
+    // do it. No need to retrigger if we just removed notes different from
+    // the one currently played.
     if (octaves_ == 0) {
-      voices_[0].Trigger(notes_.most_recent_note().note, 0, true);
+      uint8_t retriggered_note = notes_.most_recent_note().note;
+      if (retriggered_note != note) {
+        voices_[0].Trigger(retriggered_note, 0, true);
+      }
     }
   }
 }

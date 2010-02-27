@@ -261,8 +261,8 @@ static const prog_char raw_parameter_definition[
   STR_RES_RAGA, STR_RES_RAGA,
   
   PRM_KBD_PORTAMENTO,
-  0, 127,
-  UNIT_RAW_UINT8,
+  -63, 63,
+  UNIT_INT8,
   STR_RES_PRT, STR_RES_PORTA,
   
   PRM_KBD_MIDI_CHANNEL,

@@ -104,7 +104,8 @@ class Patch {
   int8_t kbd_octave;
   uint8_t kbd_raga;
   
-  uint8_t kbd_portamento;
+  // Positive: always on. Negative: auto.
+  int8_t kbd_portamento;
 
   uint8_t kbd_midi_channel;
 
