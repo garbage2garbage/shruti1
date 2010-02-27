@@ -56,7 +56,6 @@ class Envelope {
   void Update(uint8_t attack, uint8_t decay, uint8_t sustain, uint8_t release);
 
   void Render() {
-    uint16_t value = value_;
     value_ += increment_;
     // This code makes the assumption that only the ATTACK stage has a positive
     // slope. This is true for the classical ADSR envelope. To support more

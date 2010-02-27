@@ -17,9 +17,9 @@
 #include "hardware/hal/audio_output.h"
 #include "hardware/hal/devices/shift_register.h"
 #include "hardware/hal/devices/output_array.h"
+#include "hardware/hal/gpio.h"
 #include "hardware/hal/init_atmega.h"
 #include "hardware/hal/input_array.h"
-#include "hardware/hal/gpio.h"
 #include "hardware/hal/serial.h"
 #include "hardware/hal/time.h"
 #include "hardware/hal/timer.h"
@@ -191,7 +191,7 @@ void MidiTask() {
     
     // Copy the byte to the MIDI output (thru). We could use Overwrite here
     // since the output rate is the same as the input rate, which ensures that
-    // 0.32us have elapsed between the writes.
+    // 0.32ms have elapsed between the writes.
     midi_io.Write(value);
     
     // Also, parse the message.
