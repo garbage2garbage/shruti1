@@ -19,17 +19,15 @@
 AVR_TOOLS_PATH = /Applications/arduino-0016/hardware/tools/avr/bin
 AVR_ETC_PATH   = /Applications/arduino-0016/hardware/tools/avr/etc
 
-TARGET         = shruti1
-PACKAGES       = hardware/base hardware/hal hardware/hal/devices hardware/midi hardware/utils hardware/shruti
-RESOURCES      = hardware/shruti/resources
+TARGET         = eeprom_rw
+PACKAGES       = hardware/base hardware/hal hardware/hal/devices hardware/hal/i2c hardware/utils hardware/examples/eeprom
 BUILD_DIR      = build/$(TARGET)
-EEPROM_DATA    = hardware/shruti/data/patch_library.hex
 
 MCU            = atmega328p
 DMCU           = m328p
 F_CPU          = 16000000
-# SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
-SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
+SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
+# SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
 
 # ------------------------------------------------------------------------------
 
@@ -142,14 +140,6 @@ firmware_size:	$(TARGET_ELF)
 $(BUILD_DIR)/$(TARGET).top_symbols:	$(TARGET_ELF)
 		$(NM) $(TARGET_ELF) --size-sort -C -f bsd -r > $@
 
-eeprom_backup:
-		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
-			-U eeprom:r:$(EEPROM_DATA):i
-
-eeprom_restore:
-		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
-			-U eeprom:w:$(EEPROM_DATA):i
-
 size:	firmware_size
 		cat firmware_size | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
 
@@ -157,26 +147,4 @@ size_report:	build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
 
 .PHONY:	all clean depends upload
 
-
-# ------------------------------------------------------------------------------
-# Resources
-# ------------------------------------------------------------------------------
-
-RESOURCE_COMPILER = hardware/tools/resources_compiler/resources_compiler.py
-
-resources:	$(wildcard $(RESOURCES)/*.py) 
-		python $(RESOURCE_COMPILER) $(RESOURCES)/resources.py
-
 include $(DEP_FILE)
-
-
-# ------------------------------------------------------------------------------
-# Midi files for firmware update
-# ------------------------------------------------------------------------------
-
-HEX2SYSEX = hardware/tools/hex2sysex/hex2sysex.py
-
-$(BUILD_DIR)/%.mid: $(BUILD_DIR)/%.hex
-	$(HEX2SYSEX) -o $@ $<
-
-midi: $(BUILD_DIR)/$(TARGET).mid

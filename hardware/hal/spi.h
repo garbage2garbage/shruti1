@@ -38,8 +38,6 @@ const uint8_t kSpiDataOutPin = 11;
 const uint8_t kSpiDataInPin = 12;
 const uint8_t kSpiClockPin = 13;
 
-IORegister(SPDR);
-IORegister(SPCR);
 IORegister(SPSR);
 typedef BitInRegister<SPSRRegister, SPI2X> DoubleSpeed;
 typedef BitInRegister<SPSRRegister, SPIF> TransferComplete;
@@ -87,21 +85,21 @@ class Spi {
         configuration |= _BV(SPR1);
         break;
     }
-    *SPCRRegister::ptr() = configuration;
+    SPCR = configuration;
   }
   
   static inline void Write(uint8_t v) {
     SlaveSelect::Low();
-    *SPDRRegister::ptr() = v;
+    SPDR = v;
     while (!TransferComplete::value());
     SlaveSelect::High();
   }
 
   static inline void WriteWord(uint8_t a, uint8_t b) {
     SlaveSelect::Low();
-    *SPDRRegister::ptr() = a;
+    SPDR = a;
     while (!TransferComplete::value());
-    *SPDRRegister::ptr() = b;
+    SPDR = b;
     while (!TransferComplete::value());
     SlaveSelect::High();
   }

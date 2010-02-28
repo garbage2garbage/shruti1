@@ -48,6 +48,7 @@
 
 #include "hardware/hal/hal.h"
 #include "hardware/hal/gpio.h"
+#include "hardware/hal/ring_buffer.h"
 
 namespace hardware_hal {
 
@@ -190,7 +191,7 @@ struct SerialImplementation<SerialPort, BUFFERED, BUFFERED> {
   typedef InputOutput<InputBuffer, OutputBuffer> IO;
 };
 
-template<typename SerialPort, uint16_t baud_rate, PortMode input = POLLED,
+template<typename SerialPort, uint32_t baud_rate, PortMode input = POLLED,
          PortMode output = POLLED>
 struct Serial {
   typedef SerialImplementation<SerialPort, input, output> Impl;
@@ -210,7 +211,7 @@ struct Serial {
       SerialPort::RxInterrupt::set();
     }
   }
-  template<uint16_t new_baud_rate>
+  template<uint32_t new_baud_rate>
   static inline void Init() {
     uint16_t prescaler = (F_CPU / 16 + new_baud_rate / 2) / new_baud_rate - 1;
     SerialPort::set_prescaler(prescaler);

@@ -1,4 +1,4 @@
-// Copyright 2009 Olivier Gillet.
+// Copyright 2010 Olivier Gillet.
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
@@ -15,41 +15,20 @@
 //
 // -----------------------------------------------------------------------------
 //
-// Basic ATMega328p initialization.
+// Interrupt handler for I2C.
 
-#ifndef HARDWARE_HAL_INIT_ATMEGA_H_
-#define HARDWARE_HAL_INIT_ATMEGA_H_
+#include "hardware/hal/gpio.h"
+#include "hardware/hal/i2c/i2c.h"
 
-#include "hardware/hal/adc.h"
-#include "hardware/hal/hal.h"
-#include "hardware/hal/time.h"
-#include "hardware/hal/timer.h"
+#include <avr/interrupt.h>
 
-IORegister(UCSR0B);
+using namespace hardware_hal;
 
-namespace hardware_hal {
+/* static, extern */
+void (*hardware_hal::i2c_handler_)() = 0;
 
-inline void InitAtmega(bool init_timers) {
-  sei();
-  
-  if (init_timers) {
-    Timer<1>::set_prescaler(3);
-    Timer<1>::set_mode(TIMER_PWM_PHASE_CORRECT);
-
-    Timer<2>::set_prescaler(3);
-    Timer<2>::set_mode(TIMER_PWM_PHASE_CORRECT);
+ISR(TWI_vect) {
+  if (i2c_handler_) {
+    (*i2c_handler_)();
   }
-  
-  InitClock();
-  
-  // ADC setup.
-  Adc::set_prescaler(7);  // 128 -> 125kHz sampling rate.
-  Adc::Enable();
-  
-  // Neuter the UART.
-  UCSR0B = 0;
 }
-
-}  // hardware_hal
-
-#endif  // HARDWARE_HAL_INIT_ATMEGA_H_

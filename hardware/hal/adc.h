@@ -34,9 +34,6 @@ enum AdcReference {
 };
 
 IORegister(ADCSRA);
-IORegister(ADMUX);
-IORegister(ADCL);
-IORegister(ADCH);
 
 typedef BitInRegister<ADCSRARegister, ADSC> AdcConvert;
 typedef BitInRegister<ADCSRARegister, ADEN> AdcEnabled;
@@ -44,7 +41,7 @@ typedef BitInRegister<ADCSRARegister, ADEN> AdcEnabled;
 class Adc {
  public:
   static inline void set_prescaler(uint8_t factor) {
-    *ADCSRARegister::ptr() = (*ADCSRARegister::ptr() & ~0x07) | (factor & 0x07);
+    ADCSRA = (ADCSRA & ~0x07) | (factor & 0x07);
   }
   static inline void set_reference(AdcReference reference) {
     reference_ = reference << 6;
@@ -66,15 +63,15 @@ class Adc {
   static uint8_t reference_;
  
   static inline void StartConversion(uint8_t pin) {
-    *ADMUXRegister::ptr() = reference_ | (pin & 0x07);
+    ADMUX = reference_ | (pin & 0x07);
     AdcConvert::set();
   }
   static inline void Wait() {
     while (AdcConvert::value());
   }
   static inline int16_t ReadOut() {
-    uint8_t low = *ADCLRegister::ptr();
-    uint8_t high = *ADCHRegister::ptr();
+    uint8_t low = ADCL;
+    uint8_t high = ADCH;
     return (high << 8) | low;
   }
   DISALLOW_COPY_AND_ASSIGN(Adc);

@@ -37,6 +37,7 @@
 
 #include "hardware/hal/hal.h"
 #include "hardware/hal/gpio.h"
+#include "hardware/hal/ring_buffer.h"
 
 namespace hardware_hal {
 

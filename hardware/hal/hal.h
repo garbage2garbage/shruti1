@@ -46,9 +46,14 @@ static const uint16_t kEepromSize = 1024;
 // pass it as a template argument.
 #define IORegister(reg) struct reg##Register { \
   static volatile uint8_t* ptr() { return &reg; } \
+  reg##Register& operator=(const uint8_t& value) { *ptr() = value; } \
+  uint8_t operator()(const uint8_t& value) { return *ptr(); } \
 };
+
 #define SpecialFunctionRegister(reg) struct reg##Register { \
   static volatile uint8_t* ptr() { return &_SFR_BYTE(reg); } \
+  reg##Register& operator=(const uint8_t& value) { *ptr() = value; } \
+  uint8_t operator()(const uint8_t& value) { return *ptr(); } \
 };
 
 // Represents a bit in an i/o port register.
@@ -140,71 +145,6 @@ struct InputOutput {
   static inline void Received() { I::Received(); }  
 };
 
-// Circular buffer, used for example for Serial input, Software serial output,
-// Audio rendering... A buffer is created for each Owner - for example,
-// Buffer<AudioClient> represents the audio buffer used by AudioClient.
-template<typename Owner>
-class Buffer : public Input, Output {
- public:
-  typedef typename Owner::Value Value;
-  enum {
-    size = Owner::buffer_size,
-    data_size = Owner::data_size
-  };
-  static inline void Write(Value v) {
-    while (!writable());
-    Overwrite(v);
-  }
-  static inline uint8_t writable() {
-    return (read_ptr_ - write_ptr_ - 1) & (size - 1);
-  }
-  static inline uint8_t NonBlockingWrite(Value v) {
-    if (writable()) {
-      Overwrite(v);
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-  static inline void Overwrite(Value v) {
-    buffer_[write_ptr_] = v;
-    write_ptr_ = (write_ptr_ + 1) & (size - 1);
-  }
-  static inline uint8_t Requested() { return 0; }
-  static inline Value Read() {
-    while (!readable());
-    return ImmediateRead();
-  }
-  static inline uint8_t readable() {
-    return (write_ptr_ - read_ptr_) & (size - 1);
-  }
-  static inline int16_t NonBlockingRead() {
-    if (readable()) {
-      return ImmediateRead();
-    } else {
-      return -1;
-    }
-  }
-  static inline Value ImmediateRead() {
-    Value result = buffer_[read_ptr_];
-    read_ptr_ = (read_ptr_ + 1) & (size - 1);
-    return result;
-  }
-  static inline void Flush() {
-    write_ptr_ = read_ptr_;
-  }
- private:
-  static Value buffer_[size];
-  static volatile uint8_t read_ptr_;
-  static volatile uint8_t write_ptr_;
-  
-  DISALLOW_COPY_AND_ASSIGN(Buffer);
-};
-
-// Static variables created for each buffer.
-template<typename T> volatile uint8_t Buffer<T>::read_ptr_ = 0;
-template<typename T> volatile uint8_t Buffer<T>::write_ptr_ = 0;
-template<typename T> typename T::Value Buffer<T>::buffer_[];
 
 // Dummy class that can be passed whenever we expect Input/Output types, and
 // which do not perform any IO.

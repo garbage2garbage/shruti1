@@ -23,6 +23,7 @@
 
 #include "hardware/base/base.h"
 #include "hardware/hal/hal.h"
+#include "hardware/hal/ring_buffer.h"
 
 namespace hardware_hal {
 
