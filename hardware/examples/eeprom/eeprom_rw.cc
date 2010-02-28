@@ -40,10 +40,20 @@ int main(void) {
   
   eeprom.Write(0x20, buffer, 32);
   debug_output << "Written" << endl;
-  Delay(4);
+  Delay(4);  // Write/read cycles delay.
+
   debug_output << "Reading" << endl;
   eeprom.SetAddress(0x20);
   for (uint8_t i = 0; i < 32; ++i) {
     debug_output << int(eeprom.Read()) << endl;
   }
+  debug_output << "Done" << endl;
+
+  eeprom.SetAddress(0x20);
+  uint8_t buffer2[32];
+  eeprom.Read(0x20, 32, buffer2);
+  for (uint8_t i = 0; i < 32; ++i) {
+    debug_output << int(buffer2[i]) << endl;
+  }
+  debug_output << "Done" << endl;
 }

@@ -58,7 +58,7 @@ class ExternalEeprom {
       }
       // We need to request more data!
       Bus::Wait();
-      Bus::Request((base_address + bank_) | 0x50, remaining);
+      uint8_t requested = Bus::Request((base_address + bank_) | 0x50, remaining);
       if (Bus::Wait() != I2C_ERROR_NONE) {
         return size - remaining;
       }
@@ -114,6 +114,14 @@ class ExternalEeprom {
     return Read();
   }
   
+  static uint8_t Read(uint16_t address, uint8_t size, uint8_t* data) {
+    if (!SetAddress(address)) {
+      return 0;
+    } else {
+      return Read(size, data);
+    }
+  }
+
   static uint8_t Write(uint16_t address, uint8_t byte) {
     uint8_t data = byte;
     return Write(&data, 1);

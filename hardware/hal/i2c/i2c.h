@@ -134,8 +134,8 @@ class I2cMaster {
 
   static uint8_t Request(uint8_t address, uint8_t requested) {
     // Make sure that we don't request more than the buffer can hold.
-    if (requested > Input::writable()) {
-      requested = Input::writable();
+    if (requested >= Input::writable()) {
+      requested = Input::writable() - 1;
     }
     // Sorry, data can be requested only when the line is not busy.
     if (state_ != I2C_STATE_READY) {
@@ -252,7 +252,7 @@ private:
   static volatile uint8_t state_;
   static volatile uint8_t error_;
   static volatile uint8_t slarw_;
-  static uint8_t received_;
+  static volatile uint8_t received_;
   static uint8_t requested_;
 
   DISALLOW_COPY_AND_ASSIGN(I2cMaster);
@@ -279,7 +279,7 @@ volatile uint8_t I2cMaster<input_buffer_size, output_buffer_size,
 /* static */
 template<uint8_t input_buffer_size, uint8_t output_buffer_size,
          uint32_t frequency>
-uint8_t I2cMaster<input_buffer_size, output_buffer_size, frequency>::received_;
+volatile uint8_t I2cMaster<input_buffer_size, output_buffer_size, frequency>::received_;
 
 /* static */
 template<uint8_t input_buffer_size, uint8_t output_buffer_size,
