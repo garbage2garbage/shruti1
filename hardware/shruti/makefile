@@ -24,6 +24,7 @@ PACKAGES       = hardware/base hardware/hal hardware/hal/devices hardware/midi h
 RESOURCES      = hardware/shruti/resources
 BUILD_DIR      = build/$(TARGET)
 EEPROM_DATA    = hardware/shruti/data/patch_library.hex
+PATCH_LIBRARY  = hardware/shruti/data/patch_library.txt 
 
 MCU            = atmega328p
 DMCU           = m328p
@@ -179,4 +180,17 @@ HEX2SYSEX = hardware/tools/hex2sysex/hex2sysex.py
 $(BUILD_DIR)/%.mid: $(BUILD_DIR)/%.hex
 	$(HEX2SYSEX) -o $@ $<
 
-midi: $(BUILD_DIR)/$(TARGET).mid
+
+# ------------------------------------------------------------------------------
+# Patch libraries
+# ------------------------------------------------------------------------------
+
+LIBRARIAN = hardware/tools/librarian/librarian.py
+
+dump_patches: eeprom_backup
+	$(LIBRARIAN) -d $(EEPROM_DATA) > $(PATCH_LIBRARY)
+
+upload_patches:
+	$(LIBRARIAN) -c $(PATCH_LIBRARY) > $(EEPROM_DATA)
+	$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
+		-U eeprom:w:$(EEPROM_DATA):i

@@ -21,6 +21,9 @@
 
 """Intel .hex file loader/writer"""
 
+import logging
+import sys
+
 
 def LoadHexFile(lines):
   """Loads a Hex file."""

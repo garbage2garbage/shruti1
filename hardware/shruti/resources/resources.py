@@ -39,7 +39,7 @@ header = """// Copyright 2009 Olivier Gillet.
 // Resources definitions.
 //
 // Automatically generated with:
-// python arc.py resources.py
+// make resources
 """
 
 namespace = 'hardware_shruti'

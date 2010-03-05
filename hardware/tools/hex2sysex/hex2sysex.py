@@ -38,44 +38,7 @@ import sys
 sys.path.append('.')
 
 from music.midi import midifile
-
-
-def LoadHexFile(path):
-  """Loads a Hex file."""
-
-  data = []
-  for line_number, line in enumerate(file(path)):
-    line = line.strip()
-    if len(line) < 9:
-      logging.info('Line %(line_number)d: line too short' % locals())
-      return None
-
-    if not all(x in '0123456789abcdefABCDEF' for x in line[1:]):
-      logging.info('Line %(line_number)d: unknown character' % locals())
-      return None
-
-    bytes = [int(line[i:i+2], 16) for i in xrange(1, len(line), 2)]
-    if bytes[0] != len(bytes) - 5:
-      logging.info('Line %(line_number)d: invalid byte count' % locals())
-      return None
-
-    if sum(bytes) % 256 != 0:
-      logging.info('Line %(line_number)d: corrupted line' % locals())
-      return None
-
-    if bytes[3] == 1:
-      if bytes[0] != 0 or bytes[1] != 0 or bytes[2] != 0:
-        logging.info('Line %(line_number)d: invalid end of file' % locals())
-        return None
-      else:
-        break
-    elif bytes[3] == 0:
-      address = bytes[1] << 8 | bytes[2]
-      padding_size = address + bytes[0] - len(data)
-      if padding_size > 0:
-        data += ['\x00'] * padding_size
-      data[address:address + bytes[0]] = bytes[4:-1]
-  return data
+from hardware.tools.hexfile import hexfile
 
 
 def CreateMidifile(
@@ -174,7 +137,7 @@ if __name__ == '__main__':
     logging.fatal('Specify one, and only one firmware .hex file!')
     sys.exit(1)
 
-  data = LoadHexFile(args[0])
+  data = hexfile.LoadHexFile(file(args[0]))
   if not data:
     logging.fatal('Error while loading .hex file')
     sys.exit(2)

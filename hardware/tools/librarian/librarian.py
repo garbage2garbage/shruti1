@@ -17,15 +17,29 @@
 #
 # -----------------------------------------------------------------------------
 #
-# Take an eeprom dump and put it into a more editable format, with the patch
-# name in plain text.
+# Text-editor based patch librarian.
+#
+# To save patches from the Shruti-1:
+#   make eeprom_backup
+#
+# To dump/disassemble the patch data:
+#   python hardware/tools/librarian/librarian.py -d \
+#       hardware/shruti/data/patch_library.hex > library.txt
+#
+# library.txt contains the patches, one line per patch.
+# You can edit it, archive it, copy/paste patches from other people etc, post
+# them on twitter, whatever.
+#
+# To create a patch library for the Shruti-1, put 16 lines of patches in a text
+# file, and create a .hex file from it.
+#   python hardware/tools/librarian/librarian.py -c \
+#       library.txt > hardware/shruti/data/patch_library.hex
+#
+# And upload the resulting file to the Shruti-1:
+#   make eeprom_restore
 
-"""Annotator.
 
-usage:
-  python hardware/tools/annotator.py \
-    path_to/eeprom_dump.hex
-"""
+"""Converts a patch to a copy-and-paste friendly text format."""
 
 import logging
 import optparse
@@ -64,7 +78,7 @@ if __name__ == '__main__':
     sys.exit(1)
 
   if not options.compile:
-    data = hexfile.LoadHexFile(args[0])
+    data = hexfile.LoadHexFile(file(args[0]))
     if not data:
       logging.fatal('Error while loading .hex file')
       sys.exit(2)
@@ -93,4 +107,3 @@ if __name__ == '__main__':
       blob += data
     assert len(blob) == EEPROM_SIZE
     hexfile.WriteHexFile(blob, sys.stdout)
-    

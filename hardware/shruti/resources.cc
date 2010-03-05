@@ -18,7 +18,7 @@
 // Resources definitions.
 //
 // Automatically generated with:
-// python arc.py resources.py
+// make resources
 
 
 #include "resources.h"

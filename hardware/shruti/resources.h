@@ -18,7 +18,7 @@
 // Resources definitions.
 //
 // Automatically generated with:
-// python arc.py resources.py
+// make resources
 
 
 #ifndef HARDWARE_SHRUTI_RESOURCES_H_
