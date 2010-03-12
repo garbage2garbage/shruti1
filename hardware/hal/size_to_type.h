@@ -25,7 +25,7 @@ namespace hardware_hal {
 
 template<uint8_t size>
 struct DataTypeForSize {
-  typedef int16_t Type;
+  typedef uint16_t Type;
 };
 
 template<> struct DataTypeForSize<1> { typedef uint8_t Type; };

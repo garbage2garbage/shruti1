@@ -29,8 +29,8 @@ PATCH_LIBRARY  = hardware/shruti/data/patch_library.txt
 MCU            = atmega328p
 DMCU           = m328p
 F_CPU          = 16000000
-# SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
-SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
+SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
+# SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
 
 # ------------------------------------------------------------------------------
 
@@ -165,7 +165,7 @@ size_report:	build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
 
 RESOURCE_COMPILER = hardware/tools/resources_compiler/resources_compiler.py
 
-resources:	$(wildcard $(RESOURCES)/*.py) 
+hardware/shruti/resources.cc:	$(wildcard $(RESOURCES)/*.py) 
 		python $(RESOURCE_COMPILER) $(RESOURCES)/resources.py
 
 include $(DEP_FILE)
@@ -179,6 +179,8 @@ HEX2SYSEX = hardware/tools/hex2sysex/hex2sysex.py
 
 $(BUILD_DIR)/%.mid: $(BUILD_DIR)/%.hex
 	$(HEX2SYSEX) -o $@ $<
+
+midi: $(BUILD_DIR)/$(TARGET).mid
 
 
 # ------------------------------------------------------------------------------
