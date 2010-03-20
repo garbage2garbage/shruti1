@@ -83,9 +83,6 @@ osc1+2
 subosc
 reso
 
-mutable
-instruments \x06\x07-1
-
 atk
 wv1
 rt1
@@ -177,8 +174,11 @@ P.BERCY:     +1H
 patch bank
 step sequencer
 load
-----
 save
 extern
 equal
+
+----
+mutable    v0.52
+instruments \x06\x07-1
 """

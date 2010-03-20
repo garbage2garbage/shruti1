@@ -459,7 +459,7 @@ class Oscillator {
   // http://code.google.com/p/tinkerit/wiki/Cantarino
   //
   static void UpdateVowel() {
-    data_.vw.update++;
+    ++data_.vw.update;
     if (data_.vw.update == kVowelControlRateDecimation) {
       data_.vw.update = 0;
     } else {

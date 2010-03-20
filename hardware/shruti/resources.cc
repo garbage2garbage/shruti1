@@ -82,8 +82,6 @@ static const prog_char str_res__mix[] PROGMEM = "mix";
 static const prog_char str_res__noise[] PROGMEM = "noise";
 static const prog_char str_res_subosc[] PROGMEM = "subosc";
 static const prog_char str_res_reso[] PROGMEM = "reso";
-static const prog_char str_res_mutable[] PROGMEM = "mutable";
-static const prog_char str_res_instruments_671[] PROGMEM = "instruments -1";
 static const prog_char str_res_atk[] PROGMEM = "atk";
 static const prog_char str_res_wv1[] PROGMEM = "wv1";
 static const prog_char str_res_rt1[] PROGMEM = "rt1";
@@ -170,10 +168,12 @@ static const prog_char str_res_p_bercy_____S1h[] PROGMEM = "P.BERCY:     +1H";
 static const prog_char str_res_patch_bank[] PROGMEM = "patch bank";
 static const prog_char str_res_step_sequencer[] PROGMEM = "step sequencer";
 static const prog_char str_res_load[] PROGMEM = "load";
-static const prog_char str_res_[] PROGMEM = "----";
 static const prog_char str_res_save[] PROGMEM = "save";
 static const prog_char str_res_extern[] PROGMEM = "extern";
 static const prog_char str_res_equal[] PROGMEM = "equal";
+static const prog_char str_res_[] PROGMEM = "----";
+static const prog_char str_res_mutable____v0_52[] PROGMEM = "mutable    v0.52";
+static const prog_char str_res_instruments_671[] PROGMEM = "instruments -1";
 static const prog_char str_res_just[] PROGMEM = "just";
 static const prog_char str_res_pythag[] PROGMEM = "pythag";
 static const prog_char str_res_1_4_eb[] PROGMEM = "1/4 eb";
@@ -311,8 +311,6 @@ PROGMEM const prog_char* string_table[] = {
   str_res__noise,
   str_res_subosc,
   str_res_reso,
-  str_res_mutable,
-  str_res_instruments_671,
   str_res_atk,
   str_res_wv1,
   str_res_rt1,
@@ -399,10 +397,12 @@ PROGMEM const prog_char* string_table[] = {
   str_res_patch_bank,
   str_res_step_sequencer,
   str_res_load,
-  str_res_,
   str_res_save,
   str_res_extern,
   str_res_equal,
+  str_res_,
+  str_res_mutable____v0_52,
+  str_res_instruments_671,
   str_res_just,
   str_res_pythag,
   str_res_1_4_eb,

@@ -804,7 +804,7 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
       value = int16_t(int8_t(value));
       break;
     case UNIT_INDEX:
-      value++;
+      ++value;
       break;
     case UNIT_MODULATION_SOURCE:
       if (width <= 4) {

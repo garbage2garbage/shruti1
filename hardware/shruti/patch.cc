@@ -142,7 +142,7 @@ void Patch::SysExReceive(uint8_t sysex_byte) {
   switch (sysex_reception_state_) {
     case RECEIVING_HEADER:
       if (pgm_read_byte(sysex_header + sysex_bytes_received_) == sysex_byte) {
-        sysex_bytes_received_++;
+        ++sysex_bytes_received_;
         if (sysex_bytes_received_ >= sizeof(sysex_header)) {
           sysex_reception_state_ = RECEIVING_DATA;
           sysex_bytes_received_ = 0;
@@ -163,7 +163,7 @@ void Patch::SysExReceive(uint8_t sysex_byte) {
         } else {
           load_save_buffer_[i] = ShiftLeft4(sysex_byte);
         }
-        sysex_bytes_received_++;
+        ++sysex_bytes_received_;
         if (sysex_bytes_received_ >= (kSerializedPatchSize + 1) * 2) {
           sysex_reception_state_ = RECEIVING_FOOTER;
         }
