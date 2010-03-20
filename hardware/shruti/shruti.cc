@@ -274,7 +274,7 @@ Task Scheduler::tasks_[] = {
     { &MidiTask, 6 },
     { &UpdateLedsTask, 4 },
     { &UpdateDisplayTask, 2 },
-    // { &AudioGlitchMonitoringTask, 1 },
+    { &AudioGlitchMonitoringTask, 1 },
     { &InputTask, 2 },
     { &CvTask, 1 },
 };

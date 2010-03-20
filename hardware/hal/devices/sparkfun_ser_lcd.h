@@ -55,7 +55,7 @@ static const uint8_t kLcdCursor = 0xff;
 // Dear Serial LCD, why do I have to tell you all the time that I don't want
 // to use your stupid default 9600 bps baud rate? Are you listening to me?
 // Serial LCD? Serial LCD? Serial LCD?
-static const uint8_t kSerialLcdIsMyProblemChild = 5;
+static const uint8_t kSerialLcdIsMyProblemChild = 6;
 
 template<typename TxPin,
          uint16_t main_timer_rate,
@@ -163,6 +163,11 @@ class Display {
   // Use kLcdNoCursor (255) or any other value outside of the screen to hide.
   static inline void set_cursor_position(uint8_t cursor) {
     cursor_position_ = cursor;
+  }
+  
+  static void ToggleSplashScreen() {
+    DisplaySerialOutput::Write(0x7c);
+    DisplaySerialOutput::Write(0x09);
   }
 
   static inline void set_status(uint8_t status) __attribute__((noinline)) {

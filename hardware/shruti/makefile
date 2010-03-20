@@ -165,7 +165,7 @@ size_report:	build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
 
 RESOURCE_COMPILER = hardware/tools/resources_compiler/resources_compiler.py
 
-hardware/shruti/resources.cc:	$(wildcard $(RESOURCES)/*.py) 
+resources:	$(wildcard $(RESOURCES)/*.py) 
 		python $(RESOURCE_COMPILER) $(RESOURCES)/resources.py
 
 include $(DEP_FILE)

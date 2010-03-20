@@ -82,11 +82,6 @@ struct SawTriangleOscillatorData {
   uint8_t balance;
 };
 
-// Interpolates between two different points in a 64-samples wavetable.
-struct Wavetable64OscillatorData {
-  int16_t smooth_parameter;
-};
-
 struct CzOscillatorData {
   uint16_t formant_phase;
   uint16_t formant_phase_increment;
@@ -115,7 +110,6 @@ union OscillatorData {
   CzOscillatorData cz;
   FmOscillatorData fm;
   VowelSynthesizerData vw;
-  Wavetable64OscillatorData wt;
   FilteredNoiseData no;
 };
 
@@ -138,7 +132,6 @@ class Oscillator {
          fn_ = fn_table_[shape];
          sweeping_ = shape_ == WAVEFORM_ANALOG_WAVETABLE;
        }
-       Reset();
      }
   }
   static inline uint8_t Render() {
@@ -158,11 +151,6 @@ class Oscillator {
       (*fn_.render)();
     }
     return held_sample_;
-  }
-  static inline void Reset() {
-    if (mode == FULL && shape_ == WAVEFORM_WAVETABLE) {
-      data_.wt.smooth_parameter = parameter_ * 64;
-    }
   }
   static inline void Update(
       uint8_t parameter,
@@ -403,35 +391,19 @@ class Oscillator {
   // ------- Interpolation between two offsets of a wavetable ------------------
   // 64 samples per cycle.
   static void UpdateWavetable64() {
-    // Since the wavetable is very crowded (32 waveforms) and the parameter
-    // value has a low resolution (4 positions between each waveform), the
-    // parameter value is smoothed to avoid rough stepping.
-    int16_t target_parameter = parameter_ * 64;
-    int16_t increment = target_parameter - data_.wt.smooth_parameter >> 4;
-    if (increment == 0) {
-      if (target_parameter < data_.wt.smooth_parameter) {
-        increment = -1;
-      } else if (target_parameter > data_.wt.smooth_parameter) {
-        increment = +1;
-      }
-    }
-    data_.wt.smooth_parameter += increment;
+    uint8_t balance_index = Swap4(parameter_);
+    data_.st.balance = balance_index & 0xf0;
+
+    uint8_t wave_index = balance_index & 0xf;
+    uint16_t offset = wave_index * 129;
+    data_.st.wave[0] = waveform_table[WAV_RES_WAVETABLE] + offset;
+    data_.st.wave[1] = waveform_table[WAV_RES_WAVETABLE] + offset + 129;
   }
   static void RenderWavetable64() {
-    HALF_SAMPLE_RATE;
-    phase_ += phase_increment_2_;
-    
-    uint8_t p = data_.wt.smooth_parameter >> 8;
-    uint16_t offset_a = (p << 6) + p;  // p * 65
-    offset_a += phase_ >> 10;
-    const prog_uint8_t* wav_res_wavetable = waveform_table[WAV_RES_WAVETABLE];
-    wav_res_wavetable += offset_a;
-    uint8_t lo = (phase_ >> 2) & 0xff;
+    phase_ += phase_increment_;
     held_sample_ = InterpolateTwoTables(
-        wav_res_wavetable,
-        wav_res_wavetable + 65,
-        lo,
-        data_.wt.smooth_parameter & 0xff);
+        data_.st.wave[0], data_.st.wave[1],
+        phase_ >> 1, data_.st.balance);
   }
   
   // ------- Casio CZ-like synthesis -------------------------------------------

@@ -359,11 +359,6 @@ void Editor::Init() {
 /* static */
 void Editor::DoShiftFunction(ParameterGroup group, uint8_t hold_time) {
   switch (group) {
-    case GROUP_PLAY:
-      engine.NoteOn(0, 48, test_note_playing_ ? 0 : 100);
-      test_note_playing_ ^= 1;
-      break;
-
     case GROUP_OSC:
       ToggleGroup(GROUP_PERFORMANCE);
       break;
@@ -375,6 +370,19 @@ void Editor::DoShiftFunction(ParameterGroup group, uint8_t hold_time) {
         parameter_to_assign_.subpage = subpage_;
         DisplaySplashScreen(STR_RES_TOUCH_A_KNOB_TO);
         assign_in_progress_ = 1;
+      }
+      break;
+      
+    case GROUP_PLAY:
+      engine.NoteOn(0, 48, test_note_playing_ ? 0 : 100);
+      test_note_playing_ ^= 1;
+      break;
+
+    case GROUP_MOD:
+      if (hold_time > 8 /* 2.048 seconds */) {
+        display.set_status('O');
+        display.ToggleSplashScreen();
+        display.set_status('@');
       }
       break;
       

@@ -395,9 +395,6 @@ void Voice::TriggerEnvelope(uint8_t stage) {
 void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
   if (!legato || engine.patch_.kbd_portamento >= 0) {
     TriggerEnvelope(ATTACK);
-    osc_1.Reset();
-    osc_2.Reset();
-    sub_osc.Reset();
     modulation_sources_[MOD_SRC_VELOCITY - kNumGlobalModulationSources] =
         velocity << 1;
   }

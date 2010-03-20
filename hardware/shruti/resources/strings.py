@@ -51,7 +51,7 @@ fm
 pwm
 noise
 vowel
-table
+drone
 sweep
 
 1+2
