@@ -27,6 +27,10 @@ MCU            = atmega328p
 DMCU           = m328p
 F_CPU          = 16000000
 
+LFUSE          = FF
+HFUSE          = DA
+EFUSE          = 05
+
 # ------------------------------------------------------------------------------
 
 VPATH          = $(PACKAGES)
@@ -120,6 +124,13 @@ $(DEP_FILE):	$(BUILD_DIR) $(DEPS)
 upload:		$(TARGET_HEX)
 		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ISP_OPTS) \
 			-U flash:w:$(TARGET_HEX):i
+
+fuses:
+		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ISP_OPTS) -e -u \
+			-U lock:w:0x3f:m \
+			-U efuse:w:0x$(EFUSE):m \
+			-U hfuse:w:0x$(HFUSE):m \
+			-U lfuse:w:0x$(LFUSE):m
 
 clean:
 		$(REMOVE) $(OBJS) $(TARGETS) $(DEP_FILE) $(DEPS)
