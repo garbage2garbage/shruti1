@@ -174,11 +174,11 @@ P.BERCY:     +1H
 patch bank
 step sequencer
 load
+----
 save
 extern
 equal
 
-----
-mutable    v0.52
+mutable    v0.53
 instruments \x06\x07-1
 """

@@ -235,11 +235,11 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_PATCH_BANK 140  // patch bank
 #define STR_RES_STEP_SEQUENCER 141  // step sequencer
 #define STR_RES_LOAD 142  // load
-#define STR_RES_SAVE 143  // save
-#define STR_RES_EXTERN 144  // extern
-#define STR_RES_EQUAL 145  // equal
-#define STR_RES_ 146  // ----
-#define STR_RES_MUTABLE____V0_52 147  // mutable    v0.52
+#define STR_RES_ 143  // ----
+#define STR_RES_SAVE 144  // save
+#define STR_RES_EXTERN 145  // extern
+#define STR_RES_EQUAL 146  // equal
+#define STR_RES_MUTABLE____V0_53 147  // mutable    v0.53
 #define STR_RES_INSTRUMENTS_671 148  // instruments -1
 #define STR_RES_JUST 149  // just
 #define STR_RES_PYTHAG 150  // pythag

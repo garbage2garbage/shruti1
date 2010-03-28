@@ -168,11 +168,11 @@ static const prog_char str_res_p_bercy_____S1h[] PROGMEM = "P.BERCY:     +1H";
 static const prog_char str_res_patch_bank[] PROGMEM = "patch bank";
 static const prog_char str_res_step_sequencer[] PROGMEM = "step sequencer";
 static const prog_char str_res_load[] PROGMEM = "load";
+static const prog_char str_res_[] PROGMEM = "----";
 static const prog_char str_res_save[] PROGMEM = "save";
 static const prog_char str_res_extern[] PROGMEM = "extern";
 static const prog_char str_res_equal[] PROGMEM = "equal";
-static const prog_char str_res_[] PROGMEM = "----";
-static const prog_char str_res_mutable____v0_52[] PROGMEM = "mutable    v0.52";
+static const prog_char str_res_mutable____v0_53[] PROGMEM = "mutable    v0.53";
 static const prog_char str_res_instruments_671[] PROGMEM = "instruments -1";
 static const prog_char str_res_just[] PROGMEM = "just";
 static const prog_char str_res_pythag[] PROGMEM = "pythag";
@@ -397,11 +397,11 @@ PROGMEM const prog_char* string_table[] = {
   str_res_patch_bank,
   str_res_step_sequencer,
   str_res_load,
+  str_res_,
   str_res_save,
   str_res_extern,
   str_res_equal,
-  str_res_,
-  str_res_mutable____v0_52,
+  str_res_mutable____v0_53,
   str_res_instruments_671,
   str_res_just,
   str_res_pythag,
