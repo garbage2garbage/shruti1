@@ -19,6 +19,7 @@
 AVR_TOOLS_PATH = /Applications/arduino-0016/hardware/tools/avr/bin
 AVR_ETC_PATH   = /Applications/arduino-0016/hardware/tools/avr/etc
 
+VERSION        = 0.54
 TARGET         = shruti1
 PACKAGES       = hardware/base hardware/hal hardware/hal/devices hardware/midi hardware/utils hardware/shruti
 RESOURCES      = hardware/shruti/resources
@@ -168,8 +169,6 @@ RESOURCE_COMPILER = hardware/tools/resources_compiler/resources_compiler.py
 resources:	$(wildcard $(RESOURCES)/*.py) 
 		python $(RESOURCE_COMPILER) $(RESOURCES)/resources.py
 
-include $(DEP_FILE)
-
 
 # ------------------------------------------------------------------------------
 # Midi files for firmware update
@@ -196,3 +195,19 @@ upload_patches:
 	$(LIBRARIAN) -c $(PATCH_LIBRARY) > $(EEPROM_DATA)
 	$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
 		-U eeprom:w:$(EEPROM_DATA):i
+
+
+# ------------------------------------------------------------------------------
+# Publish a firmware version on the website
+# ------------------------------------------------------------------------------
+
+REMOTE_HOST = mutable-instruments.net
+REMOTE_USER = shruti
+REMOTE_PATH = public_html/static/firmware
+
+publish: $(BUILD_DIR)/$(TARGET).mid $(BUILD_DIR)/$(TARGET).hex
+	/usr/bin/scp $(BUILD_DIR)/$(TARGET).mid $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_PATH)/$(TARGET)_$(VERSION).mid
+		/usr/bin/scp $(BUILD_DIR)/$(TARGET).hex $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_PATH)//$(TARGET)_$(VERSION).hex
+
+
+include $(DEP_FILE)
