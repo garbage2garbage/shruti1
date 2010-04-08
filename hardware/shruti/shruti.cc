@@ -302,7 +302,7 @@ void Init() {
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_53);
+  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_54);
   
   midi_io.Init();
   pots.Init();

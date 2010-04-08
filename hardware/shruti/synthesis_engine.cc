@@ -393,16 +393,27 @@ void Voice::TriggerEnvelope(uint8_t stage) {
 
 /* static */
 void Voice::Trigger(uint8_t note, uint8_t velocity, uint8_t legato) {
-  if (!legato || engine.patch_.kbd_portamento >= 0) {
+  if (engine.patch_.kbd_raga) {
+    int16_t pitch_shift = ResourcesManager::Lookup<int16_t, uint8_t>(
+        ResourceId(LUT_RES_SCALE_JUST + engine.patch_.kbd_raga - 1),
+        note % 12);
+    if (pitch_shift != 32767) {
+      // Some scales/raga settings might have muted notes. Do not trigger
+      // anything in this case!
+      pitch_target_ = (static_cast<uint16_t>(note) << 7) + pitch_shift;
+    } else {
+      if (legato) {
+        legato = 255;
+      }
+    }
+  } else {
+    pitch_target_ = (static_cast<uint16_t>(note) << 7);
+  }
+
+  if (!legato || (engine.patch_.kbd_portamento >= 0 && legato != 255)) {
     TriggerEnvelope(ATTACK);
     modulation_sources_[MOD_SRC_VELOCITY - kNumGlobalModulationSources] =
         velocity << 1;
-  }
-  pitch_target_ = static_cast<uint16_t>(note) << 7;
-  if (engine.patch_.kbd_raga) {
-    pitch_target_ += ResourcesManager::Lookup<int8_t, uint8_t>(
-        ResourceId(LUT_RES_SCALE_JUST + engine.patch_.kbd_raga - 1),
-        note % 12);
   }
   // At boot up, or when the note is note played legato and the portamento
   // is in auto mode, do not ramp up the pitch but jump straight to the target

@@ -177,8 +177,8 @@ load
 ----
 save
 extern
-equal
 
-mutable    v0.53
+mutable    v0.54
 instruments \x06\x07-1
+equal
 """
