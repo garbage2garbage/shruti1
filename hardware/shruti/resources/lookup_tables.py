@@ -259,18 +259,6 @@ def LayoutRaga(raga, silence_other_notes=False):
   return Compute(' '.join(mapping))
 
 
-def LayoutRagaWithGaps(raga):
-  """Find a good assignments of swaras to keys for a raga."""
-  raga = raga.lower()
-  scale = numpy.zeros((12,))
-  mapping = ['' for i in range(12)]
-  for swara in raga.split(' '):
-    key = recommended_keys.get(swara)
-    mapping[key] = swara
-
-  scale = [shruti_dictionary.get(swara) for swara in mapping]
-  return Compute(' '.join(mapping))
-
 altered_e_b = [0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, -64]
 altered_e = [0, 0, 0, 0, -64, 0, 0, 0, 0, 0, 0, 0]
 altered_e_a = [0, 0, 0, 0, -64, 0, 0, 0, 0, -64, 0, 0]
