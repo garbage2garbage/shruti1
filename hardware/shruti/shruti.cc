@@ -15,8 +15,8 @@
 
 #include "hardware/hal/adc.h"
 #include "hardware/hal/audio_output.h"
-#include "hardware/hal/devices/shift_register.h"
 #include "hardware/hal/devices/output_array.h"
+#include "hardware/hal/devices/shift_register.h"
 #include "hardware/hal/gpio.h"
 #include "hardware/hal/init_atmega.h"
 #include "hardware/hal/input_array.h"
