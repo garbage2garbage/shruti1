@@ -62,7 +62,7 @@ static const prog_char raw_parameter_definition[
     kNumEditableParameters * sizeof(ParameterDefinition)] PROGMEM = {
   // Osc 1.
   PRM_OSC_SHAPE_1,
-  WAVEFORM_NONE, WAVEFORM_ANALOG_WAVETABLE,
+  WAVEFORM_NONE, WAVEFORM_CZ_SYNC,
   UNIT_WAVEFORM,
   STR_RES_SHAPE, STR_RES_SHAPE,
   
@@ -188,7 +188,7 @@ static const prog_char raw_parameter_definition[
 
   // Lfo.
   PRM_LFO_WAVE_1,
-  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_RAMP,
+  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_STEP_SEQUENCER,
   UNIT_LFO_WAVEFORM,
   STR_RES_WV1, STR_RES_LFO1_WAVE,
   
@@ -198,7 +198,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_RT1, STR_RES_LFO1_RATE,
   
   PRM_LFO_WAVE_2,
-  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_RAMP,
+  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_STEP_SEQUENCER,
   UNIT_LFO_WAVEFORM,
   STR_RES_WV2, STR_RES_LFO2_WAVE,
   
@@ -230,7 +230,7 @@ static const prog_char raw_parameter_definition[
 
   // Arpeggiator.
   PRM_ARP_TEMPO,
-  24, 240,
+  24, 240 + STR_RES_960 - STR_RES_270 + 1,
   UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
   STR_RES_BPM, STR_RES_TEMPO,
   
@@ -834,7 +834,11 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
       if (value == 39) {
         value = 0;
         text = STR_RES_EXTERN;
+      } else if (value > 240) {
+        text = STR_RES_270 + value - 240 - 1;
+        value = 0;
       }
+      break;
   }
   if (prefix) {
     *buffer++ = prefix;

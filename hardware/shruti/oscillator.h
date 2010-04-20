@@ -68,12 +68,12 @@ static const uint8_t kVowelControlRateDecimation = 4;
 static const uint8_t kNumZonesFullSampleRate = 6;
 static const uint8_t kNumZonesHalfSampleRate = 5;
 
-struct PulseSquareOscillatorData {
+struct BandlimitedPwmOscillatorData {
   const prog_uint8_t* wave[2];
   uint8_t balance;
   uint16_t shift;
-  int8_t square;
-  uint8_t leak;
+  uint8_t scale;
+  int8_t previous;
 };
 
 // Interpolates between two 256-samples wavetables.
@@ -105,7 +105,7 @@ struct FilteredNoiseData {
 };
 
 union OscillatorData {
-  PulseSquareOscillatorData sq;
+  BandlimitedPwmOscillatorData pw;
   SawTriangleOscillatorData st;
   CzOscillatorData cz;
   FmOscillatorData fm;
@@ -288,36 +288,41 @@ class Oscillator {
   
   // ------- Band-limited waveforms with variable pulse width ------------------
   static void UpdatePulseSquare() {
-    uint8_t note = note_ - 12;
-    data_.sq.leak = 255 - (note >> 3);
-    
-    uint8_t balance_index = Swap4(note);
-    data_.sq.balance = balance_index & 0xf0;
-    
+    uint8_t balance_index = Swap4(note_ - 12);
+    data_.pw.balance = balance_index & 0xf0;
+
     uint8_t wave_index = balance_index & 0xf;
-    data_.sq.shift = static_cast<uint16_t>(parameter_ + 127) << 8;
-    data_.sq.wave[0] = waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
+    data_.pw.wave[0] = waveform_table[WAV_RES_BANDLIMITED_SAW_1 + wave_index];
     wave_index = AddClip(wave_index, 1, kNumZonesHalfSampleRate);
-    data_.sq.wave[1] = waveform_table[WAV_RES_BANDLIMITED_PULSE_1 + wave_index];
+    data_.pw.wave[1] = waveform_table[WAV_RES_BANDLIMITED_SAW_1 + wave_index];    
+    data_.pw.shift = static_cast<uint16_t>(parameter_ + 128) << 8;
+    // For higher pitched notes, simply use 128
+    data_.pw.scale = 192 - (parameter_ >> 1);
+    if (note_ > 64) {
+      data_.pw.scale = Mix(data_.pw.scale, 96, (note_ - 64) << 2);
+      data_.pw.scale = Mix(data_.pw.scale, 96, (note_ - 64) << 2);
+    }
   }
   static void RenderPulseSquare() {
+    phase_ += phase_increment_;
     HALF_SAMPLE_RATE;
-    phase_ += phase_increment_2_;
     
-    int16_t blit = InterpolateTwoTables(
-        data_.sq.wave[0],
-        data_.sq.wave[1],
+    uint8_t a = InterpolateTwoTables(
+        data_.pw.wave[0],
+        data_.pw.wave[1],
         phase_,
-        data_.sq.balance) - InterpolateSample(
-            data_.sq.wave[0],
-            phase_ + data_.sq.shift);
+        data_.pw.balance);
+    a = MulScale8(a, data_.pw.scale);
+    uint8_t b = InterpolateSample(
+        data_.pw.wave[0],
+        phase_ + data_.pw.shift);
+    b = MulScale8(b, data_.pw.scale);
     if (shape_ == WAVEFORM_IMPULSE_TRAIN) {
-      held_sample_ = Clip8(blit + 128);
+      int8_t new_sample = a - b;
+      held_sample_ = ((new_sample - data_.pw.previous)) + 128;
+      data_.pw.previous = new_sample;
     } else {
-      int8_t square = SignedClip8(
-          SignedMulScale8(data_.sq.square, data_.sq.leak) + blit);
-      data_.sq.square = square;
-      held_sample_ = square + 128;
+      held_sample_ = a - b + 128;
     }
   }
   
@@ -411,7 +416,7 @@ class Oscillator {
     data_.cz.formant_phase_increment = phase_increment_ + (
         (phase_increment_ * uint32_t(parameter_)) >> 3);
   }
-  static void RenderCz() {
+  static void RenderCzSawReso() {
     uint8_t old_phase_msb = phase_ >> 8;
     phase_ += phase_increment_;
     uint8_t phase_msb = phase_ >> 8;
@@ -425,6 +430,19 @@ class Oscillator {
         waveform_table[WAV_RES_SINE],
         data_.cz.formant_phase);
     held_sample_ = MulScale8(result, ~phase_msb);
+  }
+  static void RenderCzSyncReso() {
+    uint8_t old_phase_msb = phase_ >> 8;
+    phase_ += phase_increment_;
+    uint8_t phase_msb = phase_ >> 8;
+    if (phase_msb < old_phase_msb) {
+      data_.cz.formant_phase = 0;
+    }
+    data_.cz.formant_phase += data_.cz.formant_phase_increment;
+    uint8_t result = InterpolateSample(
+        waveform_table[WAV_RES_SINE],
+        data_.cz.formant_phase);
+    held_sample_ = phase_ < 0x8000 ? result : 128;
   }
   
   // ------- FM ----------------------------------------------------------------
@@ -577,7 +595,7 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { &Osc::UpdateSimpleWavetable, &Osc::RenderSimpleWavetable },
   { &Osc::UpdatePulseSquare, &Osc::RenderPulseSquare },
   { &Osc::UpdateSimpleWavetable, &Osc::RenderSimpleWavetable },
-  { &Osc::UpdateCz, &Osc::RenderCz },
+  { &Osc::UpdateCz, &Osc::RenderCzSawReso },
   { &Osc::UpdateFm, &Osc::RenderFm },
   { NULL, &Osc::Render8BitLand },
   { NULL, &Osc::RenderDirtyPwm },
@@ -585,6 +603,7 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { &Osc::UpdateVowel, &Osc::RenderVowel },
   { &Osc::UpdateWavetable64, &Osc::RenderWavetable64 },
   { &Osc::RenderSimpleWavetable, &Osc::RenderSimpleWavetable },
+  { &Osc::UpdateCz, &Osc::RenderCzSyncReso },
 };
 
 }  // namespace hardware_shruti

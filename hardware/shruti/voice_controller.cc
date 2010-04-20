@@ -122,7 +122,11 @@ void VoiceController::UpdateArpeggiatorParameters(const Patch& patch) {
   direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1;
   octaves_ = patch.arp_octave;
   pattern_size_ = patch.pattern_size;
-  step_duration_[0] = (kSampleRate * 60L / 4) / static_cast<int32_t>(tempo_);
+  step_duration_[0] = (kSampleRate * 60L / 4) / static_cast<int32_t>(
+      tempo_ <= 240
+          ? tempo_
+          : ResourcesManager::Lookup<uint16_t, uint8_t>(
+              lut_res_turbo_tempi, tempo_ - 240 - 1));
   step_duration_[1] = step_duration_[0];
   estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
   int16_t swing = (step_duration_[0] * static_cast<int32_t>(patch.arp_swing)) >> 9;

@@ -123,8 +123,6 @@ for zone in range(num_zones):
     pulse = MinimumPhaseReconstruction(pulse)[:(WAVETABLE_SIZE + 1)]
   else:
     pulse = pulse[fill]
-  bl_pulse_tables.append(('bandlimited_pulse_%d' % zone,
-                          Scale(pulse, center=False)))
 
   square = numpy.cumsum(pulse - pulse[wrap])
   triangle = -numpy.cumsum(square[::-1] - square.mean()) / WAVETABLE_SIZE
@@ -148,10 +146,6 @@ for zone in range(num_zones):
   bl_saw_tables.append(('bandlimited_saw_%d' % zone,
                        Scale(saw[quadrature])))
 
-# Blit are never generated at SR, always at SR/2.
-del bl_pulse_tables[0]
-
-waveforms.extend(bl_pulse_tables)
 waveforms.extend(bl_square_tables)
 waveforms.extend(bl_saw_tables)
 waveforms.extend(bl_tri_tables)

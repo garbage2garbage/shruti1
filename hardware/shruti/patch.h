@@ -116,17 +116,10 @@ class Patch {
   uint8_t pattern_size;
   
   // Get the value of a step in the sequence.
-  uint8_t sequence_step(uint8_t step) const {
-    return (step & 1) ? sequence[step >> 1] << 4 : sequence[step >> 1] & 0xf0;
-  }
+  uint8_t sequence_step(uint8_t step) const;
+  
   // Set the value of a step in the sequence.
-  void set_sequence_step(uint8_t step, uint8_t value) {
-    if (step & 1) {
-      sequence[step >> 1] = (sequence[step >> 1] & 0xf0) | (value >> 4);
-    } else {
-      sequence[step >> 1] = (sequence[step >> 1] & 0x0f) | (value & 0xf0);
-    }
-  }
+  void set_sequence_step(uint8_t step, uint8_t value);
 
   void EepromSave(uint8_t slot) const;
   void EepromLoad(uint8_t slot);
@@ -261,7 +254,7 @@ enum OscillatorAlgorithm {
   WAVEFORM_SAW,
   WAVEFORM_SQUARE,
   WAVEFORM_TRIANGLE,
-  WAVEFORM_CZ,
+  WAVEFORM_CZ_RESO,
   WAVEFORM_FM,
   WAVEFORM_8BITLAND,
   WAVEFORM_DIRTY_PWM,
@@ -269,6 +262,7 @@ enum OscillatorAlgorithm {
   WAVEFORM_VOWEL,
   WAVEFORM_WAVETABLE,
   WAVEFORM_ANALOG_WAVETABLE,
+  WAVEFORM_CZ_SYNC
 };
 
 enum LfoWave {
@@ -277,6 +271,7 @@ enum LfoWave {
   LFO_WAVEFORM_SQUARE,
   LFO_WAVEFORM_S_H,
   LFO_WAVEFORM_RAMP,
+  LFO_WAVEFORM_STEP_SEQUENCER,
 };
 
 enum Status {

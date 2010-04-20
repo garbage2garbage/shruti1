@@ -53,6 +53,7 @@ noise
 vowel
 drone
 sweep
+zsync
 
 1+2
 1>2
@@ -131,6 +132,7 @@ tri
 sqr
 s&h
 \x03
+ seq
 
 lf1
 lf2
@@ -165,6 +167,13 @@ velo
 note
 gate
 
+270
+300
+360
+480
+720
+960
+
 touch a knob to
 assign parameter
 ready
@@ -178,7 +187,7 @@ load
 save
 extern
 
-mutable    v0.54
+mutable    v0.55
 instruments \x06\x07-1
 equal
 """

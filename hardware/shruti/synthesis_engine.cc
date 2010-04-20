@@ -312,7 +312,7 @@ void SynthesisEngine::UpdateModulationIncrements() {
 void SynthesisEngine::Control() {
   for (uint8_t i = 0; i < kNumLfos; ++i) {
     lfo_[i].Increment();
-    modulation_sources_[MOD_SRC_LFO_1 + i] = lfo_[i].Render();
+    modulation_sources_[MOD_SRC_LFO_1 + i] = lfo_[i].Render(patch_);
   }
   modulation_sources_[MOD_SRC_RANDOM] = Random::state_msb();
   modulation_sources_[MOD_SRC_OFFSET] = 255;

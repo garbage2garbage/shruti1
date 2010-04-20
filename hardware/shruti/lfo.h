@@ -37,7 +37,8 @@ namespace hardware_shruti {
 class Lfo {
  public:
   Lfo() { }
-  uint8_t Render() {
+  
+  uint8_t Render(const Patch& patch) {
     switch (shape_) {
       case LFO_WAVEFORM_S_H:
         if (phase_ < previous_phase_) {
@@ -53,7 +54,15 @@ class Lfo {
             
       case LFO_WAVEFORM_SQUARE:
         return (phase_ & 0x8000) ? 255 : 0;
-        
+      
+      case LFO_WAVEFORM_STEP_SEQUENCER:
+        {
+          uint8_t phase_to_step = phase_ >> 8;
+          phase_to_step = MulScale8(phase_to_step, patch.pattern_size);
+          return patch.sequence_step(phase_to_step);
+        }
+        break;
+      
       default:
         return phase_ >> 8;
     }

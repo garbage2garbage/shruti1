@@ -133,6 +133,18 @@ void Patch::SysExSend() const {
   midi_output.Write(0xf7);  // </SysEx>
 }
 
+uint8_t Patch::sequence_step(uint8_t step) const {
+  return (step & 1) ? sequence[step >> 1] << 4 : sequence[step >> 1] & 0xf0;
+}
+
+void Patch::set_sequence_step(uint8_t step, uint8_t value) {
+  if (step & 1) {
+    sequence[step >> 1] = (sequence[step >> 1] & 0xf0) | (value >> 4);
+  } else {
+    sequence[step >> 1] = (sequence[step >> 1] & 0x0f) | (value & 0xf0);
+  }
+}
+
 void Patch::SysExReceive(uint8_t sysex_byte) {
   if (sysex_byte == 0xf0) {
     sysex_reception_checksum_ = 0;

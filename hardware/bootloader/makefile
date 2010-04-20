@@ -19,6 +19,7 @@
 AVR_TOOLS_PATH = /usr/local/CrossPack-AVR/bin
 AVR_ETC_PATH   = /usr/local/CrossPack-AVR/etc
 
+VERSION        = 0.54
 TARGET         = muboot
 PACKAGES       = hardware/bootloader
 BUILD_DIR      = build/$(TARGET)
@@ -150,3 +151,17 @@ size:	bootloader_size
 size_report:	build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
 
 .PHONY:	all clean depends upload
+
+
+# ------------------------------------------------------------------------------
+# Publish a firmware version on the website
+# ------------------------------------------------------------------------------
+
+REMOTE_HOST = mutable-instruments.net
+REMOTE_USER = shruti
+REMOTE_PATH = public_html/static/firmware
+
+publish: $(BUILD_DIR)/$(TARGET).hex
+	scp $(BUILD_DIR)/$(TARGET).hex $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_PATH)//$(TARGET)_$(VERSION).hex
+
+include $(DEP_FILE)
