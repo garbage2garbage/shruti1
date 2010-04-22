@@ -375,4 +375,4 @@ lookup_tables.append(
 
 
 lookup_tables.append(
-    ('turbo_tempi', [270, 360, 480, 720, 960]))
+    ('turbo_tempi', [270, 300, 360, 480, 720, 960]))

@@ -57,6 +57,7 @@ static const prog_char str_res_vowel[] PROGMEM = "vowel";
 static const prog_char str_res_drone[] PROGMEM = "drone";
 static const prog_char str_res_sweep[] PROGMEM = "sweep";
 static const prog_char str_res_zsync[] PROGMEM = "zsync";
+static const prog_char str_res_pad[] PROGMEM = "pad";
 static const prog_char str_res_1S2[] PROGMEM = "1+2";
 static const prog_char str_res_1_2[] PROGMEM = "1>2";
 static const prog_char str_res_1P2[] PROGMEM = "1*2";
@@ -249,6 +250,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_drone,
   str_res_sweep,
   str_res_zsync,
+  str_res_pad,
   str_res_1S2,
   str_res_1_2,
   str_res_1P2,
@@ -673,7 +675,7 @@ const prog_uint16_t lut_res_arpeggiator_patterns[] PROGMEM = {
    18725,  56283,  30431,  43281,  54553,  28609,  53505, 
 };
 const prog_uint16_t lut_res_turbo_tempi[] PROGMEM = {
-     270,    360,    480,    720,    960, 
+     270,    300,    360,    480,    720,    960, 
 };
 
 

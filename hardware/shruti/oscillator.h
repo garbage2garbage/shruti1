@@ -104,6 +104,11 @@ struct FilteredNoiseData {
   uint8_t lp_noise_sample;
 };
 
+struct QuadSawPadData {
+  uint16_t phase_increment[3];
+  uint16_t phase[3];
+};
+
 union OscillatorData {
   BandlimitedPwmOscillatorData pw;
   SawTriangleOscillatorData st;
@@ -111,6 +116,7 @@ union OscillatorData {
   FmOscillatorData fm;
   VowelSynthesizerData vw;
   FilteredNoiseData no;
+  QuadSawPadData qs;
 };
 
 struct AlgorithmFn {
@@ -445,6 +451,29 @@ class Oscillator {
     held_sample_ = phase_ < 0x8000 ? result : 128;
   }
   
+  // ------- Quad saw (mit aliasing) -------------------------------------------
+  static void UpdateQuadSawPad() {
+    uint16_t phase_spread = (
+        static_cast<uint32_t>(phase_increment_) * parameter_) >> 13;
+    ++phase_spread;
+    uint16_t phase_increment = phase_increment_;
+    for (uint8_t i = 0; i < 3; ++i) {
+      phase_increment += phase_spread;
+      data_.qs.phase_increment[i] = phase_increment;
+    }
+  }
+
+  static void RenderQuadSawPad() {
+    phase_ += phase_increment_;
+    data_.qs.phase[0] += data_.qs.phase_increment[0];
+    data_.qs.phase[1] += data_.qs.phase_increment[1];
+    data_.qs.phase[2] += data_.qs.phase_increment[2];
+    held_sample_ = (phase_ >> 10);
+    held_sample_ += (data_.qs.phase[0] >> 10);
+    held_sample_ += (data_.qs.phase[1] >> 10);
+    held_sample_ += (data_.qs.phase[2] >> 10);
+  }
+  
   // ------- FM ----------------------------------------------------------------
   static void UpdateFm() {
     uint16_t multiplier = ResourcesManager::Lookup<uint16_t, uint8_t>(
@@ -602,8 +631,9 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { NULL, &Osc::RenderFilteredNoise },
   { &Osc::UpdateVowel, &Osc::RenderVowel },
   { &Osc::UpdateWavetable64, &Osc::RenderWavetable64 },
-  { &Osc::RenderSimpleWavetable, &Osc::RenderSimpleWavetable },
+  { &Osc::UpdateSimpleWavetable, &Osc::RenderSimpleWavetable },
   { &Osc::UpdateCz, &Osc::RenderCzSyncReso },
+  { &Osc::UpdateQuadSawPad, &Osc::RenderQuadSawPad },
 };
 
 }  // namespace hardware_shruti

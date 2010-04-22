@@ -54,6 +54,7 @@ vowel
 drone
 sweep
 zsync
+pad
 
 1+2
 1>2
