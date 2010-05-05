@@ -38,7 +38,7 @@ static const prog_char str_res_detune[] PROGMEM = "detune";
 static const prog_char str_res_osc_bal[] PROGMEM = "osc bal";
 static const prog_char str_res_sub_osc_[] PROGMEM = "sub osc.";
 static const prog_char str_res_pattern[] PROGMEM = "pattern";
-static const prog_char str_res_swing[] PROGMEM = "swing";
+static const prog_char str_res_groove[] PROGMEM = "groove";
 static const prog_char str_res_oscillator_1[] PROGMEM = "oscillator 1";
 static const prog_char str_res_oscillator_2[] PROGMEM = "oscillator 2";
 static const prog_char str_res_arpeggio[] PROGMEM = "arpeggio";
@@ -180,7 +180,7 @@ static const prog_char str_res_load[] PROGMEM = "load";
 static const prog_char str_res_[] PROGMEM = "----";
 static const prog_char str_res_save[] PROGMEM = "save";
 static const prog_char str_res_extern[] PROGMEM = "extern";
-static const prog_char str_res_mutable____v0_55[] PROGMEM = "mutable    v0.55";
+static const prog_char str_res_mutable____v0_56[] PROGMEM = "mutable    v0.56";
 static const prog_char str_res_instruments_671[] PROGMEM = "instruments -1";
 static const prog_char str_res_equal[] PROGMEM = "equal";
 static const prog_char str_res_just[] PROGMEM = "just";
@@ -231,7 +231,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_osc_bal,
   str_res_sub_osc_,
   str_res_pattern,
-  str_res_swing,
+  str_res_groove,
   str_res_oscillator_1,
   str_res_oscillator_2,
   str_res_arpeggio,
@@ -373,7 +373,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_,
   str_res_save,
   str_res_extern,
-  str_res_mutable____v0_55,
+  str_res_mutable____v0_56,
   str_res_instruments_671,
   str_res_equal,
   str_res_just,
@@ -677,6 +677,26 @@ const prog_uint16_t lut_res_arpeggiator_patterns[] PROGMEM = {
 const prog_uint16_t lut_res_turbo_tempi[] PROGMEM = {
      270,    300,    360,    480,    720,    960, 
 };
+const prog_uint16_t lut_res_groove_swing[] PROGMEM = {
+     127,    127,   -127,   -127,    127,    127,   -127,   -127, 
+     127,    127,   -127,   -127,    127,    127,   -127,   -127, 
+};
+const prog_uint16_t lut_res_groove_shuffle[] PROGMEM = {
+     127,   -127,    127,   -127,    127,   -127,    127,   -127, 
+     127,   -127,    127,   -127,    127,   -127,    127,   -127, 
+};
+const prog_uint16_t lut_res_groove_push[] PROGMEM = {
+     -63,    -63,    127,      0,   -127,      0,      0,     88, 
+       0,      0,     88,    -50,    -88,      0,     88,      0, 
+};
+const prog_uint16_t lut_res_groove_lag[] PROGMEM = {
+      19,     44,     93,     -4,     32,    -53,    -90,   -127, 
+     117,     32,   -102,    -53,    105,    -53,     93,    -53, 
+};
+const prog_uint16_t lut_res_groove_human[] PROGMEM = {
+      88,   -101,    107,    -95,     88,    -88,     50,    -38, 
+      65,    -88,    101,    -95,    101,   -127,     63,    -31, 
+};
 
 
 PROGMEM const prog_uint16_t* lookup_table_table[] = {
@@ -718,6 +738,11 @@ PROGMEM const prog_uint16_t* lookup_table_table[] = {
   lut_res_scale_yaman,
   lut_res_arpeggiator_patterns,
   lut_res_turbo_tempi,
+  lut_res_groove_swing,
+  lut_res_groove_shuffle,
+  lut_res_groove_push,
+  lut_res_groove_lag,
+  lut_res_groove_human,
 };
 
 const prog_uint8_t wav_res_formant_sine[] PROGMEM = {

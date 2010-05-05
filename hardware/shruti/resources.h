@@ -79,6 +79,11 @@ extern const prog_uint16_t lut_res_scale_kaushik_todi[] PROGMEM;
 extern const prog_uint16_t lut_res_scale_jogeshwari[] PROGMEM;
 extern const prog_uint16_t lut_res_arpeggiator_patterns[] PROGMEM;
 extern const prog_uint16_t lut_res_turbo_tempi[] PROGMEM;
+extern const prog_uint16_t lut_res_groove_swing[] PROGMEM;
+extern const prog_uint16_t lut_res_groove_shuffle[] PROGMEM;
+extern const prog_uint16_t lut_res_groove_push[] PROGMEM;
+extern const prog_uint16_t lut_res_groove_lag[] PROGMEM;
+extern const prog_uint16_t lut_res_groove_human[] PROGMEM;
 extern const prog_uint8_t wav_res_formant_sine[] PROGMEM;
 extern const prog_uint8_t wav_res_formant_square[] PROGMEM;
 extern const prog_uint8_t wav_res_bandlimited_square_0[] PROGMEM;
@@ -116,7 +121,7 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_OSC_BAL 10  // osc bal
 #define STR_RES_SUB_OSC_ 11  // sub osc.
 #define STR_RES_PATTERN 12  // pattern
-#define STR_RES_SWING 13  // swing
+#define STR_RES_GROOVE 13  // groove
 #define STR_RES_OSCILLATOR_1 14  // oscillator 1
 #define STR_RES_OSCILLATOR_2 15  // oscillator 2
 #define STR_RES_ARPEGGIO 16  // arpeggio
@@ -258,7 +263,7 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_ 152  // ----
 #define STR_RES_SAVE 153  // save
 #define STR_RES_EXTERN 154  // extern
-#define STR_RES_MUTABLE____V0_55 155  // mutable    v0.55
+#define STR_RES_MUTABLE____V0_56 155  // mutable    v0.56
 #define STR_RES_INSTRUMENTS_671 156  // instruments -1
 #define STR_RES_EQUAL 157  // equal
 #define STR_RES_JUST 158  // just
@@ -369,6 +374,16 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define LUT_RES_ARPEGGIATOR_PATTERNS_SIZE 15
 #define LUT_RES_TURBO_TEMPI 37
 #define LUT_RES_TURBO_TEMPI_SIZE 6
+#define LUT_RES_GROOVE_SWING 38
+#define LUT_RES_GROOVE_SWING_SIZE 16
+#define LUT_RES_GROOVE_SHUFFLE 39
+#define LUT_RES_GROOVE_SHUFFLE_SIZE 16
+#define LUT_RES_GROOVE_PUSH 40
+#define LUT_RES_GROOVE_PUSH_SIZE 16
+#define LUT_RES_GROOVE_LAG 41
+#define LUT_RES_GROOVE_LAG_SIZE 16
+#define LUT_RES_GROOVE_HUMAN 42
+#define LUT_RES_GROOVE_HUMAN_SIZE 16
 #define WAV_RES_FORMANT_SINE 0
 #define WAV_RES_FORMANT_SINE_SIZE 256
 #define WAV_RES_FORMANT_SQUARE 1

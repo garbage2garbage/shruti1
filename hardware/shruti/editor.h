@@ -71,7 +71,8 @@ enum Unit {
   UNIT_MODULATION_DESTINATION,
   UNIT_PATTERN,
   UNIT_RAGA,
-  UNIT_TEMPO_WITH_EXTERNAL_CLOCK
+  UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
+  UNIT_GROOVE_PATTERN
 };
 
 enum Action {
@@ -194,6 +195,9 @@ class Editor {
   static void DisplayStepSequencerPage();
   static void HandleStepSequencerInput(uint8_t knob_index, uint16_t value);
   static void HandleStepSequencerIncrement(int8_t direction);
+  
+  static void RandomizeParameter(uint8_t subpage, uint8_t parameter_index);
+  static void RandomizePatch();
 
   static const ParameterDefinition& parameter_definition(uint8_t index);
 

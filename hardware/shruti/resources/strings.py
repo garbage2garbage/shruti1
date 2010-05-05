@@ -34,7 +34,7 @@ detune
 osc bal
 sub osc.
 pattern
-swing
+groove
 oscillator 1
 oscillator 2
 arpeggio
@@ -188,7 +188,7 @@ load
 save
 extern
 
-mutable    v0.55
+mutable    v0.56
 instruments \x06\x07-1
 equal
 """

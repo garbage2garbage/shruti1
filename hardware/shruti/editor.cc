@@ -36,7 +36,7 @@ namespace hardware_shruti {
 /* extern */
 Editor editor;
 
-static const prog_char units_definitions[UNIT_TEMPO_WITH_EXTERNAL_CLOCK + 1]
+static const prog_char units_definitions[UNIT_GROOVE_PATTERN + 1]
     PROGMEM = {
   0,
   0,
@@ -51,11 +51,16 @@ static const prog_char units_definitions[UNIT_TEMPO_WITH_EXTERNAL_CLOCK + 1]
   STR_RES_CUTOFF,
   0,
   STR_RES_EQUAL,
-  0
+  0,
+  0,
 };
 
 static const prog_char arp_pattern_prefix[4] PROGMEM = {
   0x03, 0x04, 0x05, '?'  // Up, Down, UpDown, Random
+};
+
+static const prog_char arp_groove_template_prefix[5] PROGMEM = {
+  's', 'f', 'p', 'l', 'h'  // swing, shuffle, push, lag, human
 };
 
 static const prog_char raw_parameter_definition[
@@ -244,10 +249,10 @@ static const prog_char raw_parameter_definition[
   UNIT_PATTERN,
   STR_RES_PATTERN, STR_RES_PATTERN,
   
-  PRM_ARP_SWING,
-  0, 127, 
-  UNIT_RAW_UINT8,
-  STR_RES_SWG, STR_RES_SWING,
+  PRM_ARP_GROOVE,
+  0, 79, 
+  UNIT_GROOVE_PATTERN,
+  STR_RES_GROOVE, STR_RES_GROOVE,
 
   // Keyboard settings.
   PRM_KBD_OCTAVE,
@@ -308,7 +313,7 @@ const PageDefinition Editor::page_definition_[] = {
   { PAGE_LOAD_SAVE, PAGE_LOAD_SAVE, GROUP_LOAD_SAVE,
     STR_RES_PATCH_BANK, LOAD_SAVE, 0 },
   { PAGE_PERFORMANCE, PAGE_PERFORMANCE, GROUP_PERFORMANCE,
-    STR_RES_PERFORMANCE, PARAMETER_EDITOR, 0 }
+    STR_RES_PERFORMANCE, PARAMETER_EDITOR, 0 },
 };
 
 /* <static> */
@@ -360,11 +365,17 @@ void Editor::Init() {
 void Editor::DoShiftFunction(ParameterGroup group, uint8_t hold_time) {
   switch (group) {
     case GROUP_OSC:
-      ToggleGroup(GROUP_PERFORMANCE);
+      if (current_page_ == PAGE_LOAD_SAVE) {
+        engine.ResetPatch();
+      } else {
+        ToggleGroup(GROUP_PERFORMANCE);
+      }
       break;
       
     case GROUP_FILTER:
-      if (current_page_ <= PAGE_PLAY_KBD) {
+      if (current_page_ == PAGE_LOAD_SAVE) {
+        RandomizePatch();
+      } else if (current_page_ <= PAGE_PLAY_KBD) {
         parameter_to_assign_.id = page_definition_[
             current_page_].first_parameter_index + current_knob_;
         parameter_to_assign_.subpage = subpage_;
@@ -373,17 +384,25 @@ void Editor::DoShiftFunction(ParameterGroup group, uint8_t hold_time) {
       }
       break;
       
+    case GROUP_MOD:
+      if (hold_time > 8 /* 1.5 SECONDS */) {
+        if (current_page_ == PAGE_LOAD_SAVE) {
+          display.set_status('O');
+          display.ToggleSplashScreen();
+          display.set_status('@');
+        } else {
+          engine.AllSoundOff(0);
+          test_note_playing_ = 0;
+          display.Init();
+          current_display_type_ = PAGE_TYPE_DETAILS;
+          DisplaySummary();
+        }
+      }
+      break;
+
     case GROUP_PLAY:
       engine.NoteOn(0, 48, test_note_playing_ ? 0 : 100);
       test_note_playing_ ^= 1;
-      break;
-
-    case GROUP_MOD:
-      if (hold_time > 8 /* 2.048 seconds */) {
-        display.set_status('O');
-        display.ToggleSplashScreen();
-        display.set_status('@');
-      }
       break;
       
     case GROUP_LOAD_SAVE:
@@ -422,6 +441,31 @@ void Editor::ToggleGroup(ParameterGroup group) {
         subpage_ = last_visited_subpage_;
     }
     last_visited_page_[group] = current_page_;
+  }
+}
+
+/* static */
+void Editor::RandomizeParameter(uint8_t subpage, uint8_t parameter_index) {
+  const ParameterDefinition& parameter = parameter_definition(parameter_index);
+  uint8_t range = parameter.max_value - parameter.min_value + 1;
+  uint8_t value = Random::GetByte();
+  while (value >= range) {
+    value -= range;
+  }
+  value += parameter.min_value;
+  engine.SetParameter(parameter.id + subpage * 3, value);
+}
+
+/* static */
+void Editor::RandomizePatch() {
+  // Randomize all the main parameters
+  for (uint8_t parameter = 0; parameter < 28; ++parameter) {
+    RandomizeParameter(0, parameter);
+  }
+  for (uint8_t slot = 0; slot < kModulationMatrixSize; ++slot) {
+    for (uint8_t parameter = 29; parameter < 32; ++parameter) {
+      RandomizeParameter(slot, parameter);
+    }
   }
 }
 
@@ -838,6 +882,12 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
         text = STR_RES_270 + value - 240 - 1;
         value = 0;
       }
+      break;
+    case UNIT_GROOVE_PATTERN:
+      prefix = ResourcesManager::Lookup<uint8_t, uint8_t>(
+          arp_groove_template_prefix,
+          value >> 4);
+      value = value & 0xf;
       break;
   }
   if (prefix) {

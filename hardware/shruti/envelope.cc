@@ -29,6 +29,9 @@ void Envelope::Init() {
 }
 
 void Envelope::Trigger(uint8_t stage) {
+  if (stage_ == DEAD && stage == RELEASE) {
+    return;
+  }
   stage_ = stage;
   // The note might be released at any moment, so we need to figure out
   // the right slope to make it reach 0 within the release time.

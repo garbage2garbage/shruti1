@@ -186,7 +186,10 @@ void CvTask() {
 }
 
 void MidiTask() {
-  if (midi_io.readable()) {
+  // Always flush the MIDI buffer before continuing. This makes unlikely the
+  // situation where MIDI bytes are dropped... at the cost of a more glitchy
+  // audio output in case of MIDI overloading.
+  while (midi_io.readable()) {
     uint8_t value = midi_io.ImmediateRead();
     
     // Copy the byte to the MIDI output (thru). We could use Overwrite here
@@ -302,7 +305,7 @@ void Init() {
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_55);
+  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_56);
   
   midi_io.Init();
   pots.Init();

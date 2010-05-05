@@ -95,7 +95,7 @@ class Patch {
   uint8_t arp_tempo;
   uint8_t arp_octave;
   uint8_t arp_pattern;
-  uint8_t arp_swing;
+  uint8_t arp_groove;
   
   // Offset: 74-82
   uint8_t sequence[8];
@@ -234,7 +234,7 @@ enum Parameter {
   PRM_ARP_TEMPO = 3 * kModulationMatrixSize + 28,
   PRM_ARP_OCTAVE,
   PRM_ARP_PATTERN,
-  PRM_ARP_SWING,
+  PRM_ARP_GROOVE,
   
   PRM_SEQUENCE = 3 * kModulationMatrixSize + 28 + 4,
 

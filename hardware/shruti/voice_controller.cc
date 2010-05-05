@@ -21,17 +21,19 @@
 #include "hardware/shruti/patch.h"
 #include "hardware/shruti/resources.h"
 #include "hardware/shruti/synthesis_engine.h"
-
+#include "hardware/utils/op.h"
 #include "hardware/utils/random.h"
 
 using hardware_utils::Random;
+using namespace hardware_utils_op;
 
 namespace hardware_shruti {
   
 /* <static> */
 int16_t VoiceController::internal_clock_counter_;
 uint8_t VoiceController::midi_clock_counter_;
-int16_t VoiceController::step_duration_[2];
+int16_t VoiceController::step_duration_[kNumSteps];
+int16_t VoiceController::average_step_duration_;
 
 uint16_t VoiceController::pattern_;
 uint16_t VoiceController::pattern_mask_;
@@ -103,6 +105,7 @@ void VoiceController::AllSoundOff() {
   for (uint8_t i = 0; i < num_voices_; ++i) {
     voices_[i].Kill();
   }
+  active_ = 0;
 }
 
 /* static */
@@ -122,16 +125,23 @@ void VoiceController::UpdateArpeggiatorParameters(const Patch& patch) {
   direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1;
   octaves_ = patch.arp_octave;
   pattern_size_ = patch.pattern_size;
-  step_duration_[0] = (kSampleRate * 60L / 4) / static_cast<int32_t>(
-      tempo_ <= 240
-          ? tempo_
+  tempo_ = patch.arp_tempo;
+  average_step_duration_ = (kSampleRate * 60L / 4) / static_cast<int32_t>(
+      patch.arp_tempo <= 240
+          ? patch.arp_tempo
           : ResourcesManager::Lookup<uint16_t, uint8_t>(
-              lut_res_turbo_tempi, tempo_ - 240 - 1));
-  step_duration_[1] = step_duration_[0];
-  estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
-  int16_t swing = (step_duration_[0] * static_cast<int32_t>(patch.arp_swing)) >> 9;
-  step_duration_[0] += swing;
-  step_duration_[1] -= swing;
+              lut_res_turbo_tempi, patch.arp_tempo - 240 - 1));
+  uint8_t groove_amount = Swap4(patch.arp_groove);
+  uint8_t groove_template = groove_amount & 0x0f;
+  for (uint8_t i = 0; i < kNumSteps; ++i) {
+    int32_t swing_direction = ResourcesManager::Lookup<int16_t, uint8_t>(
+        LUT_RES_GROOVE_SWING + groove_template, i);
+    swing_direction *= average_step_duration_;
+    swing_direction *= groove_amount;
+    int16_t swing = swing_direction >> 17;
+    step_duration_[i] = average_step_duration_ + swing;
+  }
+  estimated_beat_duration_ = average_step_duration_ / (kControlRate / 4);
 }
 
 /* static */
@@ -187,7 +197,7 @@ uint8_t VoiceController::Control() {
     pattern_mask_ = 1;
     pattern_step_ = 0;
   }
-  if (notes_.size() == 0 && tempo_) {
+  if (notes_.size() == 0 && tempo_ && active_) {
     ++inactive_steps_;
     if (inactive_steps_ >= pattern_size_) {
       Stop();
@@ -198,11 +208,7 @@ uint8_t VoiceController::Control() {
   // Update the value of the counter depending on which steps we are on.
   // Steps 1, 2 are longer than steps 3, 4 if swing is enabled.
   if (tempo_) {
-    if (pattern_step_ & 2) {
-      internal_clock_counter_ += step_duration_[1];
-    } else {
-      internal_clock_counter_ += step_duration_[0];
-    }
+    internal_clock_counter_ += step_duration_[pattern_step_ & 0x0f];
   } else {
     midi_clock_counter_ += kMidiClockPrescaler;
   }

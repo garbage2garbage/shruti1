@@ -180,6 +180,7 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static inline void TouchPatch() {
     UpdateModulationIncrements();
     UpdateOscillatorAlgorithms();
+    controller_.UpdateArpeggiatorParameters(patch_);
   }
   static inline const Patch& patch() { return patch_; }
   static inline const VoiceController& voice_controller() {
