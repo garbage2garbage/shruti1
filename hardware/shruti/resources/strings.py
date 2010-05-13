@@ -175,6 +175,9 @@ gate
 720
 960
 
+start
+length
+
 touch a knob to
 assign parameter
 ready
@@ -188,7 +191,7 @@ load
 save
 extern
 
-mutable    v0.56
+mutable    v0.57
 instruments \x06\x07-1
 equal
 """

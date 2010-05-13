@@ -22,6 +22,7 @@
 
 #include "hardware/shruti/editor.h"
 #include "hardware/shruti/display.h"
+#include "hardware/shruti/patch_metadata.h"
 #include "hardware/shruti/synthesis_engine.h"
 #include "hardware/utils/string.h"
 #include "hardware/hal/watchdog_timer.h"
@@ -36,7 +37,15 @@ namespace hardware_shruti {
 /* extern */
 Editor editor;
 
-static const prog_char units_definitions[UNIT_GROOVE_PATTERN + 1]
+static const prog_char arp_pattern_prefix[4] PROGMEM = {
+  0x03, 0x04, 0x05, '?'  // Up, Down, UpDown, Random
+};
+
+static const prog_char arp_groove_template_prefix[5] PROGMEM = {
+  's', 'f', 'p', 'l', 'h'  // swing, shuffle, push, lag, human
+};
+
+static const prog_char units_definitions[UNIT_MIDI_CHANNEL + 1]
     PROGMEM = {
   0,
   0,
@@ -53,227 +62,7 @@ static const prog_char units_definitions[UNIT_GROOVE_PATTERN + 1]
   STR_RES_EQUAL,
   0,
   0,
-};
-
-static const prog_char arp_pattern_prefix[4] PROGMEM = {
-  0x03, 0x04, 0x05, '?'  // Up, Down, UpDown, Random
-};
-
-static const prog_char arp_groove_template_prefix[5] PROGMEM = {
-  's', 'f', 'p', 'l', 'h'  // swing, shuffle, push, lag, human
-};
-
-static const prog_char raw_parameter_definition[
-    kNumEditableParameters * sizeof(ParameterDefinition)] PROGMEM = {
-  // Osc 1.
-  PRM_OSC_SHAPE_1,
-  WAVEFORM_NONE, WAVEFORM_QUAD_SAW_PAD,
-  UNIT_WAVEFORM,
-  STR_RES_SHAPE, STR_RES_SHAPE,
-  
-  PRM_OSC_PARAMETER_1,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_PRM, STR_RES_PARAMETER,
-  
-  PRM_OSC_RANGE_1,
-  -12, 12,
-  UNIT_INT8,
-  STR_RES_RNG, STR_RES_RANGE,
-  
-  PRM_OSC_OPTION_1,
-  SUM, XOR,
-  UNIT_OPERATOR,
-  STR_RES_OP, STR_RES_OPERATOR,
-
-  // Osc 2.
-  PRM_OSC_SHAPE_2,
-  WAVEFORM_IMPULSE_TRAIN, WAVEFORM_TRIANGLE,
-  UNIT_WAVEFORM,
-  STR_RES_SHAPE, STR_RES_SHAPE,
-  
-  PRM_OSC_PARAMETER_2,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_PRM, STR_RES_PARAMETER,
-  
-  PRM_OSC_RANGE_2,
-  -24, 24, 
-  UNIT_INT8,
-  STR_RES_RNG, STR_RES_RANGE,
-  
-  PRM_OSC_OPTION_2,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_TUN, STR_RES_DETUNE,
-
-  // Mix balance.
-  PRM_MIX_BALANCE,
-  0, 63,
-  UNIT_UINT8,
-  STR_RES_MIX, STR_RES_OSC_BAL,
-
-  PRM_MIX_SUB_OSC,
-  0, 63,
-  UNIT_UINT8,
-  STR_RES_SUB, STR_RES_SUB_OSC_,
-  
-  PRM_MIX_NOISE,
-  0, 63,
-  UNIT_UINT8,
-  STR_RES_NOI, STR_RES_NOISE,
-
-  PRM_MIX_SUB_OSC_SHAPE,
-  WAVEFORM_SQUARE, WAVEFORM_TRIANGLE,
-  UNIT_WAVEFORM, 
-  STR_RES_SHAPE, STR_RES_SHAPE,
-
-  // Filter.
-  PRM_FILTER_CUTOFF,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_CUT, STR_RES_CUTOFF,
-  
-  PRM_FILTER_RESONANCE,
-  0, 63,
-  UNIT_UINT8,
-  STR_RES_RES, STR_RES_RESONANCE,
-  
-  PRM_FILTER_ENV,
-  0, 63,
-  UNIT_INT8,
-  STR_RES_ENV1TVCF, STR_RES_ENV1TVCF,
-  
-  PRM_FILTER_LFO,
-  0, 63,
-  UNIT_INT8,
-  STR_RES_LFO2TVCF, STR_RES_LFO2TVCF,
-
-  // Env 1.
-  PRM_ENV_ATTACK_1,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_ATK, STR_RES_ATTACK,
-  
-  PRM_ENV_DECAY_1,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_DECAY, STR_RES_DECAY,
-  
-  PRM_ENV_SUSTAIN_1,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_SUSTAIN, STR_RES_SUSTAIN,
-  
-  PRM_ENV_RELEASE_1,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_RELEASE, STR_RES_RELEASE,
-
-  // Env 2.
-  PRM_ENV_ATTACK_2,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_ATK, STR_RES_ATTACK,
-  
-  PRM_ENV_DECAY_2,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_DECAY, STR_RES_DECAY,
-  
-  PRM_ENV_SUSTAIN_2,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_SUSTAIN, STR_RES_SUSTAIN,
-  
-  PRM_ENV_RELEASE_2,
-  0, 127,
-  UNIT_RAW_UINT8,
-  STR_RES_RELEASE, STR_RES_RELEASE,
-
-  // Lfo.
-  PRM_LFO_WAVE_1,
-  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_STEP_SEQUENCER,
-  UNIT_LFO_WAVEFORM,
-  STR_RES_WV1, STR_RES_LFO1_WAVE,
-  
-  PRM_LFO_RATE_1,
-  0, 127 + 16,
-  UNIT_LFO_RATE,
-  STR_RES_RT1, STR_RES_LFO1_RATE,
-  
-  PRM_LFO_WAVE_2,
-  LFO_WAVEFORM_TRIANGLE, LFO_WAVEFORM_STEP_SEQUENCER,
-  UNIT_LFO_WAVEFORM,
-  STR_RES_WV2, STR_RES_LFO2_WAVE,
-  
-  PRM_LFO_RATE_2,
-  0, 127 + 16,
-  UNIT_LFO_RATE,
-  STR_RES_RT2, STR_RES_LFO2_RATE,
-  
-  // Modulations.
-  PRM_MOD_ROW,
-  0, kModulationMatrixSize - 1,
-  UNIT_INDEX,
-  STR_RES_MOD_, STR_RES_MOD_,
-
-  PRM_MOD_SOURCE,
-  0, kNumModulationSources - 1,
-  UNIT_MODULATION_SOURCE,
-  STR_RES_SRC, STR_RES_SOURCE,
-  
-  PRM_MOD_DESTINATION,
-  0, kNumModulationDestinations - 1,
-  UNIT_MODULATION_DESTINATION,
-  STR_RES_DST, STR_RES_DEST_,
-  
-  PRM_MOD_AMOUNT,
-  -63, 63,
-  UNIT_INT8,
-  STR_RES_AMT, STR_RES_AMOUNT,
-
-  // Arpeggiator.
-  PRM_ARP_TEMPO,
-  24, 240 + STR_RES_960 - STR_RES_270 + 1,
-  UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
-  STR_RES_BPM, STR_RES_TEMPO,
-  
-  PRM_ARP_OCTAVE,
-  OFF, 4,
-  UNIT_UINT8,
-  STR_RES_OCTAVE, STR_RES_OCTAVE,
-  
-  PRM_ARP_PATTERN,
-  0, kNumArpeggiatorPatterns * 4 - 1, 
-  UNIT_PATTERN,
-  STR_RES_PATTERN, STR_RES_PATTERN,
-  
-  PRM_ARP_GROOVE,
-  0, 79, 
-  UNIT_GROOVE_PATTERN,
-  STR_RES_GROOVE, STR_RES_GROOVE,
-
-  // Keyboard settings.
-  PRM_KBD_OCTAVE,
-  -2, +2,
-  UNIT_INT8,
-  STR_RES_OCTAVE, STR_RES_OCTAVE,
-  
-  PRM_KBD_RAGA,
-  0, 32, 
-  UNIT_RAGA,
-  STR_RES_RAGA, STR_RES_RAGA,
-  
-  PRM_KBD_PORTAMENTO,
-  -63, 63,
-  UNIT_INT8,
-  STR_RES_PRT, STR_RES_PORTA,
-  
-  PRM_KBD_MIDI_CHANNEL,
-  0, 16, 
-  UNIT_UINT8,
-  STR_RES_CHN, STR_RES_MIDI_CHAN
+  0,
 };
 
 /* static */
@@ -307,7 +96,7 @@ const PageDefinition Editor::page_definition_[] = {
   { PAGE_PLAY_ARP, PAGE_PLAY_STEP_SEQUENCER, GROUP_PLAY,
     STR_RES_ARPEGGIO, PARAMETER_EDITOR, 32 },
   { PAGE_PLAY_STEP_SEQUENCER, PAGE_PLAY_KBD, GROUP_PLAY,
-    STR_RES_SEQUENCER, STEP_SEQUENCER, 0 },
+    STR_RES_SEQUENCER, STEP_SEQUENCER, 40 },
   { PAGE_PLAY_KBD, PAGE_PLAY_ARP, GROUP_PLAY,
     STR_RES_KEYBOARD, PARAMETER_EDITOR, 36 },
   { PAGE_LOAD_SAVE, PAGE_LOAD_SAVE, GROUP_LOAD_SAVE,
@@ -317,8 +106,6 @@ const PageDefinition Editor::page_definition_[] = {
 };
 
 /* <static> */
-ParameterDefinition Editor::parameter_definition_;
-uint8_t Editor::parameter_definition_index_ = 0xff;
 uint8_t Editor::current_display_type_;
 
 ParameterPage Editor::current_page_ = PAGE_FILTER_FILTER;
@@ -446,7 +233,8 @@ void Editor::ToggleGroup(ParameterGroup group) {
 
 /* static */
 void Editor::RandomizeParameter(uint8_t subpage, uint8_t parameter_index) {
-  const ParameterDefinition& parameter = parameter_definition(parameter_index);
+  const ParameterDefinition& parameter = PatchMetadata::parameter_definition(
+      parameter_index);
   uint8_t range = parameter.max_value - parameter.min_value + 1;
   uint8_t value = Random::GetByte();
   while (value >= range) {
@@ -619,28 +407,39 @@ void Editor::DisplayStepSequencerPage() {
 void Editor::HandleStepSequencerInput(
     uint8_t knob_index,
     uint16_t value) {
-  switch (knob_index) {
-    case 1:
-      {
-        cursor_ = value >> 6;
-        uint8_t max_position = engine.GetParameter(PRM_ARP_PATTERN_SIZE) - 1;
-        if (cursor_ > max_position) {
-          cursor_ = max_position;
+  if (assign_in_progress_) {
+    assigned_parameters_[knob_index] = parameter_to_assign_;
+    assign_in_progress_ = 0;
+    ToggleGroup(GROUP_PERFORMANCE);
+  } else {
+    switch (knob_index) {
+      case 0:
+        engine.mutable_patch()->pattern_rotation = value >> 6;
+        current_knob_ = 0;
+        break;
+      case 1:
+        {
+          cursor_ = value >> 6;
+          uint8_t max_position = engine.GetParameter(PRM_ARP_PATTERN_SIZE) - 1;
+          if (cursor_ > max_position) {
+            cursor_ = max_position;
+          }
         }
-      }
-      break;
-    case 2:
-      engine.mutable_patch()->set_sequence_step(cursor_, value >> 2);
-      break;
-    case 3:
-      {
-        uint8_t new_size = (value >> 6) + 1;
-        if (cursor_ >= new_size) {
-          cursor_ = new_size - 1;
+        break;
+      case 2:
+        engine.mutable_patch()->set_sequence_step(cursor_, value >> 2);
+        break;
+      case 3:
+        {
+          uint8_t new_size = (value >> 6) + 1;
+          if (cursor_ >= new_size) {
+            cursor_ = new_size - 1;
+          }
+          engine.SetParameter(PRM_ARP_PATTERN_SIZE, new_size);
+          current_knob_ = 1;
         }
-        engine.SetParameter(PRM_ARP_PATTERN_SIZE, new_size);
-      }
-      break;
+        break;
+    }
   }
 }
 
@@ -657,7 +456,8 @@ void Editor::DisplayEditSummaryPage() {
   //  63 127   0   0
   for (uint8_t i = 0; i < kNumEditingPots; ++i) {
     uint8_t index = KnobIndexToParameterId(i);
-    const ParameterDefinition& parameter = parameter_definition(index);
+    const ParameterDefinition& parameter = PatchMetadata::parameter_definition(
+        index);
     ResourcesManager::LoadStringResource(
         parameter.short_name,
         line_buffer_ + i * kColumnWidth,
@@ -686,14 +486,16 @@ void Editor::DisplayEditDetailsPage() {
   // mod src>dst
   // amount        63
   if (current_page_ == PAGE_MOD_MATRIX) {
-    const ParameterDefinition& current_source = parameter_definition(
-        page_definition_[PAGE_MOD_MATRIX].first_parameter_index + 1);
+    const ParameterDefinition& current_source = (
+        PatchMetadata::parameter_definition(
+            page_definition_[PAGE_MOD_MATRIX].first_parameter_index + 1));
     PrettyPrintParameterValue(
         current_source,
         line_buffer_ + 4,
         kColumnWidth - 1);
-    const ParameterDefinition& current_destination = parameter_definition(
-        page_definition_[PAGE_MOD_MATRIX].first_parameter_index + 2);
+    const ParameterDefinition& current_destination = (
+        PatchMetadata::parameter_definition(
+            page_definition_[PAGE_MOD_MATRIX].first_parameter_index + 2));
     PrettyPrintParameterValue(
         current_destination,
         line_buffer_ + kColumnWidth + 4,
@@ -707,7 +509,8 @@ void Editor::DisplayEditDetailsPage() {
     display.Print(0, line_buffer_);
   }
   uint8_t index = KnobIndexToParameterId(current_knob_);
-  const ParameterDefinition& parameter = parameter_definition(index);
+  const ParameterDefinition& parameter = PatchMetadata::parameter_definition(
+      index);
   const PageDefinition& page = page_definition_[current_page_];
 
   if (current_page_ != PAGE_MOD_MATRIX) {
@@ -751,18 +554,13 @@ void Editor::HandleEditInput(uint8_t knob_index, uint16_t value) {
     assign_in_progress_ = 0;
     ToggleGroup(GROUP_PERFORMANCE);
   } else {
-    uint8_t new_value;
+    uint8_t value_7bits = value >> 3;
     uint8_t index = KnobIndexToParameterId(knob_index);
-    const ParameterDefinition& parameter = parameter_definition(index);
-
-    if (parameter.unit == UNIT_RAW_UINT8) {
-      new_value = (value >> 3);
-    } else {
-      uint8_t range = parameter.max_value - parameter.min_value + 1;
-      new_value = ((value >> 3) * range) >> 7;
-      new_value += parameter.min_value;
-    }
-    SetParameterValue(parameter.id, new_value);
+    const ParameterDefinition& parameter = PatchMetadata::parameter_definition(
+        index);
+    SetParameterValue(
+        parameter.id,
+        PatchMetadata::Scale(parameter, value_7bits));
     current_knob_ = knob_index;
   }
 }
@@ -770,7 +568,8 @@ void Editor::HandleEditInput(uint8_t knob_index, uint16_t value) {
 /* static */
 void Editor::HandleEditIncrement(int8_t direction) {
   uint8_t index = KnobIndexToParameterId(current_knob_);
-  const ParameterDefinition& parameter = parameter_definition(index);
+  const ParameterDefinition& parameter = PatchMetadata::parameter_definition(
+      index);
   
   int16_t value = GetParameterValue(parameter.id);
   if (parameter.unit == UNIT_INT8) {
@@ -889,6 +688,12 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
           value >> 4);
       value = value & 0xf;
       break;
+    case UNIT_MIDI_CHANNEL:
+      if (value >= 17) {
+        prefix = '+';
+        value -= 17;
+      }
+      break;
   }
   if (prefix) {
     *buffer++ = prefix;
@@ -899,18 +704,6 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
   } else {
     UnsafeItoa<int16_t>(value, width, buffer);
   }
-}
-
-/* static */
-const ParameterDefinition& Editor::parameter_definition(uint8_t index) {
-  if (index != parameter_definition_index_) {
-    parameter_definition_index_ = index;
-    ResourcesManager::Load(
-        raw_parameter_definition,
-        index,
-        &parameter_definition_);
-  }
-  return parameter_definition_;
 }
 
 }  // namespace hardware_shruti

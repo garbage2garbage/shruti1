@@ -189,6 +189,7 @@ void MidiTask() {
   // Always flush the MIDI buffer before continuing. This makes unlikely the
   // situation where MIDI bytes are dropped... at the cost of a more glitchy
   // audio output in case of MIDI overloading.
+  uint8_t status = 0;
   while (midi_io.readable()) {
     uint8_t value = midi_io.ImmediateRead();
     
@@ -198,52 +199,60 @@ void MidiTask() {
     midi_io.Write(value);
     
     // Also, parse the message.
-    uint8_t status = midi_parser.PushByte(value);
-    
-    // Display a status indicator on the LCD to indicate that a message has
-    // been received. This could be done as well in the synthesis engine code
-    // or in the MIDI parser, but I'd rather keep the UI code separate.
-    switch (status & 0xf0) {
-      // Note on/off.
-      case 0x90:
-        display.set_status('\x01');
-        break;
-      // Controller.
-      case 0xb0:
-        display.set_status('\x05');
-        break;
-      // Bender.
-      case 0xe0:
-        display.set_status('\x02');
-        break;
-      // Special messages.
-      case 0xf0:
-        // Display a status indicator to monitor SysEx patch reception.
-        if (status == 0xf0 || status == 0xf7) {
-          switch (engine.patch().sysex_reception_state()) {
-            case RECEIVING_DATA:
-              display.set_status('~');
-              break;
-            case RECEPTION_OK:
-              display.set_status('+');
-              engine.TouchPatch();
-              break;
-            case RECEPTION_ERROR:
-              display.set_status('#');
-              break;
-          }
-        }
-        break;
+    status = midi_parser.PushByte(value);
+    if (engine.patch().kbd_midi_channel >= 17) {
+      break;
     }
+  }
+  // Display a status indicator on the LCD to indicate that a message has
+  // been received. This could be done as well in the synthesis engine code
+  // or in the MIDI parser, but I'd rather keep the UI code separate.
+  switch (status & 0xf0) {
+    // Note on/off.
+    case 0x90:
+      display.set_status('\x01');
+      break;
+    // Controller.
+    case 0xb0:
+      display.set_status('\x05');
+      break;
+    // Bender.
+    case 0xe0:
+      display.set_status('\x02');
+      break;
+    // Special messages.
+    case 0xf0:
+      // Display a status indicator to monitor SysEx patch reception.
+      if (status == 0xf0 || status == 0xf7) {
+        switch (engine.patch().sysex_reception_state()) {
+          case RECEIVING_DATA:
+            display.set_status('~');
+            break;
+          case RECEPTION_OK:
+            display.set_status('+');
+            engine.TouchPatch();
+            break;
+          case RECEPTION_ERROR:
+            display.set_status('#');
+            break;
+        }
+      }
+      break;
   }
 }
 
 void AudioRenderingTask() {
   if (audio_out.writable_block()) {
     engine.Control();
-    for (uint8_t i = kAudioBlockSize; i > 0 ; --i) {
-      engine.Audio();
-      audio_out.Overwrite(engine.voice(0).signal());
+    if (engine.voice(0).dead()) {
+      for (uint8_t i = kAudioBlockSize; i > 0 ; --i) {
+        audio_out.Overwrite(0);
+      }
+    } else {
+      for (uint8_t i = kAudioBlockSize; i > 0 ; --i) {
+        engine.Audio();
+        audio_out.Overwrite(engine.voice(0).signal());
+      }
     }
     vcf_cutoff_out.Write(engine.voice(0).cutoff());
     vcf_resonance_out.Write(engine.voice(0).resonance());
@@ -305,7 +314,7 @@ void Init() {
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_56);
+  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_57);
   
   midi_io.Init();
   pots.Init();

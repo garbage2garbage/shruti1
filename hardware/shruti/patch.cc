@@ -134,10 +134,12 @@ void Patch::SysExSend() const {
 }
 
 uint8_t Patch::sequence_step(uint8_t step) const {
+  step = (step + pattern_rotation) & 0x0f;
   return (step & 1) ? sequence[step >> 1] << 4 : sequence[step >> 1] & 0xf0;
 }
 
 void Patch::set_sequence_step(uint8_t step, uint8_t value) {
+  step = (step + pattern_rotation) & 0x0f;
   if (step & 1) {
     sequence[step >> 1] = (sequence[step >> 1] & 0xf0) | (value >> 4);
   } else {

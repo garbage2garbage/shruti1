@@ -251,53 +251,55 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_480 140  // 480
 #define STR_RES_720 141  // 720
 #define STR_RES_960 142  // 960
-#define STR_RES_TOUCH_A_KNOB_TO 143  // touch a knob to
-#define STR_RES_ASSIGN_PARAMETER 144  // assign parameter
-#define STR_RES_READY 145  // ready
-#define STR_RES_FOR_OS_UPDATE 146  // for os update
-#define STR_RES_P_ORLEANS_21_MN 147  // P.ORLEANS: 21 MN
-#define STR_RES_P_BERCY_____S1H 148  // P.BERCY:     +1H
-#define STR_RES_PATCH_BANK 149  // patch bank
-#define STR_RES_STEP_SEQUENCER 150  // step sequencer
-#define STR_RES_LOAD 151  // load
-#define STR_RES_ 152  // ----
-#define STR_RES_SAVE 153  // save
-#define STR_RES_EXTERN 154  // extern
-#define STR_RES_MUTABLE____V0_56 155  // mutable    v0.56
-#define STR_RES_INSTRUMENTS_671 156  // instruments -1
-#define STR_RES_EQUAL 157  // equal
-#define STR_RES_JUST 158  // just
-#define STR_RES_PYTHAG 159  // pythag
-#define STR_RES_1_4_EB 160  // 1/4 eb
-#define STR_RES_1_4_E 161  // 1/4 e
-#define STR_RES_1_4_EA 162  // 1/4 ea
-#define STR_RES_BHAIRA 163  // bhaira
-#define STR_RES_GUNAKR 164  // gunakr
-#define STR_RES_MARWA 165  // marwa
-#define STR_RES_SHREE 166  // shree
-#define STR_RES_PURVI 167  // purvi
-#define STR_RES_BILAWA 168  // bilawa
-#define STR_RES_YAMAN 169  // yaman
-#define STR_RES_KAFI 170  // kafi
-#define STR_RES_BHIMPA 171  // bhimpa
-#define STR_RES_DARBAR 172  // darbar
-#define STR_RES_BAGESH 173  // bagesh
-#define STR_RES_RAGESH 174  // ragesh
-#define STR_RES_KHAMAJ 175  // khamaj
-#define STR_RES_MIMAL 176  // mi'mal
-#define STR_RES_PARAME 177  // parame
-#define STR_RES_RANGES 178  // ranges
-#define STR_RES_GANGES 179  // ganges
-#define STR_RES_KAMESH 180  // kamesh
-#define STR_RES_PALAS_ 181  // palas 
-#define STR_RES_NATBHA 182  // natbha
-#define STR_RES_M_KAUN 183  // m.kaun
-#define STR_RES_BAIRAG 184  // bairag
-#define STR_RES_B_TODI 185  // b.todi
-#define STR_RES_CHANDR 186  // chandr
-#define STR_RES_KAUSHI 187  // kaushi
-#define STR_RES_JOGESH 188  // jogesh
-#define STR_RES_RASIA 189  // rasia
+#define STR_RES_START 143  // start
+#define STR_RES_LENGTH 144  // length
+#define STR_RES_TOUCH_A_KNOB_TO 145  // touch a knob to
+#define STR_RES_ASSIGN_PARAMETER 146  // assign parameter
+#define STR_RES_READY 147  // ready
+#define STR_RES_FOR_OS_UPDATE 148  // for os update
+#define STR_RES_P_ORLEANS_21_MN 149  // P.ORLEANS: 21 MN
+#define STR_RES_P_BERCY_____S1H 150  // P.BERCY:     +1H
+#define STR_RES_PATCH_BANK 151  // patch bank
+#define STR_RES_STEP_SEQUENCER 152  // step sequencer
+#define STR_RES_LOAD 153  // load
+#define STR_RES_ 154  // ----
+#define STR_RES_SAVE 155  // save
+#define STR_RES_EXTERN 156  // extern
+#define STR_RES_MUTABLE____V0_57 157  // mutable    v0.57
+#define STR_RES_INSTRUMENTS_671 158  // instruments -1
+#define STR_RES_EQUAL 159  // equal
+#define STR_RES_JUST 160  // just
+#define STR_RES_PYTHAG 161  // pythag
+#define STR_RES_1_4_EB 162  // 1/4 eb
+#define STR_RES_1_4_E 163  // 1/4 e
+#define STR_RES_1_4_EA 164  // 1/4 ea
+#define STR_RES_BHAIRA 165  // bhaira
+#define STR_RES_GUNAKR 166  // gunakr
+#define STR_RES_MARWA 167  // marwa
+#define STR_RES_SHREE 168  // shree
+#define STR_RES_PURVI 169  // purvi
+#define STR_RES_BILAWA 170  // bilawa
+#define STR_RES_YAMAN 171  // yaman
+#define STR_RES_KAFI 172  // kafi
+#define STR_RES_BHIMPA 173  // bhimpa
+#define STR_RES_DARBAR 174  // darbar
+#define STR_RES_BAGESH 175  // bagesh
+#define STR_RES_RAGESH 176  // ragesh
+#define STR_RES_KHAMAJ 177  // khamaj
+#define STR_RES_MIMAL 178  // mi'mal
+#define STR_RES_PARAME 179  // parame
+#define STR_RES_RANGES 180  // ranges
+#define STR_RES_GANGES 181  // ganges
+#define STR_RES_KAMESH 182  // kamesh
+#define STR_RES_PALAS_ 183  // palas 
+#define STR_RES_NATBHA 184  // natbha
+#define STR_RES_M_KAUN 185  // m.kaun
+#define STR_RES_BAIRAG 186  // bairag
+#define STR_RES_B_TODI 187  // b.todi
+#define STR_RES_CHANDR 188  // chandr
+#define STR_RES_KAUSHI 189  // kaushi
+#define STR_RES_JOGESH 190  // jogesh
+#define STR_RES_RASIA 191  // rasia
 #define LUT_RES_LFO_INCREMENTS 0
 #define LUT_RES_LFO_INCREMENTS_SIZE 128
 #define LUT_RES_ENV_PORTAMENTO_INCREMENTS 1

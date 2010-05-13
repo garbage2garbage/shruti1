@@ -19,13 +19,9 @@
 AVR_TOOLS_PATH = /usr/local/CrossPack-AVR/bin
 AVR_ETC_PATH   = /usr/local/CrossPack-AVR/etc
 
-VERSION        = 0.57
-TARGET         = shruti1
-PACKAGES       = hardware/base hardware/hal hardware/hal/devices hardware/midi hardware/utils hardware/shruti
-RESOURCES      = hardware/shruti/resources
+TARGET         = blink
+PACKAGES       = hardware/base hardware/hal hardware/hal/examples/blink
 BUILD_DIR      = build/$(TARGET)
-EEPROM_DATA    = hardware/shruti/data/patch_library.hex
-PATCH_LIBRARY  = hardware/shruti/data/patch_library.txt 
 
 MCU            = atmega328p
 DMCU           = m328p
@@ -144,70 +140,11 @@ firmware_size:	$(TARGET_ELF)
 $(BUILD_DIR)/$(TARGET).top_symbols:	$(TARGET_ELF)
 		$(NM) $(TARGET_ELF) --size-sort -C -f bsd -r > $@
 
-eeprom_backup:
-		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
-			-U eeprom:r:$(EEPROM_DATA):i
-
-eeprom_restore:
-		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
-			-U eeprom:w:$(EEPROM_DATA):i
-
 size:	firmware_size
 		cat firmware_size | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
 
 size_report:	build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
 
 .PHONY:	all clean depends upload
-
-
-# ------------------------------------------------------------------------------
-# Resources
-# ------------------------------------------------------------------------------
-
-RESOURCE_COMPILER = hardware/tools/resources_compiler/resources_compiler.py
-
-resources:	$(wildcard $(RESOURCES)/*.py) 
-		python $(RESOURCE_COMPILER) $(RESOURCES)/resources.py
-
-
-# ------------------------------------------------------------------------------
-# Midi files for firmware update
-# ------------------------------------------------------------------------------
-
-HEX2SYSEX = hardware/tools/hex2sysex/hex2sysex.py
-
-$(BUILD_DIR)/%.mid: $(BUILD_DIR)/%.hex
-	$(HEX2SYSEX) -o $@ $<
-
-midi: $(BUILD_DIR)/$(TARGET).mid
-
-
-# ------------------------------------------------------------------------------
-# Patch libraries
-# ------------------------------------------------------------------------------
-
-LIBRARIAN = hardware/tools/librarian/librarian.py
-
-dump_patches: eeprom_backup
-	$(LIBRARIAN) -d $(EEPROM_DATA) > $(PATCH_LIBRARY)
-
-upload_patches:
-	$(LIBRARIAN) -c $(PATCH_LIBRARY) > $(EEPROM_DATA)
-	$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_SER_OPTS) \
-		-U eeprom:w:$(EEPROM_DATA):i
-
-
-# ------------------------------------------------------------------------------
-# Publish a firmware version on the website
-# ------------------------------------------------------------------------------
-
-REMOTE_HOST = mutable-instruments.net
-REMOTE_USER = shruti
-REMOTE_PATH = public_html/static/firmware
-
-publish: $(BUILD_DIR)/$(TARGET).mid $(BUILD_DIR)/$(TARGET).hex
-	scp $(BUILD_DIR)/$(TARGET).mid $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_PATH)/$(TARGET)_$(VERSION).mid
-		scp $(BUILD_DIR)/$(TARGET).hex $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_PATH)//$(TARGET)_$(VERSION).hex
-
 
 include $(DEP_FILE)

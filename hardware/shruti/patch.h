@@ -107,13 +107,15 @@ class Patch {
   // Positive: always on. Negative: auto.
   int8_t kbd_portamento;
 
+  // Reception channel, 0 for omni. When value is above 17, use lazy mode.
   uint8_t kbd_midi_channel;
 
   // Offset: 86-94
   uint8_t name[kPatchNameSize];
   
-  // Offset: 94, not saved
+  // Offset: 94-95 not saved
   uint8_t pattern_size;
+  uint8_t pattern_rotation;
   
   // Get the value of a step in the sequence.
   uint8_t sequence_step(uint8_t step) const;
@@ -245,7 +247,8 @@ enum Parameter {
   
   PRM_NAME = 3 * kModulationMatrixSize + 28 + 16,
   
-  PRM_ARP_PATTERN_SIZE = 94
+  PRM_ARP_PATTERN_SIZE = 94,
+  PRM_ARP_PATTERN_ROTATION = 95,
 };
 
 enum OscillatorAlgorithm {
@@ -287,7 +290,7 @@ enum OPERATOR {
   XOR = 3
 };
 
-static const uint8_t kNumEditableParameters = 40;
+static const uint8_t kNumEditableParameters = 42;
 
 static const uint8_t kNumArpeggiatorPatterns = 15;
 

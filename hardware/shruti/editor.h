@@ -26,6 +26,8 @@
 
 namespace hardware_shruti {
 
+class ParameterDefinition;
+
 enum CurrentDisplayType {
   PAGE_TYPE_SUMMARY,
   PAGE_TYPE_DETAILS,
@@ -57,24 +59,6 @@ enum Page {
   PAGE_PERFORMANCE,
 };
 
-enum Unit {
-  UNIT_RAW_UINT8,
-  UNIT_UINT8,
-  UNIT_INT8,
-  UNIT_BOOLEAN,
-  UNIT_WAVEFORM,
-  UNIT_OPERATOR,
-  UNIT_LFO_WAVEFORM,
-  UNIT_LFO_RATE,
-  UNIT_INDEX,
-  UNIT_MODULATION_SOURCE,
-  UNIT_MODULATION_DESTINATION,
-  UNIT_PATTERN,
-  UNIT_RAGA,
-  UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
-  UNIT_GROOVE_PATTERN
-};
-
 enum Action {
   ACTION_LOAD,
   ACTION_EXIT,
@@ -84,7 +68,6 @@ enum Action {
 // We do not use enums here because they take 2 bytes, not 1.
 typedef uint8_t ParameterGroup;
 typedef uint8_t ParameterPage;
-typedef uint8_t ParameterUnit;
 
 static const uint8_t kNumPages = 12;
 static const uint8_t kNumGroups = 6;
@@ -93,15 +76,6 @@ static const uint8_t kNumGroups = 6;
 static const uint8_t kCaptionWidth = 10;
 static const uint8_t kValueWidth = 6;
 static const uint8_t kColumnWidth = 4;
-
-struct ParameterDefinition {
-  uint8_t id;
-  uint8_t min_value;
-  uint8_t max_value;
-  ParameterUnit unit;
-  ResourceId short_name;
-  ResourceId long_name;
-};
 
 enum PageUiType {
   PARAMETER_EDITOR = 0,
@@ -199,15 +173,12 @@ class Editor {
   static void RandomizeParameter(uint8_t subpage, uint8_t parameter_index);
   static void RandomizePatch();
 
-  static const ParameterDefinition& parameter_definition(uint8_t index);
 
   static const PageDefinition page_definition_[];
   static const UiHandler ui_handler_[];
 
   // Parameter definitions are stored in program memory and need to be copied
   // in SRAM when read. This temporary storage space holds them.
-  static ParameterDefinition parameter_definition_;
-  static uint8_t parameter_definition_index_;
   static uint8_t current_display_type_;  // 0 for summary, 1 for details.
 
   static ParameterPage current_page_;

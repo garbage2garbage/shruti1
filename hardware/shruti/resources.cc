@@ -168,6 +168,8 @@ static const prog_char str_res_360[] PROGMEM = "360";
 static const prog_char str_res_480[] PROGMEM = "480";
 static const prog_char str_res_720[] PROGMEM = "720";
 static const prog_char str_res_960[] PROGMEM = "960";
+static const prog_char str_res_start[] PROGMEM = "start";
+static const prog_char str_res_length[] PROGMEM = "length";
 static const prog_char str_res_touch_a_knob_to[] PROGMEM = "touch a knob to";
 static const prog_char str_res_assign_parameter[] PROGMEM = "assign parameter";
 static const prog_char str_res_ready[] PROGMEM = "ready";
@@ -180,7 +182,7 @@ static const prog_char str_res_load[] PROGMEM = "load";
 static const prog_char str_res_[] PROGMEM = "----";
 static const prog_char str_res_save[] PROGMEM = "save";
 static const prog_char str_res_extern[] PROGMEM = "extern";
-static const prog_char str_res_mutable____v0_56[] PROGMEM = "mutable    v0.56";
+static const prog_char str_res_mutable____v0_57[] PROGMEM = "mutable    v0.57";
 static const prog_char str_res_instruments_671[] PROGMEM = "instruments -1";
 static const prog_char str_res_equal[] PROGMEM = "equal";
 static const prog_char str_res_just[] PROGMEM = "just";
@@ -361,6 +363,8 @@ PROGMEM const prog_char* string_table[] = {
   str_res_480,
   str_res_720,
   str_res_960,
+  str_res_start,
+  str_res_length,
   str_res_touch_a_knob_to,
   str_res_assign_parameter,
   str_res_ready,
@@ -373,7 +377,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_,
   str_res_save,
   str_res_extern,
-  str_res_mutable____v0_56,
+  str_res_mutable____v0_57,
   str_res_instruments_671,
   str_res_equal,
   str_res_just,

@@ -23,6 +23,7 @@
 
 #include "hardware/resources/resources_manager.h"
 #include "hardware/shruti/oscillator.h"
+#include "hardware/shruti/patch_metadata.h"
 #include "hardware/utils/random.h"
 #include "hardware/utils/op.h"
 
@@ -96,7 +97,8 @@ static const prog_char empty_patch[] PROGMEM = {
     120, 0, 0, 0,
     0x00, 0x00, 0xff, 0xff, 0xcc, 0xcc, 0x44, 0x44,
     0, 0, 0, 1,
-    'n', 'e', 'w', ' ', ' ', ' ', ' ', ' ', 16};
+    'n', 'e', 'w', ' ', ' ', ' ', ' ', ' ',
+    16, 0 };
 
 /* static */
 void SynthesisEngine::ResetPatch() {
@@ -130,45 +132,62 @@ void SynthesisEngine::NoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
 /* static */
 void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
                                     uint8_t value) {
-  switch (controller) {
-    case hardware_midi::kModulationWheelMsb:
-      modulation_sources_[MOD_SRC_WHEEL] = (value << 1);
-      break;
-    case hardware_midi::kDataEntryMsb:
-      data_entry_msb_ = value << 7;
-      break;
-    case hardware_midi::kDataEntryLsb:
-      value = value | data_entry_msb_;
-      if (nrpn_parameter_number_ < sizeof(Patch) - 1) {
-        SetParameter(nrpn_parameter_number_, value);
-      }
-      break;
-    case hardware_midi::kPortamentoTimeMsb:
-      patch_.kbd_portamento = value;
-      break;
-    case hardware_midi::kRelease:
-      patch_.env_release[1] = value;
-      break;
-    case hardware_midi::kAttack:
-      patch_.env_attack[1] = value;
-      break;
-    case hardware_midi::kHarmonicIntensity:
-      patch_.filter_resonance = value;
-      break;
-    case hardware_midi::kBrightness:
-      patch_.filter_cutoff = value;
-      break;
-    case hardware_midi::kNrpnLsb:
-      nrpn_parameter_number_ = value;
-      data_entry_msb_ = 0;
-      break;
+  uint8_t recognized = 0;
+  if (controller >= 16 && controller < 32) {
+    recognized = 1;
+    controller -= 16;
+  } else if (controller >= 102 && controller < 117) {
+    controller -= 102 - 16;
+    recognized = 1;
+  }
+  
+  if (!recognized) {
+    switch (controller) {
+      case hardware_midi::kModulationWheelMsb:
+        modulation_sources_[MOD_SRC_WHEEL] = (value << 1);
+        break;
+      case hardware_midi::kDataEntryMsb:
+        data_entry_msb_ = value << 7;
+        break;
+      case hardware_midi::kDataEntryLsb:
+        value = value | data_entry_msb_;
+        if (nrpn_parameter_number_ < sizeof(Patch) - 1) {
+          SetParameter(nrpn_parameter_number_, value);
+        }
+        break;
+      case hardware_midi::kPortamentoTimeMsb:
+        patch_.kbd_portamento = value >> 1;
+        break;
+      case hardware_midi::kRelease:
+        SetParameter(PRM_ENV_RELEASE_2, value);
+        break;
+      case hardware_midi::kAttack:
+        SetParameter(PRM_ENV_ATTACK_2, value);
+        break;
+      case hardware_midi::kHarmonicIntensity:
+        patch_.filter_resonance = value >> 1;
+        break;
+      case hardware_midi::kBrightness:
+        patch_.filter_cutoff = value;
+        break;
+      case hardware_midi::kNrpnLsb:
+        nrpn_parameter_number_ = value;
+        data_entry_msb_ = 0;
+        break;
+    }
+  } else {
+    const ParameterDefinition& parameter = PatchMetadata::parameter_definition(
+        controller);
+    SetParameter(parameter.id, PatchMetadata::Scale(parameter, value));
   }
 }
 
 /* static */
 uint8_t SynthesisEngine::CheckChannel(uint8_t channel) {
-  return patch_.kbd_midi_channel == 0 ||
-         patch_.kbd_midi_channel == (channel + 1);
+  uint8_t rx_channel = patch_.kbd_midi_channel;
+  if (rx_channel >= 17) rx_channel -= 17;
+  return rx_channel == 0 ||
+         rx_channel == (channel + 1);
 }
 
 /* static */
@@ -196,13 +215,21 @@ void SynthesisEngine::ResetAllControllers(uint8_t channel) {
 // which this message has been received.
 /* static */
 void SynthesisEngine::OmniModeOff(uint8_t channel) {
-  patch_.kbd_midi_channel = channel + 1;
+  if (patch_.kbd_midi_channel >= 17) {
+    patch_.kbd_midi_channel = channel + 18;
+  } else {
+    patch_.kbd_midi_channel = channel + 1;
+  }
 }
 
 // Enable Omni mode.
 /* static */
 void SynthesisEngine::OmniModeOn(uint8_t channel) {
-  patch_.kbd_midi_channel = 0;
+  if (patch_.kbd_midi_channel >= 17) {
+    patch_.kbd_midi_channel = 17;
+  } else {
+    patch_.kbd_midi_channel = 0;
+  }
 }
 
 /* static */
@@ -616,38 +643,36 @@ void Voice::Control() {
 }
 
 /* static */
-void Voice::Audio() {
-  if (dead_) {
-    signal_ = 128;
-    return;
-  }
-
+inline void Voice::Audio() {
   uint8_t osc_2_signal = osc_2.Render();
   uint8_t mix = osc_1.Render();
-  uint8_t op = engine.patch_.osc_option[0];
-  if (op == RING_MOD) {
-    mix = SignedSignedMulScale8(mix + 128, osc_2_signal + 128) + 128;
-  } else if (op == XOR) {
-    mix ^= osc_2_signal;
-    mix += modulation_destinations_[MOD_DST_MIX_BALANCE];
-  } else {
-    mix = Mix(
-        mix,
-        osc_2_signal,
-        modulation_destinations_[MOD_DST_MIX_BALANCE]);
-    // If the phase of oscillator 1 has wrapped and if sync is enabled, reset
-    // the phase of the second oscillator.
-    if (op == SYNC) {
-      uint8_t phase_msb = osc_1.phase() >> 8;
-      if (phase_msb < osc1_phase_msb_) {
-        osc_2.ResetPhase();
+  switch (engine.patch_.osc_option[0]) {
+    case SYNC:
+      {
+        uint8_t phase_msb = osc_1.phase() >> 8;
+        if (phase_msb < osc1_phase_msb_) {
+          osc_2.ResetPhase();
+        }
+        // Store the phase of the oscillator to check later whether the phase has
+        // been wrapped. Because the phase increment is likely to be below
+        // 65536 - 256, we can use the most significant byte only to detect
+        // wrapping.
+        osc1_phase_msb_ = phase_msb;
       }
-      // Store the phase of the oscillator to check later whether the phase has
-      // been wrapped. Because the phase increment is likely to be below
-      // 65536 - 256, we can use the most significant byte only to detect
-      // wrapping.
-      osc1_phase_msb_ = phase_msb;
-    }
+      // Fall through!
+    case SUM:
+      mix = Mix(
+          mix,
+          osc_2_signal,
+          modulation_destinations_[MOD_DST_MIX_BALANCE]);
+      break;
+    case RING_MOD:
+      mix = SignedSignedMulScale8(mix + 128, osc_2_signal + 128) + 128;
+      break;
+    case XOR:
+      mix ^= osc_2_signal;
+      mix += modulation_destinations_[MOD_DST_MIX_BALANCE];
+      break;
   }
   
   // Disable sub oscillator and noise when the "vowel" waveform is used - it is
