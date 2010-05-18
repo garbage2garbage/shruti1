@@ -30,7 +30,8 @@ PATCH_LIBRARY  = hardware/shruti/data/patch_library.txt
 MCU            = atmega328p
 DMCU           = m328p
 F_CPU          = 16000000
-SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
+SERIAL_PORT  = /dev/cu.usbserial-A800crwF
+# SERIAL_PORT  = /dev/cu.usbserial-A6008iA6
 # SERIAL_PORT    = /dev/cu.usbserial-A6008hLO
 
 # ------------------------------------------------------------------------------
