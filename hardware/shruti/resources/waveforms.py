@@ -149,10 +149,25 @@ for zone in range(num_zones):
 waveforms.extend(bl_square_tables)
 waveforms.extend(bl_saw_tables)
 waveforms.extend(bl_tri_tables)
+
+
+def LoadWavetable(x):
+  # Load the data and split/pad single cycle waveforms.
+  array = numpy.array(map(ord, list(file(x).read())))
+  cycle = 256 if len(array) == 4096 else 128
+  num_cycles = len(array) / cycle
+  assert num_cycles == 16
+  wavetable = numpy.zeros((num_cycles, cycle + 1))
+  for i in xrange(num_cycles):
+    for j in xrange(cycle):
+      wavetable[i, j] = array[i * cycle + j]
+    wavetable[i, cycle] = wavetable[i, 0]
+  return wavetable.ravel()
+
+
 waveforms.append((
     'wavetable',
-    numpy.loadtxt('hardware/shruti/data/wavetable.txt').ravel()
-))
+    LoadWavetable('hardware/shruti/data/wavetable.bin')))
 
 
 """----------------------------------------------------------------------------

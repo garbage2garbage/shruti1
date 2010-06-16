@@ -197,7 +197,7 @@ static const prog_char raw_parameter_definition[
 
   // Arpeggiator.
   PRM_ARP_TEMPO,
-  24, 240 + STR_RES_960 - STR_RES_270 + 1,
+  35, 240 + STR_RES_960 - STR_RES_270 + 1,
   UNIT_TEMPO_WITH_EXTERNAL_CLOCK,
   STR_RES_BPM, STR_RES_TEMPO,
 

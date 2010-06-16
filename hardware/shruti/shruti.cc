@@ -246,7 +246,6 @@ void AudioRenderingTask() {
     engine.Control();
     if (engine.voice(0).dead()) {
       for (uint8_t i = kAudioBlockSize; i > 0 ; --i) {
-        engine.mutable_voice_controller()->Audio();
         audio_out.Overwrite(128);
       }
     } else {
@@ -315,7 +314,7 @@ void Init() {
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_57);
+  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_58);
   
   midi_io.Init();
   pots.Init();

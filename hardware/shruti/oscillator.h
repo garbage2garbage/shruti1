@@ -401,16 +401,20 @@ class Oscillator {
 
   // ------- Interpolation between two offsets of a wavetable ------------------
   // 64 samples per cycle.
-  static void UpdateWavetable64() {
+  static void UpdateWavetable128() {
     uint8_t balance_index = Swap4(parameter_);
     data_.st.balance = balance_index & 0xf0;
 
     uint8_t wave_index = balance_index & 0xf;
     uint16_t offset = wave_index * 129;
     data_.st.wave[0] = waveform_table[WAV_RES_WAVETABLE] + offset;
-    data_.st.wave[1] = waveform_table[WAV_RES_WAVETABLE] + offset + 129;
+    if (offset < 2048 - 129) {
+      data_.st.wave[1] = waveform_table[WAV_RES_WAVETABLE] + offset + 129;
+    } else {
+      data_.st.wave[1] = data_.st.wave[0] - 129;
+    }
   }
-  static void RenderWavetable64() {
+  static void RenderWavetable128() {
     phase_ += phase_increment_;
     held_sample_ = InterpolateTwoTables(
         data_.st.wave[0], data_.st.wave[1],
@@ -630,7 +634,7 @@ AlgorithmFn Oscillator<id, mode>::fn_table_[] = {
   { NULL, &Osc::RenderDirtyPwm },
   { NULL, &Osc::RenderFilteredNoise },
   { &Osc::UpdateVowel, &Osc::RenderVowel },
-  { &Osc::UpdateWavetable64, &Osc::RenderWavetable64 },
+  { &Osc::UpdateWavetable128, &Osc::RenderWavetable128 },
   { &Osc::UpdateSimpleWavetable, &Osc::RenderSimpleWavetable },
   { &Osc::UpdateCz, &Osc::RenderCzSyncReso },
   { &Osc::UpdateQuadSawPad, &Osc::RenderQuadSawPad },

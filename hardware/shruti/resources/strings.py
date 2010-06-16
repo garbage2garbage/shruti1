@@ -190,8 +190,12 @@ load
 ----
 save
 extern
+x2 ext
+/2 ext
+/4 ext
+/8 ext
 
-mutable    v0.57
+mutable    v0.58
 instruments \x06\x07-1
 equal
 """

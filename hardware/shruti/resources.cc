@@ -182,7 +182,11 @@ static const prog_char str_res_load[] PROGMEM = "load";
 static const prog_char str_res_[] PROGMEM = "----";
 static const prog_char str_res_save[] PROGMEM = "save";
 static const prog_char str_res_extern[] PROGMEM = "extern";
-static const prog_char str_res_mutable____v0_57[] PROGMEM = "mutable    v0.57";
+static const prog_char str_res_x2_ext[] PROGMEM = "x2 ext";
+static const prog_char str_res__2_ext[] PROGMEM = "/2 ext";
+static const prog_char str_res__4_ext[] PROGMEM = "/4 ext";
+static const prog_char str_res__8_ext[] PROGMEM = "/8 ext";
+static const prog_char str_res_mutable____v0_58[] PROGMEM = "mutable    v0.58";
 static const prog_char str_res_instruments_671[] PROGMEM = "instruments -1";
 static const prog_char str_res_equal[] PROGMEM = "equal";
 static const prog_char str_res_just[] PROGMEM = "just";
@@ -377,7 +381,11 @@ PROGMEM const prog_char* string_table[] = {
   str_res_,
   str_res_save,
   str_res_extern,
-  str_res_mutable____v0_57,
+  str_res_x2_ext,
+  str_res__2_ext,
+  str_res__4_ext,
+  str_res__8_ext,
+  str_res_mutable____v0_58,
   str_res_instruments_671,
   str_res_equal,
   str_res_just,
@@ -1741,23 +1749,6 @@ const prog_uint8_t wav_res_wavetable[] PROGMEM = {
      157,    145,    109,    100,    145,    180,    135,     56, 
       21,     36,     44,     31,     24,     26,     21,     19, 
       48,     91,    117,    116,    101,     89,    100,    122, 
-      76,    178,    180,    106,     62,    144,    216,    120, 
-      36,    110,    214,    162,     65,     84,    174,    189, 
-      72,     74,    151,    222,     98,     59,    132,    194, 
-     128,     68,    138,    172,    146,     74,    106,    164, 
-     160,     96,     90,    162,    164,     98,     82,    168, 
-     170,    104,     66,    150,    182,     99,     92,    128, 
-     176,    132,     94,    116,    164,    124,    112,    124, 
-     136,    140,    122,    134,    124,    108,    136,    140, 
-     128,    114,    106,    153,    154,     92,    110,    158, 
-     168,     94,    102,    144,    160,    130,     70,    142, 
-     170,    124,    108,    114,    164,    144,     88,    102, 
-     151,    168,    136,     86,    114,    152,    160,     98, 
-      82,    162,    166,    108,     81,    160,    150,    132, 
-      84,    140,    168,     99,     85,    168,    180,    101, 
-      60,    150,     88,     80,    164,    186,    128,     54, 
-     132,    196,    126,     66,    112,    214,    136,     84, 
-      76, 
 };
 const prog_uint8_t wav_res_vowel_data[] PROGMEM = {
       27,     40,     89,    253,     16,     18,     51,     62, 

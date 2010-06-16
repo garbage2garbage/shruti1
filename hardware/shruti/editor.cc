@@ -589,13 +589,6 @@ void Editor::HandleEditIncrement(int8_t direction) {
 
 /* static */
 void Editor::SetParameterValue(uint8_t id, uint8_t value) {
-  // Set the tempo to 0 for external clock.
-  if (id == PRM_ARP_TEMPO) {
-    if (value < 40) {
-      value = 0;
-    }
-  }
-  
   // Dirty hack for the modulation page.
   if (current_page_ == PAGE_MOD_MATRIX && id == PRM_MOD_ROW) {
     subpage_ = value;
@@ -612,9 +605,6 @@ uint8_t Editor::GetParameterValue(uint8_t id) {
     value = subpage_;
   } else {
     value = engine.GetParameter(id + subpage_ * 3);
-  }
-  if (id == PRM_ARP_TEMPO && value == 0) {
-    value = 39;
   }
   return value;
 }
@@ -674,12 +664,12 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
       value = (value >> 2) + 1;
       break;
     case UNIT_TEMPO_WITH_EXTERNAL_CLOCK:
-      if (value == 39) {
-        value = 0;
+      if (value < 40) {
+        value = value - 35;
         text = STR_RES_EXTERN;
       } else if (value > 240) {
-        text = STR_RES_270 + value - 240 - 1;
-        value = 0;
+        value = ResourcesManager::Lookup<uint16_t, uint8_t>(
+            lut_res_turbo_tempi, value - 240 - 1);
       }
       break;
     case UNIT_GROOVE_PATTERN:

@@ -152,7 +152,11 @@ void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
       case hardware_midi::kDataEntryLsb:
         value = value | data_entry_msb_;
         if (nrpn_parameter_number_ < sizeof(Patch) - 1) {
-          SetParameter(nrpn_parameter_number_, value);
+          const ParameterDefinition& p = PatchMetadata::parameter_definition(
+              nrpn_parameter_number_);
+          if (value >= p.min_value && value <= p.max_value) {
+            SetParameter(p.id, value);
+          }
         }
         break;
       case hardware_midi::kPortamentoTimeMsb:
@@ -383,8 +387,6 @@ void SynthesisEngine::Audio() {
   if (!oscillator_decimation_) {
     Random::Update();
   }
-  
-  controller_.Audio();
   for (uint8_t i = 0; i < kNumVoices; ++i) {
     voice_[i].Audio();
   }

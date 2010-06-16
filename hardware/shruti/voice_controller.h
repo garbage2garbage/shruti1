@@ -36,7 +36,6 @@
 
 namespace hardware_shruti {
 
-static const uint8_t kMidiClockPrescaler = 24 / 4;  // MIDI ppqn / xox ppqn.
 static const uint8_t kNumSteps = 16;
 
 enum ArpeggioDirection {
@@ -60,7 +59,6 @@ class VoiceController {
   static void NoteOn(uint8_t note, uint8_t velocity);
   static void NoteOff(uint8_t note);
   static void UpdateArpeggiatorParameters(const Patch&);
-  static inline void Audio() { --internal_clock_counter_; }
   static inline void ExternalSync() { --midi_clock_counter_; }
   static inline uint8_t step() { return pattern_step_; }
   static inline uint8_t active() { return active_; }
@@ -86,7 +84,8 @@ class VoiceController {
   static void ArpeggioStart();
 
   static int16_t internal_clock_counter_;
-  static uint8_t midi_clock_counter_;
+  static int8_t midi_clock_counter_;
+  static uint8_t midi_clock_prescaler_;
   static int16_t average_step_duration_;
   static int16_t step_duration_[kNumSteps];
 
@@ -111,7 +110,6 @@ class VoiceController {
   static Voice* voices_;
   static uint8_t num_voices_;
   
-  static uint8_t tempo_;
   // After 4 beats without event, the sequencer is not active. The LED stops
   // blinking and the sequencer will restart from the first note in the pattern. 
   static uint8_t active_;

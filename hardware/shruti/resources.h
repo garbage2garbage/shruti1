@@ -265,41 +265,45 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_ 154  // ----
 #define STR_RES_SAVE 155  // save
 #define STR_RES_EXTERN 156  // extern
-#define STR_RES_MUTABLE____V0_57 157  // mutable    v0.57
-#define STR_RES_INSTRUMENTS_671 158  // instruments -1
-#define STR_RES_EQUAL 159  // equal
-#define STR_RES_JUST 160  // just
-#define STR_RES_PYTHAG 161  // pythag
-#define STR_RES_1_4_EB 162  // 1/4 eb
-#define STR_RES_1_4_E 163  // 1/4 e
-#define STR_RES_1_4_EA 164  // 1/4 ea
-#define STR_RES_BHAIRA 165  // bhaira
-#define STR_RES_GUNAKR 166  // gunakr
-#define STR_RES_MARWA 167  // marwa
-#define STR_RES_SHREE 168  // shree
-#define STR_RES_PURVI 169  // purvi
-#define STR_RES_BILAWA 170  // bilawa
-#define STR_RES_YAMAN 171  // yaman
-#define STR_RES_KAFI 172  // kafi
-#define STR_RES_BHIMPA 173  // bhimpa
-#define STR_RES_DARBAR 174  // darbar
-#define STR_RES_BAGESH 175  // bagesh
-#define STR_RES_RAGESH 176  // ragesh
-#define STR_RES_KHAMAJ 177  // khamaj
-#define STR_RES_MIMAL 178  // mi'mal
-#define STR_RES_PARAME 179  // parame
-#define STR_RES_RANGES 180  // ranges
-#define STR_RES_GANGES 181  // ganges
-#define STR_RES_KAMESH 182  // kamesh
-#define STR_RES_PALAS_ 183  // palas 
-#define STR_RES_NATBHA 184  // natbha
-#define STR_RES_M_KAUN 185  // m.kaun
-#define STR_RES_BAIRAG 186  // bairag
-#define STR_RES_B_TODI 187  // b.todi
-#define STR_RES_CHANDR 188  // chandr
-#define STR_RES_KAUSHI 189  // kaushi
-#define STR_RES_JOGESH 190  // jogesh
-#define STR_RES_RASIA 191  // rasia
+#define STR_RES_X2_EXT 157  // x2 ext
+#define STR_RES__2_EXT 158  // /2 ext
+#define STR_RES__4_EXT 159  // /4 ext
+#define STR_RES__8_EXT 160  // /8 ext
+#define STR_RES_MUTABLE____V0_58 161  // mutable    v0.58
+#define STR_RES_INSTRUMENTS_671 162  // instruments -1
+#define STR_RES_EQUAL 163  // equal
+#define STR_RES_JUST 164  // just
+#define STR_RES_PYTHAG 165  // pythag
+#define STR_RES_1_4_EB 166  // 1/4 eb
+#define STR_RES_1_4_E 167  // 1/4 e
+#define STR_RES_1_4_EA 168  // 1/4 ea
+#define STR_RES_BHAIRA 169  // bhaira
+#define STR_RES_GUNAKR 170  // gunakr
+#define STR_RES_MARWA 171  // marwa
+#define STR_RES_SHREE 172  // shree
+#define STR_RES_PURVI 173  // purvi
+#define STR_RES_BILAWA 174  // bilawa
+#define STR_RES_YAMAN 175  // yaman
+#define STR_RES_KAFI 176  // kafi
+#define STR_RES_BHIMPA 177  // bhimpa
+#define STR_RES_DARBAR 178  // darbar
+#define STR_RES_BAGESH 179  // bagesh
+#define STR_RES_RAGESH 180  // ragesh
+#define STR_RES_KHAMAJ 181  // khamaj
+#define STR_RES_MIMAL 182  // mi'mal
+#define STR_RES_PARAME 183  // parame
+#define STR_RES_RANGES 184  // ranges
+#define STR_RES_GANGES 185  // ganges
+#define STR_RES_KAMESH 186  // kamesh
+#define STR_RES_PALAS_ 187  // palas 
+#define STR_RES_NATBHA 188  // natbha
+#define STR_RES_M_KAUN 189  // m.kaun
+#define STR_RES_BAIRAG 190  // bairag
+#define STR_RES_B_TODI 191  // b.todi
+#define STR_RES_CHANDR 192  // chandr
+#define STR_RES_KAUSHI 193  // kaushi
+#define STR_RES_JOGESH 194  // jogesh
+#define STR_RES_RASIA 195  // rasia
 #define LUT_RES_LFO_INCREMENTS 0
 #define LUT_RES_LFO_INCREMENTS_SIZE 128
 #define LUT_RES_ENV_PORTAMENTO_INCREMENTS 1
@@ -433,7 +437,7 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define WAV_RES_BANDLIMITED_TRIANGLE_6 22
 #define WAV_RES_BANDLIMITED_TRIANGLE_6_SIZE 257
 #define WAV_RES_WAVETABLE 23
-#define WAV_RES_WAVETABLE_SIZE 2193
+#define WAV_RES_WAVETABLE_SIZE 2064
 #define WAV_RES_VOWEL_DATA 24
 #define WAV_RES_VOWEL_DATA_SIZE 45
 #define CHR_RES_SPECIAL_CHARACTERS 0

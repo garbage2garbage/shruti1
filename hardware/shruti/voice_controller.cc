@@ -29,9 +29,14 @@ using namespace hardware_utils_op;
 
 namespace hardware_shruti {
   
+static const prog_uint8_t midi_clock_scale[5] PROGMEM = {
+  6 /* normal */, 3 /* x2 */, 12, 24, 48 /* x2, x4, x8 */
+};
+
 /* <static> */
 int16_t VoiceController::internal_clock_counter_;
-uint8_t VoiceController::midi_clock_counter_;
+int8_t VoiceController::midi_clock_counter_;
+uint8_t VoiceController::midi_clock_prescaler_;
 int16_t VoiceController::step_duration_[kNumSteps];
 int16_t VoiceController::average_step_duration_;
 
@@ -49,7 +54,6 @@ NoteStack VoiceController::notes_;
 Voice* VoiceController::voices_;
 uint8_t VoiceController::num_voices_;
   
-uint8_t VoiceController::tempo_;
 uint8_t VoiceController::pattern_size_;
 uint8_t VoiceController::active_;
 uint8_t VoiceController::inactive_steps_;
@@ -64,7 +68,6 @@ void VoiceController::Init(Voice* voices, uint8_t num_voices) {
   voices_ = voices;
   num_voices_ = num_voices;
   notes_.Clear();
-  tempo_ = 120;
   step_duration_[0] = step_duration_[1] = (kSampleRate * 60L / 4) / 120;
   octaves_ = 0;
   pattern_size_ = 16;
@@ -85,12 +88,12 @@ void VoiceController::Reset() {
   // if not receiving a clock event at t means "we're slowing down" or "we have
   // stopped".
   if (!active_) {
-    midi_clock_counter_ = kMidiClockPrescaler;
-    if (tempo_) {
+    if (midi_clock_prescaler_ == 0) {
       estimated_beat_duration_ = step_duration_[0] / (kControlRate / 4);
     }
     pattern_mask_ = 255;
     internal_clock_counter_ = 0;
+    midi_clock_counter_ = 0;
     step_duration_estimator_num_ = 0xffff;
     step_duration_estimator_den_ = 0xff;
     pattern_step_ = pattern_size_ - 1;
@@ -118,14 +121,18 @@ void VoiceController::AllNotesOff() {
 
 /* static */
 void VoiceController::UpdateArpeggiatorParameters(const Patch& patch) {
-  tempo_ = patch.arp_tempo;
   pattern_ = ResourcesManager::Lookup<uint16_t, uint8_t>(
       lut_res_arpeggiator_patterns, patch.arp_pattern >> 2);
   mode_ = patch.arp_pattern & 0x03;
   direction_ = mode_ == ARPEGGIO_DIRECTION_DOWN ? -1 : 1;
   octaves_ = patch.arp_octave;
   pattern_size_ = patch.pattern_size;
-  tempo_ = patch.arp_tempo;
+  if (patch.arp_tempo < 40) {
+    midi_clock_prescaler_ = ResourcesManager::Lookup<uint8_t, uint8_t>(
+        midi_clock_scale, patch.arp_tempo - 35);
+  } else {
+    midi_clock_prescaler_ = 0;
+  }
   average_step_duration_ = (kSampleRate * 60L / 4) / static_cast<int32_t>(
       patch.arp_tempo <= 240
           ? patch.arp_tempo
@@ -184,8 +191,9 @@ void VoiceController::NoteOff(uint8_t note) {
 /* static */
 uint8_t VoiceController::Control() {
   ++step_duration_estimator_num_;
-  if ((tempo_ && internal_clock_counter_ > 0) ||
-      (!tempo_ && midi_clock_counter_ > 0)) {
+  internal_clock_counter_ -= kControlRate;
+  if ((!midi_clock_prescaler_ && internal_clock_counter_ > 0) ||
+      (midi_clock_prescaler_ && midi_clock_counter_ > 0)) {
     return 0;
   }
   ++step_duration_estimator_den_;
@@ -197,7 +205,7 @@ uint8_t VoiceController::Control() {
     pattern_mask_ = 1;
     pattern_step_ = 0;
   }
-  if (notes_.size() == 0 && tempo_ && active_) {
+  if (notes_.size() == 0 && !midi_clock_prescaler_ && active_) {
     ++inactive_steps_;
     if (inactive_steps_ >= pattern_size_) {
       Stop();
@@ -207,10 +215,10 @@ uint8_t VoiceController::Control() {
   
   // Update the value of the counter depending on which steps we are on.
   // Steps 1, 2 are longer than steps 3, 4 if swing is enabled.
-  if (tempo_) {
+  if (!midi_clock_prescaler_) {
     internal_clock_counter_ += step_duration_[pattern_step_ & 0x0f];
   } else {
-    midi_clock_counter_ += kMidiClockPrescaler;
+    midi_clock_counter_ += midi_clock_prescaler_;
   }
   if (step_duration_estimator_den_ == 4) {
     estimated_beat_duration_ = step_duration_estimator_num_;
