@@ -110,10 +110,14 @@ void SynthesisEngine::ResetPatch() {
 void SynthesisEngine::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
   // If the note controller is not active, we are not currently playing a
   // sequence, so we retrigger the LFOs.
-  if (!controller_.active()) {
-    lfo_reset_counter_ = num_lfo_reset_steps_ - 1;
+  if (patch_.kbd_midi_channel < 34) {
+    if (!controller_.active()) {
+      lfo_reset_counter_ = num_lfo_reset_steps_ - 1;
+    }
+    controller_.NoteOn(note, velocity);
+  } else {
+    voice_[0].Trigger(note, velocity, 0);
   }
-  controller_.NoteOn(note, velocity);
 #ifdef HAS_EASTER_EGG
   if (note - qux_[0] == ((0x29 | 0x15) >> 4)) {
     qux_[1] += ~0xfe;
@@ -126,7 +130,11 @@ void SynthesisEngine::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
 
 /* static */
 void SynthesisEngine::NoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
-  controller_.NoteOff(note);
+  if (patch_.kbd_midi_channel < 34) {
+    controller_.NoteOff(note);
+  } else {
+    voice_[0].Release();
+  }
 }
 
 /* static */
@@ -189,7 +197,9 @@ void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
 /* static */
 uint8_t SynthesisEngine::CheckChannel(uint8_t channel) {
   uint8_t rx_channel = patch_.kbd_midi_channel;
-  if (rx_channel >= 17) rx_channel -= 17;
+  while (rx_channel >= 17) {
+    rx_channel -= 17;
+  }
   return rx_channel == 0 ||
          rx_channel == (channel + 1);
 }

@@ -233,7 +233,7 @@ static const prog_char raw_parameter_definition[
   STR_RES_PRT, STR_RES_PORTA,
 
   PRM_KBD_MIDI_CHANNEL,
-  0, 33, 
+  0, 50, 
   UNIT_MIDI_CHANNEL,
   STR_RES_CHN, STR_RES_MIDI_CHAN,
 

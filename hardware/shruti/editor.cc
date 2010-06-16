@@ -679,7 +679,11 @@ void Editor::PrettyPrintParameterValue(const ParameterDefinition& parameter,
       value = value & 0xf;
       break;
     case UNIT_MIDI_CHANNEL:
-      if (value >= 17) {
+      if (value >= 34) {
+        prefix = '>';
+        value -= 34;
+      }
+      else if (value >= 17) {
         prefix = '+';
         value -= 17;
       }
