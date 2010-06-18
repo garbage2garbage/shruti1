@@ -73,6 +73,7 @@ AudioOutput<PwmOutput<kPinVcoOut>, kAudioBufferSize, kAudioBlockSize> audio_out;
 
 MidiStreamParser<SynthesisEngine> midi_parser;
 
+static const uint16_t kDetailsPageDelay = 900;
 
 // What follows is a list of "tasks" - short functions handling a particular
 // aspect of the synth (rendering audio, updating the LCD display, etc). they
@@ -122,7 +123,7 @@ TASK_BEGIN_NEAR
     // If a button was pressed, perform the action. Otherwise, if nothing
     // happened for 1.5s, update the idle flag.
     if (switch_event.event == EVENT_NONE) {
-      if (switch_event.time > 1500) {
+      if (switch_event.time > kDetailsPageDelay) {
         idle = 1;
       }
     } else {
@@ -151,7 +152,7 @@ TASK_BEGIN_NEAR
     // Update the editor if something happened.
     // Revert back to the main page when nothing happened for 1.5s.
     if (pot_event.event == EVENT_NONE) {
-      if (idle && pot_event.time > 1500) {
+      if (idle && pot_event.time > kDetailsPageDelay) {
         target_page_type = PAGE_TYPE_SUMMARY;
       }
     } else {
