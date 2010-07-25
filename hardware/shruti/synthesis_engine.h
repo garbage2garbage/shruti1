@@ -200,9 +200,6 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
     }
   }
   static const Voice& voice(uint8_t i) { return voice_[i]; }
-  #ifdef HAS_EASTER_EGG
-    static inline uint8_t zobi() { return qux_[1]; }
-  #endif  // HAS_EASTER_EGG
  private:
   // Value of global modulation parameters, scaled to 0-255;
   static uint8_t modulation_sources_[kNumGlobalModulationSources];
@@ -215,9 +212,9 @@ class SynthesisEngine : public hardware_midi::MidiDevice {
   static Voice voice_[kNumVoices];
   static VoiceController controller_;
   static uint8_t oscillator_decimation_;
-  static uint8_t qux_[2];
   static uint8_t nrpn_parameter_number_;
   static uint8_t data_entry_msb_;
+  static uint8_t ignore_note_off_messages_;
 
   // Called whenever a parameter related to LFOs/envelopes is modified (for now
   // everytime a parameter is modified by the user).

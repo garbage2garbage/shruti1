@@ -132,6 +132,10 @@ class Oscillator {
    // Called whenever the parameters of the oscillator change. Can be used
    // to pre-compute parameters, set tables, etc.
    static inline void SetupAlgorithm(uint8_t shape) {
+     if ((mode == FULL && shape > WAVEFORM_QUAD_SAW_PAD) ||
+         (mode == LOW_COMPLEXITY && shape > WAVEFORM_TRIANGLE)) {
+       return;  // Protection against NULL function pointers.
+     }
      if (shape != shape_ || (sweeping_ && shape != WAVEFORM_ANALOG_WAVETABLE)) {
        shape_ = shape;
        if (mode == FULL) {
@@ -402,7 +406,7 @@ class Oscillator {
   // ------- Interpolation between two offsets of a wavetable ------------------
   // 64 samples per cycle.
   static void UpdateWavetable128() {
-    uint8_t balance_index = Swap4(parameter_);
+    uint8_t balance_index = Swap4(parameter_ << 1);
     data_.st.balance = balance_index & 0xf0;
 
     uint8_t wave_index = balance_index & 0xf;

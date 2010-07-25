@@ -19,7 +19,7 @@
 AVR_TOOLS_PATH = /usr/local/CrossPack-AVR/bin
 AVR_ETC_PATH   = /usr/local/CrossPack-AVR/etc
 
-VERSION        = 0.58
+VERSION        = 0.59
 TARGET         = shruti1
 PACKAGES       = hardware/base hardware/hal hardware/hal/devices hardware/midi hardware/utils hardware/shruti
 RESOURCES      = hardware/shruti/resources

@@ -174,8 +174,6 @@ static const prog_char str_res_touch_a_knob_to[] PROGMEM = "touch a knob to";
 static const prog_char str_res_assign_parameter[] PROGMEM = "assign parameter";
 static const prog_char str_res_ready[] PROGMEM = "ready";
 static const prog_char str_res_for_os_update[] PROGMEM = "for os update";
-static const prog_char str_res_p_orleans_21_mn[] PROGMEM = "P.ORLEANS: 21 MN";
-static const prog_char str_res_p_bercy_____S1h[] PROGMEM = "P.BERCY:     +1H";
 static const prog_char str_res_patch_bank[] PROGMEM = "patch bank";
 static const prog_char str_res_step_sequencer[] PROGMEM = "step sequencer";
 static const prog_char str_res_load[] PROGMEM = "load";
@@ -186,7 +184,7 @@ static const prog_char str_res_x2_ext[] PROGMEM = "x2 ext";
 static const prog_char str_res__2_ext[] PROGMEM = "/2 ext";
 static const prog_char str_res__4_ext[] PROGMEM = "/4 ext";
 static const prog_char str_res__8_ext[] PROGMEM = "/8 ext";
-static const prog_char str_res_mutable____v0_58[] PROGMEM = "mutable    v0.58";
+static const prog_char str_res_mutable____v0_59[] PROGMEM = "mutable    v0.59";
 static const prog_char str_res_instruments_671[] PROGMEM = "instruments -1";
 static const prog_char str_res_equal[] PROGMEM = "equal";
 static const prog_char str_res_just[] PROGMEM = "just";
@@ -373,8 +371,6 @@ PROGMEM const prog_char* string_table[] = {
   str_res_assign_parameter,
   str_res_ready,
   str_res_for_os_update,
-  str_res_p_orleans_21_mn,
-  str_res_p_bercy_____S1h,
   str_res_patch_bank,
   str_res_step_sequencer,
   str_res_load,
@@ -385,7 +381,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res__2_ext,
   str_res__4_ext,
   str_res__8_ext,
-  str_res_mutable____v0_58,
+  str_res_mutable____v0_59,
   str_res_instruments_671,
   str_res_equal,
   str_res_just,

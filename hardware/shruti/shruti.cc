@@ -161,11 +161,6 @@ TASK_BEGIN_NEAR
     }
     TASK_SWITCH;
     
-#ifdef HAS_EASTER_EGG
-    if (engine.zobi() == 18) {
-      editor.DisplaySplashScreen(STR_RES_P_ORLEANS_21_MN);
-    } else
-#endif  // HAS_EASTER_EGG
     if (target_page_type == PAGE_TYPE_SUMMARY) {
       editor.DisplaySummary();
     } else if (target_page_type == PAGE_TYPE_DETAILS) {
@@ -287,7 +282,9 @@ Task Scheduler::tasks_[] = {
     { &MidiTask, 6 },
     { &UpdateLedsTask, 4 },
     { &UpdateDisplayTask, 2 },
+#ifdef HAS_GLITCH_MONITORING
     { &AudioGlitchMonitoringTask, 1 },
+#endif  // HAS_GLITCH_MONITORING
     { &InputTask, 2 },
     { &CvTask, 1 },
 };
@@ -315,7 +312,7 @@ void Init() {
   
   display.SetBrightness(29);
   display.SetCustomCharMap(character_table[0], 8);
-  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_58);
+  editor.DisplaySplashScreen(STR_RES_MUTABLE____V0_59);
   
   midi_io.Init();
   pots.Init();

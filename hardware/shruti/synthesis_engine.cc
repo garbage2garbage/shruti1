@@ -47,12 +47,12 @@ Patch SynthesisEngine::patch_;
 Voice SynthesisEngine::voice_[kNumVoices];
 VoiceController SynthesisEngine::controller_;
 Lfo SynthesisEngine::lfo_[kNumLfos];
-uint8_t SynthesisEngine::qux_[2];
 uint8_t SynthesisEngine::nrpn_parameter_number_;
 uint8_t SynthesisEngine::data_entry_msb_;
 uint8_t SynthesisEngine::num_lfo_reset_steps_;
 uint8_t SynthesisEngine::lfo_reset_counter_;
 uint8_t SynthesisEngine::lfo_to_reset_;
+uint8_t SynthesisEngine::ignore_note_off_messages_;
 
 /* </static> */
 
@@ -118,18 +118,13 @@ void SynthesisEngine::NoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
   } else {
     voice_[0].Trigger(note, velocity, 0);
   }
-#ifdef HAS_EASTER_EGG
-  if (note - qux_[0] == ((0x29 | 0x15) >> 4)) {
-    qux_[1] += ~0xfe;
-  } else {
-    qux_[1] ^= qux_[1];
-  }
-  qux_[0] = note;
-#endif  // HAS_EASTER_EGG
 }
 
 /* static */
 void SynthesisEngine::NoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+  if (ignore_note_off_messages_) {
+    return;
+  }
   if (patch_.kbd_midi_channel < 34) {
     controller_.NoteOff(note);
   } else {
@@ -160,11 +155,16 @@ void SynthesisEngine::ControlChange(uint8_t channel, uint8_t controller,
       case hardware_midi::kDataEntryLsb:
         value = value | data_entry_msb_;
         if (nrpn_parameter_number_ < sizeof(Patch) - 1) {
-          const ParameterDefinition& p = PatchMetadata::parameter_definition(
-              nrpn_parameter_number_);
-          if (value >= p.min_value && value <= p.max_value) {
-            SetParameter(p.id, value);
-          }
+          SetParameter(nrpn_parameter_number_, value);
+        }
+        data_entry_msb_ = 0;
+        break;
+      case hardware_midi::kHoldPedal:
+        if (value >= 64) {
+          ignore_note_off_messages_ = 1;
+        } else {
+          ignore_note_off_messages_ = 0;
+          controller_.AllNotesOff();
         }
         break;
       case hardware_midi::kPortamentoTimeMsb:

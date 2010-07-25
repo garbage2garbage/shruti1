@@ -108,7 +108,7 @@ const PageDefinition Editor::page_definition_[] = {
 /* <static> */
 uint8_t Editor::current_display_type_;
 
-ParameterPage Editor::current_page_ = PAGE_FILTER_FILTER;
+ParameterPage Editor::current_page_;
 ParameterPage Editor::last_visited_page_[kNumGroups] = {
     PAGE_OSC_OSC_1,
     PAGE_FILTER_FILTER,
@@ -140,6 +140,7 @@ ParameterAssignment Editor::parameter_to_assign_;
 
 /* static */
 void Editor::Init() {
+  current_page_ = PAGE_FILTER_FILTER;
   // Check that the pages are in the right order in the PageDefinition
   // structure. Otherwise we won't be able to do fancy addressing.
   for (uint8_t i = 0; i < kNumPages; ++i) {

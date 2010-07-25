@@ -182,8 +182,6 @@ touch a knob to
 assign parameter
 ready
 for os update
-P.ORLEANS: 21 MN
-P.BERCY:     +1H
 patch bank
 step sequencer
 load
@@ -195,7 +193,7 @@ x2 ext
 /4 ext
 /8 ext
 
-mutable    v0.58
+mutable    v0.59
 instruments \x06\x07-1
 equal
 """
