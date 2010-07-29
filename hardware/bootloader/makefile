@@ -106,7 +106,6 @@ AVRDUDE_COM_OPTS = -V -p $(DMCU)
 AVRDUDE_COM_OPTS += -C $(AVRDUDE_CONF)
 AVRDUDE_ISP_OPTS = -c avrispmkII -P usb -Ulock:w:0x0F:m
 
-
 # ------------------------------------------------------------------------------
 # Main targets
 # ------------------------------------------------------------------------------

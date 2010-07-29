@@ -137,7 +137,7 @@ extern const prog_uint8_t chr_res_special_characters[] PROGMEM;
 #define STR_RES_PWM 26  // pwm
 #define STR_RES_NOISE 27  // noise
 #define STR_RES_VOWEL 28  // vowel
-#define STR_RES_DRONE 29  // drone
+#define STR_RES_WAVTBL 29  // wavtbl
 #define STR_RES_SWEEP 30  // sweep
 #define STR_RES_ZSYNC 31  // zsync
 #define STR_RES_PAD 32  // pad

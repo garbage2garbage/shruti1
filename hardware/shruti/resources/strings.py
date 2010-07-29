@@ -51,7 +51,7 @@ fm
 pwm
 noise
 vowel
-drone
+wavtbl
 sweep
 zsync
 pad

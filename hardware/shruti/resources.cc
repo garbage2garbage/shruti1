@@ -54,7 +54,7 @@ static const prog_char str_res_8bits[] PROGMEM = "8bits";
 static const prog_char str_res_pwm[] PROGMEM = "pwm";
 static const prog_char str_res_noise[] PROGMEM = "noise";
 static const prog_char str_res_vowel[] PROGMEM = "vowel";
-static const prog_char str_res_drone[] PROGMEM = "drone";
+static const prog_char str_res_wavtbl[] PROGMEM = "wavtbl";
 static const prog_char str_res_sweep[] PROGMEM = "sweep";
 static const prog_char str_res_zsync[] PROGMEM = "zsync";
 static const prog_char str_res_pad[] PROGMEM = "pad";
@@ -251,7 +251,7 @@ PROGMEM const prog_char* string_table[] = {
   str_res_pwm,
   str_res_noise,
   str_res_vowel,
-  str_res_drone,
+  str_res_wavtbl,
   str_res_sweep,
   str_res_zsync,
   str_res_pad,
