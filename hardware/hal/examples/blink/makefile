@@ -1,6 +1,6 @@
-# Copyright 2009 Olivier Gillet.
+# Copyright 2009 Emilie Gillet.
 #
-# Author: Olivier Gillet (ol.gillet@gmail.com)
+# Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 # Parts of this file adapted from the Arduino command line tools Makefile
 # M J Oldfield ; mellis, eighthave, oli.keller.
 #

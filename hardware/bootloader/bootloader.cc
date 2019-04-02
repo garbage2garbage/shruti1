@@ -1,6 +1,6 @@
-// Copyright 2009 Olivier Gillet.
+// Copyright 2009 Emilie Gillet.
 //
-// Adapted by Olivier Gillet (ol.gillet@gmail.com) from the original Arduino
+// Adapted by Emilie Gillet (emilie.o.gillet@gmail.com) from the original Arduino
 // bootloader contributed by: D. Mellis, D. Cuartielles, Dr. Erik Lins,
 // Karl Pitrich, Jason P. Kyle. Some of the makefile settings used here
 // are from D. Brink's 1k bootloader.
